@@ -28,7 +28,7 @@ One source of truth for what the game is. Do not reopen a Locked line without ne
 The next work is in `HANDOFF.md`, in order. Do not start a later item while an earlier one is still only a blurb.
 
 - Beating Mabel pays marks and lights the Heart house. The chapel stays warm. Done, in `heartsLit`.
-- The well, Nix, the false queen, the scaffold, and the king only announce themselves. Their blurbs are the intent, not a promise the code keeps. **Update: all of these now play — well, tiles, yard, Nix, scaffold, and the king's die are wired. The Nix lamp game with the wick is still reserved, and the queen contest at square 28 is in `queenFaced` but is currently too hard to win (see HANDOFF).**
+- The well, Nix, the false queen, the scaffold, and the king only announce themselves. Their blurbs are the intent, not a promise the code keeps. **Update: all of these now play — well, tiles, yard, Nix, scaffold, and the king's die are wired and reachable. The Nix lamp game with the wick is still reserved, and the queen contest at square 28 is in `queenFaced` but is currently too hard to win (see HANDOFF).**
 - Making the bid drops the bridge and the water goes silver. Done, in `spadesLit`. The border dice still do not spread the silver. **Also now done: a border win sets `silver` when `spadesLit` is already true.**
 - `lightCopy` in `road.ts` is read once the Heart house is lit. It still does nothing for the Spade house or the mire.
 - Omens are written and unused. Do not wire them until the squares they point at are real.

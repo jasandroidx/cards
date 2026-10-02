@@ -1,4 +1,4 @@
-import { beats, shuffleDeck, type Card } from "./sitting";
+import { beats, shuffleDeck, type Card } from "./sitting.ts";
 
 /**
  * Square 28, the Queen. She plays a card and you have to beat it, several

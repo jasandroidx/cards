@@ -11,6 +11,7 @@ import { Queen } from "@/components/reliquary/Queen";
 import { Well } from "@/components/reliquary/Well";
 import { Nix, Tiles, Yard } from "@/components/reliquary/Mire";
 import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/reliquary/mire";
+import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
 import { signSound } from "@/lib/reliquary/atmosphere";
 
@@ -327,6 +328,25 @@ export function Board() {
     }
     if (next === 10) {
       setNote(`A ${ROLL[n]}. Mabel has five dice. Beat her.`);
+      return;
+    }
+    if (next === 26) {
+      // The King moves once, in the note. No second walk: he never calls
+      // setPosition, so the player stays on 26 either way.
+      const k = 1 + Math.floor(Math.random() * 6);
+      const call = kingCalls(k, carried.length > 0);
+      if (call === "passed") {
+        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Even. You stepped past him.`);
+        return;
+      }
+      if (call === "card") {
+        const lost = carried[0];
+        setCarried(carried.slice(1));
+        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd. He takes the ${rankLabel(lost.rank)} from your hand.`);
+        return;
+      }
+      setSkipRoll(true);
+      setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and there is nothing in your hand, so he takes your next roll.`);
       return;
     }
     if (jumped) setNote(`${jumped} ${place?.name ?? ""}.`.trim());

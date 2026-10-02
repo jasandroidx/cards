@@ -126,8 +126,13 @@ Three dice already play from square 16 on, in `Games.tsx`. `borderEnd` in `Board
 ### 6. The false queen's undo — **DONE**
 Monte win grants `undo` in `boons` (once). Loss adds nothing. Payout unchanged.
 
-### 7. The king on one square — **DONE**
+### 7. The king on one square — **DONE, AND NOW ACTUALLY WIRED**
 Square 26: when landing, roll one die in effect (the note). Even → stay and note says stepped past. Odd → if `carried` has a card, he takes one; if empty, he takes the next roll (`skipRoll`). No board game. He moves once.
+
+This was previously marked done on the strength of a scratch file in /tmp that
+never touched the game. `Board.tsx` had no square 26 branch at all — no dice, no
+card taken, no roll skipped. A grep for the branch now proves it is there, and
+`src/lib/reliquary/king.ts` holds the rule. Full truth table is in the test file.
 
 ### 8. The house on the scaffold — **DONE**
 Square 25: a timer-based house of cards. If it stands when settled, add `column` to `boons` (once). If it falls, no boon. Pure rules + simple UI.
@@ -143,6 +148,22 @@ Also fixed in this pass: the well, letter tiles, yard, Nix, and the scaffold wer
 ### 10. The last solitaire
 
 Square 29, only when `queenFaced` is set and `reliquary` is owned. Open solitaire again, using `src/lib/reliquary/klondike.ts`, not a new rules file. The deck is a full deck. Apply only the boons the player actually has. `heart`: draw one, not three, when the stock deals three. `undo`: one take-back in the whole game. `column`: a queen may be placed on an empty column. No boon, no mercy. Winning this is the end. The note says you are back in the chair. Do not start this until 2, 6, and 8 have somewhere to store `boons`.
+
+### The tests were lying too — **FIXED**
+
+`npm test` was two commands joined with `&&`. The first one failed on 8
+pre-existing share-card assertions, so the `&&` short-circuited and the second
+half never ran. That meant 56 tests, including every reliquary rule test, had
+been silently skipped and the reported "197 tests" was only half the suite.
+
+Both halves now run in one node invocation, so the exit code reflects
+everything. The count went from 197 to 276 and the 8 failures are unchanged,
+pre-existing, and in `grok-pwa-plugin.test.mjs`.
+
+`src/lib/reliquary/reliquary-rules.test.ts` covers the pure rules for the
+border, the king, the well, the yard, Nix, the scaffold, and the Queen. Those
+harnesses used to live in /tmp and died with the session, which is exactly how
+the missing king survived three rounds of "tests pass".
 
 ### Leave for later
 
