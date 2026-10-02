@@ -7,6 +7,10 @@ import { Border, Monte, Yacht } from "@/components/reliquary/Games";
 import { Shout } from "@/components/reliquary/Shout";
 import { borderAfter, borderPay, borderSpreadsSilver, type BorderResult } from "@/lib/reliquary/border";
 import { Scaffold } from "@/components/reliquary/Scaffold";
+import { Queen } from "@/components/reliquary/Queen";
+import { Well } from "@/components/reliquary/Well";
+import { Nix, Tiles, Yard } from "@/components/reliquary/Mire";
+import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/reliquary/mire";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
 import { signSound } from "@/lib/reliquary/atmosphere";
 
@@ -163,6 +167,9 @@ type Save = {
   heartsLit?: boolean;
   spadesLit?: boolean;
   silver?: boolean;
+  queenFaced?: boolean;
+  letters?: string[];
+  word?: string | null;
   boons?: string[];
   position: number;
   carried?: { rank: number; suit: string }[];
@@ -184,7 +191,7 @@ export function Board() {
   const [open, setOpen] = useState(false);
   const [table, setTable] = useState(false);
   const [euchreOpen, setEuchreOpen] = useState(false);
-  const [playing, setPlaying] = useState<"yacht" | "monte" | "border" | "scaffold" | null>(null);
+  const [playing, setPlaying] = useState<"yacht" | "monte" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "queen" | null>(null);
   const [shouting, setShouting] = useState(false);
   const [picked, setPicked] = useState(0);
   const [marks, setMarks] = useState(0);
@@ -193,6 +200,9 @@ export function Board() {
   const [heartsLit, setHeartsLit] = useState(false);
   const [spadesLit, setSpadesLit] = useState(false);
   const [silver, setSilver] = useState(false);
+  const [queenFaced, setQueenFaced] = useState(false);
+  const [letters, setLetters] = useState<string[]>([]);
+  const [word, setWord] = useState<string | null>(null);
   const [boons, setBoons] = useState<string[]>([]);
   const [position, setPosition] = useState(-1);
   const [lastRoll, setLastRoll] = useState(0);
@@ -350,6 +360,9 @@ export function Board() {
           setHeartsLit(Boolean(data.heartsLit));
           setSpadesLit(Boolean(data.spadesLit));
           setSilver(Boolean(data.silver));
+          setQueenFaced(Boolean(data.queenFaced));
+          setLetters(Array.isArray(data.letters) ? data.letters : []);
+          setWord(typeof data.word === "string" ? data.word : null);
           setBoons(Array.isArray(data.boons) ? data.boons : []);
           setPosition(data.position);
           const held = Array.isArray(data.carried) ? data.carried : [];
@@ -379,9 +392,9 @@ export function Board() {
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, boons, position, carried, fallen, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -583,7 +596,7 @@ export function Board() {
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
-  const litClass = warm ? " warm" : cool ? (silver ? " cool silver" : " cool") : "";
+  const litClass = warm ? " warm" : cool ? (silver ? " cool silver" : " cool") : queenFaced ? " faced" : "";
 
   return (
     <section className={`scene${litClass}`} aria-label={age.name}>
@@ -644,7 +657,7 @@ export function Board() {
                           : age.name}
             </strong>
             <span>{where(marks, owned, mawBeaten, position, sat)}</span>
-            {(heartsLit || spadesLit) && <em className="lit">{lightCopy(position)}</em>}
+            {(heartsLit || spadesLit || queenFaced) && <em className="lit">{lightCopy(position)}</em>}
             {note && <em>{note}</em>}
           </>
         ) : (
@@ -721,6 +734,36 @@ export function Board() {
         {position === 12 && !shouting && (
           <button className="book-btn" type="button" onClick={() => setShouting(true)}>
             The shout
+          </button>
+        )}
+        {position === WELL_SQUARE && roadOpen("mire", owned, mawBeaten) && playing !== "well" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("well")}>
+            The well
+          </button>
+        )}
+        {(position === 19 || position === 21) && playing !== "tile" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("tile")}>
+            A letter tile
+          </button>
+        )}
+        {position === YARD_SQUARE && playing !== "yard" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("yard")}>
+            The yard
+          </button>
+        )}
+        {position === NIX_SQUARE && playing !== "nix" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("nix")}>
+            Nix
+          </button>
+        )}
+        {position === 25 && playing !== "scaffold" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("scaffold")}>
+            The scaffold
+          </button>
+        )}
+        {position === 28 && roadOpen("queen", owned, mawBeaten) && !queenFaced && playing !== "queen" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("queen")}>
+            Her coat
           </button>
         )}
         {mode === "bid" && (
@@ -950,6 +993,70 @@ export function Board() {
       )}
 
       {shouting && <Shout onLose={riverTakes} onClear={riverCleared} onClose={() => setShouting(false)} />}
+
+      {playing === "well" && (
+        <Well
+          onClear={() => {
+            setPocket((list) => (list.includes("black-ace") ? list : [...list, "black-ace"]));
+            setNote("You caught the last ledge. You carry the Black Ace.");
+          }}
+          onFail={() => setNote("You went down the well. Nothing comes back up.")}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+
+      {playing === "tile" && (
+        <Tiles
+          letters={letters}
+          onAddLetter={(letter) => {
+            setLetters(addTile(letters));
+            setNote(`A tile in the mud: ${letter}.`);
+          }}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+
+      {playing === "yard" && (
+        <Yard
+          letters={letters}
+          word={word}
+          onSetWord={(made) => {
+            setLetters((left) => left.slice(0, Math.max(0, left.length - 3)));
+            setWord(made);
+            setNote(`You set the word ${made} in the mud.`);
+          }}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+
+      {playing === "nix" && (
+        <Nix
+          pocket={pocket}
+          word={word}
+          onPass={(route) => {
+            const spent = nixSpend(pocket, word);
+            setPocket(spent.pocket);
+            setWord(spent.word);
+            setNote(route === "ace" ? "The Black Ace goes into the mire. It drops. You pass Nix." : `You say the word ${word}. It drops. You pass Nix.`);
+          }}
+          onLamp={() => {
+            setPlaying(null);
+            setNote("Nix opens the lamp. Loose cards creep in at the edge of the light.");
+          }}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+
+      {playing === "queen" && (
+        <Queen
+          onWon={() => {
+            setQueenFaced(true);
+            setNote("You beat her four times. There is a face on her now.");
+          }}
+          onLost={() => setNote("Nothing left to answer. Her face is still gone, and you stay on the square.")}
+          onClose={() => setPlaying(null)}
+        />
+      )}
 
       {euchreOpen && (
         <Euchre onEarn={(amount) => setMarks((value) => Math.max(0, value + amount))} onClose={() => setEuchreOpen(false)} />

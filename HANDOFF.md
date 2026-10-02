@@ -132,9 +132,13 @@ Square 26: when landing, roll one die in effect (the note). Even → stay and no
 ### 8. The house on the scaffold — **DONE**
 Square 25: a timer-based house of cards. If it stands when settled, add `column` to `boons` (once). If it falls, no boon. Pure rules + simple UI.
 
-### 9. The Queen gets her face
+### 9. The Queen gets her face — **DONE, WITH A KNOWN PROBLEM**
 
-Square 28, only when `mawBeaten` is true and `queen` is in `owned`. A short contest on her: she plays a card, you have to beat it, several times, and she tries to throw you off. Win, set `queenFaced`, and the queen scene is no longer only a shadow. Lose, you stay on the square and the note says her face is still gone. Do not spend marks to skip her. Do not draw a new portrait unless one already exists in `public/`. A wash and the line are enough.
+Square 28, gated on `mawBeaten` and `queen` in `owned`. `src/lib/reliquary/queen.ts` is the pure rules, `Queen.tsx` renders it. Four rounds: she leads a card, you must beat it with `beats` from `sitting.ts`, and on round 2 she throws a card out of your hand. Win sets `queenFaced`; lose leaves you on the square. No marks to skip. It reuses the existing `public/queen.jpg` and lifts the shadow with a `.scene.faced` wash plus the `lightCopy` line — no new portrait.
+
+**Known problem, left for a later pass.** The contest is too hard: with `QUEEN_HAND = QUEEN_ROUNDS + 2` (six cards, four rounds, one stolen card), a player who plays optimally still only wins about **64%** of deals. Three different strategies all land near 63%, so it is not a bad-bot artifact — the ranking is simply unforgiving. She leads her *strongest* answerable card first, which is already the fair ordering; leading her weakest instead drops the win rate to ~31%. Raising the hand to `QUEEN_ROUNDS + 3` reaches ~83% but makes for a cluttered board. The card-theft on round 2 is my own reading of "she tries to throw you off" and is the main thing costing the player. Worth revisiting whether that theft should exist at all, or whether the difficulty should come from somewhere else.
+
+Also fixed in this pass: the well, letter tiles, yard, Nix, and the scaffold were written and typechecked but had **no dock button and were never mounted**, so jobs 5 and 8 were not actually playable. They are wired now.
 
 ### 10. The last solitaire
 

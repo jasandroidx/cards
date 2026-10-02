@@ -1514,3 +1514,14 @@ body::before {
 .scene.silver .scene-name {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
+
+/* Her face is back. Lifts the shadow off the plate without redrawing it. */
+.scene.faced .scene-img {
+  filter: brightness(1.16) contrast(1.06) saturate(1.14);
+}
+
+.scene.faced .scene-vignette {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(232, 214, 226, 0.2), transparent 70%),
+    radial-gradient(ellipse at center, transparent 48%, rgba(10, 6, 10, 0.34) 100%);
+}

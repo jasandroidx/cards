@@ -124,20 +124,20 @@ Intent lives in `src/lib/reliquary/road.ts`. Only the stops in the first table a
 | 12 | The River | way | The Shout. Same color or the next rank, before it lands |
 | 13 | Ash | road | Nothing |
 | 14 | The Bridge | gate | The bid and euchre. A made bid drops the bridge; the water goes silver |
-| 15 | Far Bank | road | Nothing |
+| 15 | Far Bank | road | Nothing. A border loss can push you back to here, never past it |
 | 16 | The Border | way | Three dice if you are here or farther in the stretch |
-| 17 | The Well | way | Name only |
+| 17 | The Well | way | Fall the ledges. Clear it and you carry the Black Ace |
 | 18 | The High Ledge | shortcut | Skips to 22 |
-| 19 | A Tile | road | Nothing |
-| 20 | The Yard | way | Name only |
-| 21 | A Tile | road | Nothing |
+| 19 | A Tile | road | Take one letter |
+| 20 | The Yard | way | Set three letters into a word |
+| 21 | A Tile | road | Take one letter |
 | 22 | Ledge's End | road | Nothing |
-| 23 | Nix | gate | Name only |
+| 23 | Nix | gate | Spend the Black Ace or a word to pass. Otherwise the lamp with a wick |
 | 24 | The False Queen | way | Monte if you are here or farther |
-| 25 | The Scaffold | way | Name only |
-| 26 | The King | trap | Name only. Blurb: a trap. Not built |
+| 25 | The Scaffold | way | Keep the house of cards standing until the lamp settles |
+| 26 | The King | trap | One die in the note. Even, you pass. Odd, he takes a card, or your next roll |
 | 27 | Ash Wood | road | The Maw stands in this stretch until you beat it |
-| 28 | The Queen | gate | Shut until the Maw is beaten and her coat is bought |
+| 28 | The Queen | gate | Shut until the Maw is beaten and her coat is bought. Beat her four times and her face comes back |
 | 29 | The Reliquary | end | Shut until the Maw is beaten and the key is bought |
 
 `OMENS` in `road.ts` is a list of die faces that would send you somewhere. Nothing reads it yet.
@@ -202,7 +202,11 @@ Tables: `solitaire.jpg`, `war.jpg`, `fish.jpg`, `memory.jpg`, `darts.jpg`, `four
 | `fallen` | True once you have fallen. Never clears |
 | `heartsLit` | True once you have beaten Mabel. The chapel stays warm |
 | `spadesLit` | True once you have made the bid. The bridge stays down |
-| `boons` | Earned advantages carried to the last solitaire. `heart` so far. Does nothing yet |
+| `silver` | True once a border win has run the silver past the bank |
+| `queenFaced` | True once you have beaten her four times at square 28 |
+| `letters` | Letters taken from the tiles at 19 and 21 |
+| `word` | The three-letter word set in the yard at square 20 |
+| `boons` | Earned advantages carried to the last solitaire. `heart`, `undo`, `column` so far. Does nothing yet |
 
 ## Not built, on purpose
 
