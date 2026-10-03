@@ -322,7 +322,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "clubs",
     game: "Walk",
-    blurb: "Flesh of cards. Bone of dice. The Maw. It is in the road. It does not want marks — it wants the ante. Feed it a poker chip, or be eaten.",
+    blurb: "Flesh of cards. Bone of dice. The Maw. It is in the road. It does not want poker chips — it wants the ante. Feed it a poker chip, or be eaten.",
     labeled: false,
   },
   {

@@ -66,7 +66,7 @@ const AGES = [
     name: "The Maw",
     src: "/plates/maw.jpg",
     alt: "The Maw — a faceless thing of cards and bone blocking the mountain road",
-    line: "Flesh of cards. Bone of dice. It does not want marks.",
+    line: "Flesh of cards. Bone of dice. It does not want poker chips.",
   },
   {
     at: 28,
@@ -130,8 +130,8 @@ const WAYLAY: Record<number, "sift" | "glimpse"> = {
 const JOKER = [
   "The air of light is gone. The fall was a silence. You are nothing now. A face without a suit.",
   "We are Under the Table. I'm the Joker. I wasn't in that deck.",
-  "A new fool. Win one hand at the lamp. It pays a mark.",
-  "Spend the mark and the chapel opens. Then take the road. I'm leaving.",
+  "A new fool. Win one hand at the lamp. It pays a poker chip.",
+  "Spend the poker chip and the chapel opens. Then take the road. I'm leaving.",
 ];
 
 /** One line for the player who has signed before. The table remembers. */
@@ -156,11 +156,11 @@ function jokerTaunt(owned: string[], mawBeaten: boolean, queenFaced: boolean): s
   if (owned.includes("yard")) return "Three letters. You spell like a child. Keep walking.";
   if (owned.includes("bridge")) return "The river took your bid and kept the change.";
   if (owned.includes("chapel")) return "Kindled, are we? Burn brightly. It makes the dark darker.";
-  return "Still at the lamp, little fool? The marks won't spend themselves.";
+  return "Still at the lamp, little fool? The poker chips won't spend themselves.";
 }
 
 /** The Joker reacts to what you DO, not just where you are. Session-scoped — he forgets nothing, but he paces himself. */
-const JOKER_LOSS_FIRST = "First blood. The lamp keeps the mark; I keep the memory.";
+const JOKER_LOSS_FIRST = "First blood. The lamp keeps the poker chip; I keep the memory.";
 const JOKER_LOSS_AGAIN = [
   "Again? The lamp is patient. I am not.",
   "You lose the way the river flows. Naturally.",
@@ -176,10 +176,10 @@ const JOKER_BROKE = "Empty. The lamp looks at your empty hands and laughs.";
 /** The rite spoken when a gate's chain breaks. Not a transaction — a ritual. */
 const GATE_RITE: Record<string, string> = {
   chapel: "One debt paid. A chain breaks. The rules loosen. Enter the chapel and find what is broken.",
-  bridge: "Two marks spent. Another chain falls. The river remembers being crossed.",
-  yard: "Two marks spent. Another chain falls. The mud keeps what it is given.",
-  queen: "Three marks. The last lock. The heart of the Table waits — throne and dungeon. Give her a suit. Give her a law. Restore her.",
-  reliquary: "Three marks. The final chain. It opens.",
+  bridge: "Two poker chips spent. Another chain falls. The river remembers being crossed.",
+  yard: "Two poker chips spent. Another chain falls. The mud keeps what it is given.",
+  queen: "Three poker chips. The last lock. The heart of the Table waits — throne and dungeon. Give her a suit. Give her a law. Restore her.",
+  reliquary: "Three poker chips. The final chain. It opens.",
 };
 
 /** The current directive, in plain language. Answers "what do I do now." */
@@ -194,29 +194,29 @@ function objective(
   if (!signed) return "Sign the paper.";
   const gate = nextGate(owned, mawBeaten);
   if (position < 0 && !owned.includes("chapel")) {
-    if (marks < 1) return "Win a mark at the lamp — the flame is all that says you are here. Sit at any table game.";
+    if (marks < 1) return "Win a poker chip at the lamp — the flame is all that says you are here. Sit at any table game.";
     return "Open the chapel.";
   }
   if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
   if (position >= 27 && position < 28 && !mawBeaten) return "Face the Maw. It loves poker chips.";
-  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need marks.";
+  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need poker chips.";
   if (!gate) return "Walk to the reliquary at square 29.";
   if (marks < gate.cost)
-    return `Earn ${gate.cost} ${gate.cost === 1 ? "mark" : "marks"} to open ${gate.opens}. Play hands back in the hall.`;
+    return `Earn ${gate.cost} ${gate.cost === 1 ? "poker chip" : "poker chips"} to open ${gate.opens}. Play hands back in the hall.`;
   return `Open ${gate.opens}. Then roll to walk.`;
 }
 
 function where(marks: number, owned: string[], mawBeaten: boolean, position: number, sat: number): string {
   const gate = nextGate(owned, mawBeaten);
-  const purse = `${marks} ${marks === 1 ? "mark" : "marks"}.`;
+  const purse = `${marks} ${marks === 1 ? "poker chip" : "poker chips"}.`;
   if (position >= 27 && position < 28 && !mawBeaten) {
-    return "It is lying in the road. It loves poker chips. Marks will not move it.";
+    return "It is lying in the road. It loves poker chips. Yours will not move it.";
   }
   if (position === 26 && !mawBeaten) {
     return "The king's square. Beyond him the dark has teeth: it loves a poker chip, and it eats the empty-handed. Go back kindled, or don't go.";
   }
   if (position < 0 && !owned.includes("chapel")) {
-    if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a mark.";
+    if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
     return `${purse} Open the chapel. Then take the road.`;
   }
   if (position < 0) return `${purse} The chapel is open. Take the road and roll.`;
@@ -242,8 +242,8 @@ function linesFor(
   const lines = ["These came down with you. The rest are still in the dark."];
   if (position > 0) lines.push("Someone went down first.");
   if (marks > 0) lines.push("A place will agree, if you play it.");
-  if (pocket.includes("Blank card")) lines.push("One card has no face. A gate will take it instead of marks.");
-  if (blankSpent) lines.push("The blank card is gone. A way opened without marks.");
+  if (pocket.includes("Blank card")) lines.push("One card has no face. A gate will take it instead of poker chips.");
+  if (blankSpent) lines.push("The blank card is gone. A way opened without poker chips.");
   if (pocket.includes("Bent key") && !cupboard) lines.push("A bent key. The cupboard in the room will take it.");
   if (cupboard) lines.push("Inside the cupboard, scratched in the wood: 4, 1, 8.");
   if (pocket.includes("Cracked cup")) lines.push("The cracked cup looks through the far wall of the cell.");
@@ -993,12 +993,12 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (!gate) {
       setNote("You feed the fire a wax. The flames lean toward the reliquary. It is waiting.");
     } else if (gate.key === "chapel") {
-      setNote("You feed the fire a wax. In the flames: a chapel door, and a chain. One mark breaks it.");
+      setNote("You feed the fire a wax. In the flames: a chapel door, and a chain. One poker chip breaks it.");
     } else if (gate.key === "maw" || (position >= 26 && !mawBeaten)) {
-      setNote("You feed the fire a wax. In the flames: teeth. Cards. Bone. It does not want marks.");
+      setNote("You feed the fire a wax. In the flames: teeth. Cards. Bone. It does not want poker chips.");
     } else {
       const name = gate.opens.charAt(0).toLowerCase() + gate.opens.slice(1);
-      setNote(`You feed the fire a wax. In the flames: ${name}, and a chain. ${gate.cost} marks break it.`);
+      setNote(`You feed the fire a wax. In the flames: ${name}, and a chain. ${gate.cost} poker chips break it.`);
     }
   }
 
@@ -1037,7 +1037,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     } else {
       streakRef.current = 0; resetSting(); lossSound();
       setMarks((value) => Math.max(0, value - 1));
-      setNote("It does not move. It takes a mark.");
+      setNote("It does not move. It takes a poker chip.");
     }
   }
 
@@ -1049,7 +1049,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       return;
     }
     if (result === "win") {
-      setNote("You took the border, and a mark for it. The water is not silver yet.");
+      setNote("You took the border, and a poker chip for it. The water is not silver yet.");
       return;
     }
     if (result === "lose") {
@@ -1195,7 +1195,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       </div>
       <div className="grain" aria-hidden="true" />
       {burst > 0 && (
-        <div key={burst} className="mark-burst" aria-hidden="true">
+        <div key={burst} className="poker chip-burst" aria-hidden="true">
           <i />
           <i />
           <i />
@@ -1267,7 +1267,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           aria-label="A grave"
           onClick={() =>
             setNote(
-              `A grave. ${grave.marks} ${grave.marks === 1 ? "mark" : "marks"}. It got this far. The dirt is fresh.`
+              `A grave. ${grave.marks} ${grave.marks === 1 ? "poker chip" : "poker chips"}. It got this far. The dirt is fresh.`
             )
           }
         />
@@ -1732,7 +1732,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             setPlaying(null);
             setMarks((value) => Math.max(0, value - 2));
             streakRef.current = 0; resetSting(); lossSound();
-            setNote("Two duels. Nix takes two marks and stays in the road.");
+            setNote("Two duels. Nix takes two poker chips and stays in the road.");
           }}
           onClose={() => setPlaying(null)}
         />
