@@ -13,6 +13,7 @@ import { Finale } from "@/components/reliquary/Finale";
 import { Queen } from "@/components/reliquary/Queen";
 import { Well } from "@/components/reliquary/Well";
 import { Nix, NixLamp, Tiles, Yard } from "@/components/reliquary/Mire";
+import { Noughts } from "@/components/reliquary/Noughts";
 import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/reliquary/mire";
 import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
@@ -239,8 +240,6 @@ function linesFor(
   blankSpent: boolean,
   cupboard: boolean,
   hearthFed: boolean,
-  plankPried: boolean,
-  chainHauled: boolean,
 ): string[] {
   const lines = ["These came down with you. The rest are still in the dark."];
   if (position > 0) lines.push("Someone went down first.");
@@ -253,10 +252,8 @@ function linesFor(
   if (pocket.includes("Torn half")) lines.push("Half a two of spades. The other half is somewhere.");
   if (pocket.includes("Mended two")) lines.push("A mended two of spades. Across the tear: he deals last.");
   if (pocket.includes("Folded scrap")) lines.push("A folded scrap. 'Don't let him deal.'");
-  if (pocket.includes("Worn die")) lines.push("A bone die with no pips. Every face is a blank.");
+  if (pocket.includes("Drowned card")) lines.push("A drowned card. On its back, in pencil: NIX.");
   if (hearthFed) lines.push("You fed the chapel hearth. It showed you her hands.");
-  if (plankPried) lines.push("You pried a plank on the bridge. The die beneath had no pips left.");
-  if (chainHauled) lines.push("You hauled the river's chain. It gave up a faceless card.");
   if (pocket.some((item) => item !== "Blank card" && item !== "Bent key" && item !== "Cracked cup")) lines.push("The games you win leave a piece behind.");
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
   if (owned.includes("bridge")) lines.push("He deals, and then he tells you what the hand meant.");
@@ -292,8 +289,8 @@ type Save = {
   scratchDone?: boolean;
   stoneOut?: boolean;
   hearthFed?: boolean;
-  plankPried?: boolean;
-  chainHauled?: boolean;
+  stoneRighted?: boolean;
+  wallSolved?: boolean;
   skipRoll?: boolean;
   pipOwed?: boolean;
   kingOwed?: boolean;
@@ -306,7 +303,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [dead, setDead] = useState(false);
   const [light, setLight] = useState(0);
   const [euchreOpen, setEuchreOpen] = useState(false);
-  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | null>(null);
+  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | "noughts" | null>(null);
   const [shouting, setShouting] = useState(false);
   const [picked, setPicked] = useState(0);
   const [marks, setMarks] = useState(0);
@@ -413,11 +410,13 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [view, setView] = useState<"table" | "room" | "cell" | "glass" | "burn">("table");
   // Myst slice 2: the chapel has its own views — hearth, pews, altar.
   const [chapelView, setChapelView] = useState<"hearth" | "pews" | "altar">("hearth");
-  const [bridgeView, setBridgeView] = useState<"span" | "bank" | "river">("span");
   const [hearthFed, setHearthFed] = useState(false);
-  const [plankPried, setPlankPried] = useState(false); // saved — the plank stays pried
-  const [chainHauled, setChainHauled] = useState(false); // saved — the river gave up its card
   const bowlCount = useRef(0);
+  // Myst slice 4: the yard has its own views — stones, mire edge, word wall.
+  const [yardView, setYardView] = useState<"stones" | "mire" | "wall">("stones");
+  const [stoneRighted, setStoneRighted] = useState(false); // saved — the fallen stone stands
+  const [wallSolved, setWallSolved] = useState(false); // saved — the wall reads NIX
+  const [wallTiles, setWallTiles] = useState<string[]>(["·", "·", "·"]); // session only — the tiles turn
   const [cupboard, setCupboard] = useState(false);
   const [door, setDoor] = useState(false);
   // Myst slice: the world remembers being touched.
@@ -456,7 +455,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (!nextAge) return;
     setView("table");
     setChapelView("hearth");
-    setBridgeView("span");
+    setYardView("stones");
     if (nextAge.key === "hall") {
       setAgeIndex(0);
       setNote(null);
@@ -770,8 +769,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setScratchDone(Boolean(data.scratchDone));
           setStoneOut(Boolean(data.stoneOut));
           setHearthFed(Boolean(data.hearthFed));
-          setPlankPried(Boolean(data.plankPried));
-          setChainHauled(Boolean(data.chainHauled));
+          setStoneRighted(Boolean(data.stoneRighted));
+          setWallSolved(Boolean(data.wallSolved));
           setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
           setKingOwed(Boolean(data.kingOwed));
@@ -803,7 +802,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed, plankPried, chainHauled };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
   }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed]);
 
@@ -1184,65 +1183,64 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote("Behind the altar, a niche in the stone. It is empty — and exactly the size of five dice. They are not in it. Someone took them out. Someone was playing.");
   }
 
-  /** Myst slice 3: the bridge. The span, the near bank, the black river. */
+  // --- Myst slice 4: the yard. ---
 
-  function examineBreak() {
-    if (spadesLit) {
-      setNote("The span has settled where you bid it down. The sawn ends still show, clean as the day they were cut. Something crossed here once, in a hurry, and did not want the way back.");
-    } else if (mawBeaten) {
-      setNote("The middle of the bridge is gone. Not fallen — taken. The cut ends are clean, the iron sawn through. Whatever did it is further down the road now.");
+  function examineStones() {
+    if (mawBeaten) {
+      setNote("The standing stones. The letters are gone from them now — weathered past reading. Whatever they spelled, the house has forgotten it.");
+    } else if (queenFaced) {
+      setNote("The standing stones, half-sunk and leaning. Three letters would be enough. You know that now.");
     } else {
-      setNote("The middle of the bridge is gone. Not fallen — taken. The cut ends are clean, the iron sawn through. Below, the black river does not hurry.");
+      setNote("Standing stones, set in a row like tiles. Letters cut deep in the rock, half-erased by weather. Three letters would be enough.");
     }
   }
 
-  function pryPlank() {
-    if (pocket.includes("Worn die")) {
-      setNote("The planks lie where you left them. The die is in your pocket, and it is still not lucky.");
+  function rightStone() {
+    if (stoneRighted) {
+      setNote("The stone stands straight now. The hollow beneath it is empty.");
       return;
     }
-    if (!plankPried) {
-      setPlankPried(true);
-      setPocket((value) => (value.includes("Worn die") ? value : [...value, "Worn die"]));
-      setNote("You work a loose plank free. Wedged beneath it: a bone die, the pips worn smooth away. Someone's lucky die. It isn't lucky anymore.");
+    setStoneRighted(true);
+    setNote("You right the fallen stone. Beneath it, a hollow — and in the hollow, scratch marks. A tally, kept in fives. And stopped.");
+  }
+
+  function examineMireEdge() {
+    setNote("The yard sinks here. The mud has taken stones, tiles, and — by the look of the ruts — someone's footing.");
+  }
+
+  function pullFromMud() {
+    if (pocket.includes("Drowned card")) {
+      setNote("The mud gives nothing else. It is keeping the rest.");
       return;
     }
-    setNote("The planks lie where you left them.");
+    setPocket((value) => [...value, "Drowned card"]);
+    setNote("You pull a playing card from the mud. Drowned, swollen — and on its back, in pencil: NIX.");
   }
 
-  function examineAnchor() {
-    setNote("An iron ring set in the bank stone, rope still knotted through it. The rope was cut, not frayed — a clean edge. Someone cast off from this side, or made sure nothing could follow.");
-  }
-
-  const [notchCount, setNotchCount] = useState(0);
-  function countNotches() {
-    const next = notchCount + 1;
-    setNotchCount(next);
-    if (next === 1) setNote("A weathered marker stone at the bank's edge, notched along one side. You start counting.");
-    else if (next === 2) setNote("Fourteen notches. You are fourteen squares from the hole, and every one of them is behind you.");
-    else setNote("Fourteen. The stone has nothing more to say.");
-  }
-
-  function examineWater() {
-    if (spadesLit) {
-      setNote("The water went silver when you made the bid. Your reflection comes quicker now. It is still facing the wrong way.");
-    } else {
-      setNote("The river is black and does not move like water. Your reflection is in it — a breath late, and facing the wrong way.");
-    }
-  }
-
-  function haulChain() {
-    if (blankSpent || pocket.includes("Blank card")) {
-      setNote("The chain hangs empty. The river keeps the rest.");
+  function examineWall() {
+    if (wallSolved) {
+      setNote("The wall reads NIX. The middle tile sits a finger's width deeper than the others.");
       return;
     }
-    if (!chainHauled) {
-      setChainHauled(true);
-      setPocket((value) => (value.includes("Blank card") ? value : [...value, "Blank card"]));
-      setNote("Hand over hand, the chain comes up heavy — and on the hook, a playing card, drowned. The face is washed clean away.");
+    setNote(`Three stone tiles, set in the wall. Worn nearly smooth. They turn under your hand. They read ${wallTiles.join("")}.`);
+  }
+
+  function turnTile(index: number) {
+    if (wallSolved) {
+      setNote("The tiles do not turn anymore. NIX is set.");
       return;
     }
-    setNote("The chain hangs empty. The river keeps the rest.");
+    const next = [...wallTiles];
+    const cur = next[index] ?? "·";
+    next[index] = cur === "·" ? "A" : cur === "Z" ? "A" : String.fromCharCode(cur.charCodeAt(0) + 1);
+    setWallTiles(next);
+    if (next.join("") === "NIX") {
+      setWallSolved(true);
+      setLetters((held) => addTile(held));
+      setNote("The stones shudder — once — and settle. Behind the middle tile, a hollow: a letter tile, dry as bone.");
+      return;
+    }
+    setNote(`The tiles read ${next.join("")}.`);
   }
 
   function riverTakes() {
@@ -1403,13 +1401,15 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               ? "/chapel.jpg"
               : age.key === "chapel" && chapelView === "altar"
                 ? "/plates/chapel-altar.jpg"
-                : // The climb past the yard to the Maw: mist over the hill road.
-                  age.key === "yard" && position >= 21 && position < 27
-                  ? "/plates/hill-road.jpg"
-                  : // Myst slice 3: the black river, close.
-                    age.key === "bridge" && bridgeView === "river"
-                    ? "/plates/black-river.jpg"
-                    : age.src;
+                : // Myst slice 4: the yard's inner views — only at the yard itself.
+                  age.key === "yard" && position < 21 && yardView === "mire"
+                  ? "/plates/mire.jpg"
+                  : age.key === "yard" && position < 21 && yardView === "wall"
+                    ? "/plates/rune-cards.jpg"
+                    : // The climb past the yard to the Maw: mist over the hill road.
+                      age.key === "yard" && position >= 21 && position < 27
+                      ? "/plates/hill-road.jpg"
+                      : age.src;
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
@@ -1507,6 +1507,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           <button type="button" className="hot hot-chains" onClick={rattleChains} aria-label="The chains" />
           <button type="button" className="hot hot-scratches" onClick={readScratches} aria-label="Scratch marks" />
           <button type="button" className="hot hot-stone" onClick={workStone} aria-label="A loose stone" />
+          <button type="button" className="hot hot-noughts" onClick={() => setPlaying("noughts")} aria-label="A scratched grid" />
         </>
       )}
       {signed && met && age.key === "hall" && view === "glass" && (
@@ -1536,22 +1537,24 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           <button type="button" className="hot hot-chniche" onClick={behindAltar} aria-label="Behind the altar" />
         </>
       )}
-      {signed && met && age.key === "bridge" && bridgeView === "span" && (
+      {signed && met && age.key === "yard" && position < 21 && yardView === "stones" && (
         <>
-          <button type="button" className="hot hot-brbreak" onClick={examineBreak} aria-label="The broken span" />
-          <button type="button" className="hot hot-brplank" onClick={pryPlank} aria-label="Loose planks" />
+          <button type="button" className="hot hot-ystones" onClick={examineStones} aria-label="The standing stones" />
+          <button type="button" className="hot hot-yfallen" onClick={rightStone} aria-label="A fallen stone" />
         </>
       )}
-      {signed && met && age.key === "bridge" && bridgeView === "bank" && (
+      {signed && met && age.key === "yard" && position < 21 && yardView === "mire" && (
         <>
-          <button type="button" className="hot hot-branchor" onClick={examineAnchor} aria-label="The anchor stone" />
-          <button type="button" className="hot hot-brmarker" onClick={countNotches} aria-label="A marker stone" />
+          <button type="button" className="hot hot-ymud" onClick={examineMireEdge} aria-label="The sinking mud" />
+          <button type="button" className="hot hot-ypull" onClick={pullFromMud} aria-label="Something in the mud" />
         </>
       )}
-      {signed && met && age.key === "bridge" && bridgeView === "river" && (
+      {signed && met && age.key === "yard" && position < 21 && yardView === "wall" && (
         <>
-          <button type="button" className="hot hot-brwater" onClick={examineWater} aria-label="The black water" />
-          <button type="button" className="hot hot-brchain" onClick={haulChain} aria-label="A drowned chain" />
+          <button type="button" className="hot hot-ywall" onClick={examineWall} aria-label="The word wall" />
+          <button type="button" className="hot hot-ytile0" onClick={() => turnTile(0)} aria-label="First tile" />
+          <button type="button" className="hot hot-ytile1" onClick={() => turnTile(1)} aria-label="Second tile" />
+          <button type="button" className="hot hot-ytile2" onClick={() => turnTile(2)} aria-label="Third tile" />
         </>
       )}
       {grave && age.key === "hole" && (
@@ -1782,19 +1785,19 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             Back to the hearth
           </button>
         )}
-        {age.key === "bridge" && bridgeView === "span" && (
+        {age.key === "yard" && position < 21 && yardView === "stones" && (
           <>
-            <button className="book-btn" type="button" onClick={() => setBridgeView("bank")}>
-              The near bank
+            <button className="book-btn" type="button" onClick={() => setYardView("mire")}>
+              The mire edge
             </button>
-            <button className="book-btn" type="button" onClick={() => setBridgeView("river")}>
-              The black river
+            <button className="book-btn" type="button" onClick={() => setYardView("wall")}>
+              The word wall
             </button>
           </>
         )}
-        {age.key === "bridge" && bridgeView !== "span" && (
-          <button className="book-btn" type="button" onClick={() => setBridgeView("span")}>
-            Back to the span
+        {age.key === "yard" && position < 21 && yardView !== "stones" && (
+          <button className="book-btn" type="button" onClick={() => setYardView("stones")}>
+            Back to the stones
           </button>
         )}
           <>
@@ -1828,7 +1831,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           <div className="deck-sheet" role="dialog" aria-label="The deck" onClick={(event) => event.stopPropagation()}>
             <p className="leaf-kicker">In your hand</p>
             <h2>The deck</h2>
-            {linesFor(marks, owned, mawBeaten, position, pocket, blankSpent, cupboard, hearthFed, plankPried, chainHauled).map((line) => (
+            {linesFor(marks, owned, mawBeaten, position, pocket, blankSpent, cupboard, hearthFed).map((line) => (
               <p key={line} className="leaf-body">
                 {line}
               </p>
@@ -1972,6 +1975,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       {playing === "yacht" && (
         <Yacht onEarn={award} onWin={(won) => won && setHeartsLit(true)} onClose={() => setPlaying(null)} />
       )}
+      {playing === "noughts" && <Noughts onEarn={award} onClose={() => setPlaying(null)} />}
       {playing === "border" && <Border onResult={borderEnd} onClose={() => setPlaying(null)} />}
 
       {playing === "scaffold" && (
