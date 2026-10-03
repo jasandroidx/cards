@@ -791,6 +791,19 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     <section className={`scene${litClass}`} aria-label={age.name}>
       <img key={picture} className="scene-img" src={picture} alt={age.alt} />
       <div className="scene-vignette" />
+      <div className="dust" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="grain" aria-hidden="true" />
       {signed && met && age.key === "hall" && view === "table" && (
         <button type="button" className="hot hot-lamp" onClick={takeKey} aria-label="The lamp" />
       )}
@@ -1049,7 +1062,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                   onClick={findBlank}
                   aria-label={pocket.includes("Blank card") ? "Blank card" : "A face-down card"}
                 >
-                  <span className={pocket.includes("Blank card") ? "win-face" : "win-face back"}>
+                  <span className={pocket.includes("Blank card") ? "win-face" : "card back"}>
                     {pocket.includes("Blank card") && <b>?</b>}
                   </span>
                 </button>

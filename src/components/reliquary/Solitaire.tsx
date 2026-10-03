@@ -154,7 +154,7 @@ function carried(game: Game): { rank: number; suit: string }[] {
 }
 
 function Back() {
-  return <span className="win-face back" />;
+  return <span className="card back" aria-label="Face-down card" />;
 }
 
 function Face({ card, wrong }: { card: Card; wrong: boolean }) {

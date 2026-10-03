@@ -160,7 +160,7 @@ export function Monte({ onEarn, onWin, onClose }: { onEarn: (n: number) => void;
           <div className="table-row">
             {[0, 1, 2].map((index) => (
               <button key={index} type="button" className="card-btn" disabled={!picking || choice !== null} onClick={() => pick(index)}>
-                <span className="card">
+                <span className={shown || choice !== null ? "card" : "card back"} aria-label={shown || choice !== null ? undefined : "Face-down card"}>
                   <b>{shown || choice !== null ? (index === queen ? "Q" : "") : ""}</b>
                   <i>{index === 0 ? "L" : index === 1 ? "C" : "R"}</i>
                 </span>
