@@ -118,21 +118,91 @@ export function wrongSound() {
 
 /** A bright blip when a mark is earned. */
 export function markSound() {
+  playWinBlip(0);
+}
+
+/** Shared win-blip core. Level 0 is the classic markSound; higher levels
+ *  raise pitch and tighten the envelope for escalating win stings. */
+function playWinBlip(level: number) {
   const audio = context();
   if (!audio) return;
   const now = audio.currentTime;
+  const lift = Math.pow(2, (level * 2) / 12); // +2 semitones per streak step
+  const speed = Math.max(0.62, 1 - level * 0.07); // slightly snappier at high streak
   const osc = audio.createOscillator();
   const gain = audio.createGain();
   osc.type = "sine";
-  osc.frequency.setValueAtTime(520, now);
-  osc.frequency.exponentialRampToValueAtTime(880, now + 0.09);
+  osc.frequency.setValueAtTime(520 * lift, now);
+  osc.frequency.exponentialRampToValueAtTime(880 * lift, now + 0.09 * speed);
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.exponentialRampToValueAtTime(0.05, now + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22 * speed);
   osc.connect(gain);
   gain.connect(audio.destination);
   osc.start(now);
-  osc.stop(now + 0.24);
+  osc.stop(now + 0.24 * speed);
+  // a faint octave shimmer on top at streak 3+, the Balatro donk
+  if (level >= 3) {
+    const shimmer = audio.createOscillator();
+    const shimmerGain = audio.createGain();
+    shimmer.type = "triangle";
+    shimmer.frequency.setValueAtTime(1040 * lift, now);
+    shimmerGain.gain.setValueAtTime(0.0001, now);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.018, now + 0.02);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16 * speed);
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(audio.destination);
+    shimmer.start(now);
+    shimmer.stop(now + 0.18 * speed);
+  }
+}
+
+/** Pentatonic ladder for mark count-ups: 400Hz -> ~900Hz across `total` steps. */
+const PENTA_LADDER = [0, 2, 4, 7, 9, 12, 14];
+
+/**
+ * One tick of a mark count-up. Call per digit as the purse climbs:
+ * pitch rises along a pentatonic ladder from `step` 0 to `total` - 1.
+ * Each blip is ~70ms — tiny enough to fire rapidly.
+ */
+export function markTick(step: number, total: number) {
+  const audio = context();
+  if (!audio) return;
+  const now = audio.currentTime;
+  const span = Math.max(1, total - 1);
+  const frac = Math.min(1, Math.max(0, step / span));
+  const idx = Math.round(frac * (PENTA_LADDER.length - 1));
+  const semis = PENTA_LADDER[idx] ?? 0;
+  const freq = 400 * Math.pow(2, semis / 12);
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.045, now + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+  osc.connect(gain);
+  gain.connect(audio.destination);
+  osc.start(now);
+  osc.stop(now + 0.08);
+}
+
+let stingStreak = 0;
+const STING_CAP = 5;
+
+/**
+ * Escalating win sting: the win blip, pitched and tightened by the current
+ * win streak. Streak is capped at 5. Call with the streak AFTER incrementing
+ * (first consecutive win = 1).
+ */
+export function winSting(streak: number) {
+  stingStreak = Math.min(STING_CAP, Math.max(0, Math.floor(streak)));
+  playWinBlip(stingStreak);
+}
+
+/** A loss breaks the streak: the next win sting is back at base pitch. */
+export function resetSting() {
+  stingStreak = 0;
 }
 
 /** A low thud when a mark is lost. */

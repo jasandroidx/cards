@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QUEEN_HAND, QUEEN_ROUNDS, QUEEN_THROW_ROUND, queenLegal, queenOutcome, queenPlay, queenStalled, startQueen, type QueenState } from "@/lib/reliquary/queen";
 import { rankLabel, suitMark, isRed } from "@/lib/reliquary/klondike";
 
@@ -13,7 +13,19 @@ const QUEEN_STAGES = [
 export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: () => void; onClose: () => void }) {
   const [state, setState] = useState<QueenState>(() => startQueen());
   const [settled, setSettled] = useState(false);
+  const [winShown, setWinShown] = useState(false);
+  const winTimer = useRef<number>(0);
   const outcome = queenOutcome(state);
+
+  // If she is closed mid-beat, the win still counts — only the reveal is skipped.
+  const wonRef = useRef(false);
+  useEffect(() => () => {
+    if (winTimer.current) {
+      window.clearTimeout(winTimer.current);
+      winTimer.current = 0;
+      if (wonRef.current) onWon();
+    }
+  }, []);
 
   function play(id: string) {
     if (settled) return;
@@ -23,7 +35,14 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
     setState(next);
     if (queenOutcome(next) === "won") {
       setSettled(true);
-      onWon();
+      wonRef.current = true;
+      // The board stills. 800ms of silence before she speaks.
+      winTimer.current = window.setTimeout(() => {
+        winTimer.current = 0;
+        wonRef.current = false;
+        setWinShown(true);
+        onWon();
+      }, 800);
       return;
     }
     if (queenStalled(next)) {
@@ -75,8 +94,8 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
             </div>
           )}
 
-          {outcome === "won" && (
-            <p className="table-end">
+          {outcome === "won" && winShown && (
+            <p className="table-end rite-in">
               The Queen has a face. "Dealer," she whispers, her voice a bell, "my world is free.
               But your debt must be paid."
             </p>

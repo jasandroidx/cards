@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cellOf, COLS, lightCopy, SQUARES, type Square } from "@/lib/reliquary/road";
 import { MAW_ITEM } from "@/lib/reliquary/death";
 import { MAX_LIGHT, isDark, isWood, kindle, spendLight } from "@/lib/reliquary/light";
@@ -16,7 +16,7 @@ import { Nix, NixLamp, Tiles, Yard } from "@/components/reliquary/Mire";
 import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/reliquary/mire";
 import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
-import { signSound, markSound, lossSound, gateSound } from "@/lib/reliquary/atmosphere";
+import { signSound, lossSound, gateSound, winSting, resetSting, markTick } from "@/lib/reliquary/atmosphere";
 
 const AGES = [
   {
@@ -291,7 +291,30 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [lastRoll, setLastRoll] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const [gateCeremony, setGateCeremony] = useState<string | null>(null);
+  const [gateCeremony, setGateCeremony] = useState<Gate | null>(null);
+  const [riteStage, setRiteStage] = useState<"strain" | "broken">("strain");
+  const riteTimer = useRef<number>(0);
+  /** Consecutive wins — drives the escalating win sting. Resets on any loss. */
+  const streakRef = useRef(0);
+  /** Displayed purse — counts up toward `marks` with pitched ticks. Logic always reads `marks`. */
+  const [shownMarks, setShownMarks] = useState(marks);
+  const shownRef = useRef(marks);
+  useEffect(() => {
+    if (marks === shownRef.current) return;
+    const from = shownRef.current;
+    const total = Math.abs(marks - from);
+    // Losses and purchases snap — only wins count up.
+    if (marks < from) { shownRef.current = marks; setShownMarks(marks); return; }
+    let step = 0;
+    const id = setInterval(() => {
+      step += 1;
+      shownRef.current = from + step;
+      setShownMarks(shownRef.current);
+      markTick(step, total);
+      if (step >= total) clearInterval(id);
+    }, 90);
+    return () => clearInterval(id);
+  }, [marks]);
   const [ended, setEnded] = useState(false);
   const [whisper, setWhisper] = useState<string | null>(null);
   const [jokerVisit, setJokerVisit] = useState<{ x: number; y: number } | null>(null);
@@ -313,6 +336,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [waylay, setWaylay] = useState<number | null>(null);
   const [pad, setPad] = useState(false);
   const [code, setCode] = useState("");
+  const [grave, setGrave] = useState<{ marks: number; position: number; when: number } | null>(null);
   const age = AGES[ageIndex] ?? AGES[0];
   const here = position;
   const square: Square | undefined = SQUARES[picked];
@@ -369,6 +393,43 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }, 120000);
     return () => window.clearInterval(id);
   }, [signed, met, jokerVisit]);
+
+  // Card hover tilt: hand cards lean toward the cursor. Visual only — writes
+  // CSS custom properties directly, no React state involved.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const MAX = 8; // degrees
+    let current: HTMLElement | null = null;
+    const clear = () => {
+      if (current) {
+        current.style.removeProperty("--tx");
+        current.style.removeProperty("--ty");
+        current = null;
+      }
+    };
+    const onMove = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      const card = target?.closest?.(".card:not(.empty)") as HTMLElement | null;
+      const usable = card && !card.closest(".card-btn:disabled") ? card : null;
+      if (usable !== current) clear();
+      if (!usable) return;
+      current = usable;
+      const rect = usable.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const px = (event.clientX - rect.left) / rect.width - 0.5;
+      const py = (event.clientY - rect.top) / rect.height - 0.5;
+      usable.style.setProperty("--ty", `${(px * 2 * MAX).toFixed(2)}deg`);
+      usable.style.setProperty("--tx", `${(-py * 2 * MAX).toFixed(2)}deg`);
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", clear);
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", clear);
+      clear();
+    };
+  }, []);
 
   function fall() {    setPosition(0);
     setPicked(0);
@@ -583,6 +644,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     } catch {
       /* keep a new game */
     }
+    // The grave: the last one the Maw ate. It stays until the next death.
+    try {
+      const graw = localStorage.getItem("reliquary-grave");
+      if (graw) {
+        const g = JSON.parse(graw) as { marks?: unknown; position?: unknown; when?: unknown };
+        if (typeof g.marks === "number" && typeof g.position === "number" && typeof g.when === "number") {
+          setGrave({ marks: g.marks, position: g.position, when: g.when });
+        }
+      }
+    } catch {
+      /* no grave, no grief */
+    }
     setLoaded(true);
   }, []);
 
@@ -596,16 +669,16 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
       setNote("The lamp pays. Open the chapel.");
     }
-    if (amount > 0) markSound();
-    else if (amount < 0) lossSound();
+    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
     if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
   /** Mark changes that bypass earn's first-mark note (road games). */
   function award(amount: number) {
-    if (amount > 0) markSound();
-    else if (amount < 0) lossSound();
+    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
     if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
@@ -616,7 +689,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setMarks((value) => value - gate.cost);
     setOwned((value) => [...value, gate.key]);
     gateSound();
-    setGateCeremony(gate.key);
+    // The chain strains before it breaks — a held beat, not an instant.
+    if (riteTimer.current) window.clearTimeout(riteTimer.current);
+    setRiteStage("strain");
+    setGateCeremony(gate);
+    riteTimer.current = window.setTimeout(() => setRiteStage("broken"), 600);
     setNote(`${gate.opens} is open.`);
   }
 
@@ -824,7 +901,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       setMawBeaten(true);
       setNote("The ante is accepted. The cards fall. The Maw was a royal guard — once, it had a name. It is free now. Remember it.");
     } else {
-      lossSound();
+      streakRef.current = 0; resetSting(); lossSound();
       setMarks((value) => Math.max(0, value - 1));
       setNote("It does not move. It takes a mark.");
     }
@@ -1022,6 +1099,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       {signed && met && age.key === "hall" && view === "burn" && (
         <button type="button" className="hot hot-fire" onClick={feedFire} aria-label="Feed the fire" />
       )}
+      {grave && age.key === "hole" && (
+        <button
+          type="button"
+          className="hot hot-grave"
+          aria-label="A grave"
+          onClick={() =>
+            setNote(
+              `A grave. ${grave.marks} ${grave.marks === 1 ? "mark" : "marks"}. It got this far. The dirt is fresh.`
+            )
+          }
+        />
+      )}
       {pad && (
         <div className="pad">
           <p>{code.padEnd(3, "·")}</p>
@@ -1058,7 +1147,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                           ? standing.name
                           : age.name}
             </strong>
-            <span>{where(marks, owned, mawBeaten, position, sat)}</span>
+            <span>{where(shownMarks, owned, mawBeaten, position, sat)}</span>
             {darkWood && <em>Dark. You can't see the square. The chapel hearth kindles candles.</em>}
             {(heartsLit || spadesLit || queenFaced) && <em className="lit">{lightCopy(position)}</em>}
             {note && <em>{note}</em>}
@@ -1462,7 +1551,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           onFleece={() => {
             setPlaying(null);
             setMarks((value) => Math.max(0, value - 2));
-            lossSound();
+            streakRef.current = 0; resetSting(); lossSound();
             setNote("Two duels. Nix takes two marks and stays in the road.");
           }}
           onClose={() => setPlaying(null)}
@@ -1499,6 +1588,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <Table
           mode={mode ?? "lamp"}
           marks={marks}
+          displayMarks={shownMarks}
           owned={owned}
           mawBeaten={mawBeaten}
           pocket={pocket}
@@ -1524,16 +1614,30 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           onClose={() => setTable(false)}
         />
       )}
-      {dead && <Death />}
+      {dead && <Death marks={marks} position={position} />}
       {ended && <Ending onReturn={() => onReturn?.(marks, boons)} />}
       {gateCeremony && (
-        <div className="journal-back" onClick={() => setGateCeremony(null)}>
+        <div
+          className="journal-back"
+          onClick={() => {
+            if (riteStage === "broken") setGateCeremony(null);
+          }}
+        >
           <div className="gate-rite" role="dialog" aria-label="A chain breaks" onClick={(event) => event.stopPropagation()}>
-            <p className="leaf-kicker">A chain breaks</p>
-            <p className="gate-rite-line">{GATE_RITE[gateCeremony] ?? "The chain breaks."}</p>
-            <button type="button" className="close-book go" onClick={() => setGateCeremony(null)}>
-              Step through
-            </button>
+            {riteStage === "strain" ? (
+              <>
+                <p className="leaf-kicker">The chain strains</p>
+                <p className="gate-strain-name chain-strain">{gateCeremony.opens}</p>
+              </>
+            ) : (
+              <>
+                <p className="leaf-kicker">A chain breaks</p>
+                <p className="gate-rite-line rite-in">{GATE_RITE[gateCeremony.key] ?? "The chain breaks."}</p>
+                <button type="button" className="close-book go" onClick={() => setGateCeremony(null)}>
+                  Step through
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1588,13 +1692,19 @@ function Paper({ onSign }: { onSign: () => void }) {
   );
 }
 
-/** Eaten by the Maw: a full wipe, per the standing rule. */
-function Death() {
+/** Eaten by the Maw: a full wipe, per the standing rule. But the road remembers. */
+function Death({ marks, position }: { marks: number; position: number }) {
   useEffect(() => {
-    lossSound();
+    resetSting(); lossSound();
   }, []);
 
   function beginAgain() {
+    try {
+      // The grave: what the last one carried, and how far it got.
+      localStorage.setItem("reliquary-grave", JSON.stringify({ marks, position, when: Date.now() }));
+    } catch {
+      // the dark keeps nothing anyway
+    }
     try {
       localStorage.removeItem("reliquary-v3");
     } catch {
@@ -1624,6 +1734,14 @@ function Death() {
 
 /** The Reliquary opens — and it is not an exit. You are the Table now. */
 function Ending({ onReturn }: { onReturn: () => void }) {
+  const [revealed, setRevealed] = useState(false);
+
+  // The plate shows first. A full second before the words land.
+  useEffect(() => {
+    const t = window.setTimeout(() => setRevealed(true), 1000);
+    return () => window.clearTimeout(t);
+  }, []);
+
   function newDealer() {
     try {
       localStorage.removeItem("reliquary-v3");
@@ -1638,19 +1756,23 @@ function Ending({ onReturn }: { onReturn: () => void }) {
       <div className="table one-col">
         <p className="leaf-kicker">The Reliquary</p>
         <img className="plate" src="/plates/reliquary.jpg" alt="The reliquary" />
-        <h2>The seat is yours. Dealer.</h2>
-        <p className="leaf-body">
-          The final chain breaks. The Reliquary opens — and it looks familiar. The dark. The table.
-          The cards. The same room you fell into.
-        </p>
-        <p className="leaf-body">
-          She is whole. Her face has come back, and the world is free. But as the chains re-forge
-          around your waist, you understand: the Reliquary was never an exit. It is her throne.
-          And thrones need a Dealer.
-        </p>
-        <p className="leaf-body">
-          <em>We must play.</em>
-        </p>
+        {revealed && (
+          <>
+            <h2 className="rite-in">The seat is yours. Dealer.</h2>
+            <p className="leaf-body rite-in">
+              The final chain breaks. The Reliquary opens — and it looks familiar. The dark. The table.
+              The cards. The same room you fell into.
+            </p>
+            <p className="leaf-body rite-in">
+              She is whole. Her face has come back, and the world is free. But as the chains re-forge
+              around your waist, you understand: the Reliquary was never an exit. It is her throne.
+              And thrones need a Dealer.
+            </p>
+            <p className="leaf-body rite-in">
+              <em>We must play.</em>
+            </p>
+          </>
+        )}
         <div className="table-row">
           <button type="button" className="close-book go" onClick={newDealer}>
             New Dealer
