@@ -1868,7 +1868,16 @@ function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void })
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
         <b>Joker</b>
-        <img className="plate joker-face" src="/plates/joker.jpg" alt="The Joker" />
+        <video
+          className="plate joker-face"
+          src="/plates/joker-deals.mp4"
+          poster="/plates/joker.jpg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-label="The Joker dealing"
+        />
         <p>{lines[line]}</p>
         <i>{last ? "He leaves" : "Click"}</i>
       </button>
