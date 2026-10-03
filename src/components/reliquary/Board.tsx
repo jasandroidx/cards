@@ -1581,6 +1581,20 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           </div>
         )}
         <div className="dock-rest">
+        {/* The hall's rooms are open from the start — never gated behind the chapel. */}
+        {age.key === "hall" && view === "table" && (
+          <button className="book-btn" type="button" onClick={() => setView("room")}>
+            Look around
+          </button>
+        )}
+        {age.key === "hall" && view !== "table" && (
+          <button className="book-btn" type="button" onClick={() => {
+            setPad(false);
+            setView(view === "glass" || view === "burn" ? "cell" : view === "cell" ? "room" : "table");
+          }}>
+            {view === "cell" ? "Back to the room" : view === "glass" || view === "burn" ? "Back to the cell" : "Back to the table"}
+          </button>
+        )}
         {!(position < 0 && !owned.includes("chapel")) && (
           <>
         {age.key === "chapel" && position >= 10 && (
@@ -1656,19 +1670,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         {age.key !== "hall" && (
           <button className="book-btn" type="button" onClick={() => look(0)}>
             Back to the hall
-          </button>
-        )}
-        {age.key === "hall" && view === "table" && (
-          <button className="book-btn" type="button" onClick={() => setView("room")}>
-            Look around
-          </button>
-        )}
-        {age.key === "hall" && view !== "table" && (
-          <button className="book-btn" type="button" onClick={() => {
-            setPad(false);
-            setView(view === "glass" || view === "burn" ? "cell" : view === "cell" ? "room" : "table");
-          }}>
-            {view === "cell" ? "Back to the room" : view === "glass" || view === "burn" ? "Back to the cell" : "Back to the table"}
           </button>
         )}
         {age.key === "chapel" && chapelView === "hearth" && (
