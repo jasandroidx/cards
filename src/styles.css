@@ -289,6 +289,25 @@ body::before {
   height: 40%;
 }
 
+.hot-ash {
+  left: 2%;
+  top: 78%;
+  width: 26%;
+  height: 18%;
+}
+
+.hot-stone {
+  left: 2%;
+  top: 40%;
+  width: 20%;
+  height: 24%;
+}
+
+/* From the Dealer's seat, the room is wrong. */
+.scene.seated .scene-img {
+  filter: saturate(0.65) brightness(0.82);
+}
+
 /* The grave on square 0 — a stone the road remembers. */
 .hot-grave {
   left: 64%;

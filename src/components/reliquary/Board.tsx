@@ -247,6 +247,9 @@ function linesFor(
   if (pocket.includes("Bent key") && !cupboard) lines.push("A bent key. The cupboard in the room will take it.");
   if (cupboard) lines.push("Inside the cupboard, scratched in the wood: 4, 1, 8.");
   if (pocket.includes("Cracked cup")) lines.push("The cracked cup looks through the far wall of the cell.");
+  if (pocket.includes("Torn half")) lines.push("Half a two of spades. The other half is somewhere.");
+  if (pocket.includes("Mended two")) lines.push("A mended two of spades. Across the tear: he deals last.");
+  if (pocket.includes("Folded scrap")) lines.push("A folded scrap. 'Don't let him deal.'");
   if (pocket.some((item) => item !== "Blank card" && item !== "Bent key" && item !== "Cracked cup")) lines.push("The games you win leave a piece behind.");
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
   if (owned.includes("bridge")) lines.push("He deals, and then he tells you what the hand meant.");
@@ -279,6 +282,8 @@ type Save = {
   blankSpent?: boolean;
   cupboard?: boolean;
   door?: boolean;
+  scratchDone?: boolean;
+  stoneOut?: boolean;
   skipRoll?: boolean;
   pipOwed?: boolean;
   kingOwed?: boolean;
@@ -398,6 +403,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [view, setView] = useState<"table" | "room" | "cell" | "glass" | "burn">("table");
   const [cupboard, setCupboard] = useState(false);
   const [door, setDoor] = useState(false);
+  // Myst slice: the world remembers being touched.
+  const [seated, setSeated] = useState(false); // session only — you stand when you leave
+  const [chairKnown, setChairKnown] = useState(false); // session only
+  const [scratchDone, setScratchDone] = useState(false); // saved — the count was finished
+  const [stoneOut, setStoneOut] = useState(false); // saved — the stone stays out
   const [skipRoll, setSkipRoll] = useState(false);
   const [pipOwed, setPipOwed] = useState(false);
   const [kingOwed, setKingOwed] = useState(false);
@@ -410,6 +420,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const square: Square | undefined = SQUARES[picked];
   const vista = ageIndexFor(picked);
   const standing = position >= 0 ? SQUARES[position] : undefined;
+  // Leaving the table means standing up. The seat does not follow you.
+  useEffect(() => {
+    if (seated && (age.key !== "hall" || view !== "table")) setSeated(false);
+  }, [seated, age.key, view]);
 
   function canEnter(id: number) {
     if (id >= 29) return roadOpen("reliquary", owned, mawBeaten);
@@ -734,6 +748,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setBlankSpent(Boolean(data.blankSpent));
           setCupboard(Boolean(data.cupboard));
           setDoor(Boolean(data.door));
+          setScratchDone(Boolean(data.scratchDone));
+          setStoneOut(Boolean(data.stoneOut));
           setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
           setKingOwed(Boolean(data.kingOwed));
@@ -765,9 +781,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -870,6 +886,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   }
 
   function takeKey() {
+    if (seated) {
+      setNote("From the chair, the lamp leans its light away. It will not come closer.");
+      return;
+    }
     if (pocket.includes("Bent key")) {
       setNote("The key is already in your pocket.");
       return;
@@ -927,6 +947,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   // --- The rooms are alive: examinations that change with your progress. ---
 
   function examineDeck() {
+    if (seated) {
+      setNote("From the Dealer's seat, the backs of the cards are blank. Every one. You do not turn any over.");
+      return;
+    }
     if (queenFaced) {
       setNote("Your deck. Every card is accounted for — except one. There is a blank card that was not there before.");
     } else if (owned.length >= 3) {
@@ -946,6 +970,22 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
   }
 
+  /** The Dealer's chair can be sat in. From that seat, the room reads wrong. */
+  function chairAct() {
+    if (seated) {
+      setSeated(false);
+      setNote("You stand. The room is the room again.");
+      return;
+    }
+    if (!chairKnown) {
+      setChairKnown(true);
+      examineChair();
+      return;
+    }
+    setSeated(true);
+    setNote("You sit in the Dealer's chair. The wood is warm. It knows the shape of you.");
+  }
+
   function examineWindow() {
     if (position >= 0) {
       setNote("The window shows the road you are standing on. From inside, it looked further away.");
@@ -956,21 +996,79 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
   }
 
-  function examineFloor() {
-    setNote("A loose board under the table. Beneath it: dust, a bent nail, and a playing card — the two of spades, torn in half.");
+  /** The torn two of spades: one half under the floorboards, the other in the ash.
+   *  Either half taken alone is "Torn half"; holding one and taking the other
+   *  mends it — and the rejoined card carries something across the tear. */
+  function mendHalves(fromNote: string) {
+    setPocket((value) => [...value.filter((item) => item !== "Torn half"), "Mended two"]);
+    setNote(fromNote);
+  }
+
+  function floorHalf() {
+    if (pocket.includes("Mended two")) {
+      setNote("The loose board. Dust, and a bent nail.");
+      return;
+    }
+    if (pocket.includes("Torn half")) {
+      mendHalves("You fit the halves together. The tear closes like a wound. Across it, in ink that was not there before: he deals last.");
+      return;
+    }
+    setPocket((value) => [...value, "Torn half"]);
+    setNote("A loose board under the table. Beneath it: dust, a bent nail, and half a playing card — the two of spades, torn down the middle. You take the torn half.");
+  }
+
+  function ashHalf() {
+    if (pocket.includes("Mended two")) {
+      setNote("Only ash.");
+      return;
+    }
+    if (pocket.includes("Torn half")) {
+      mendHalves("You fit the halves together. The tear closes like a wound. Across it, in ink that was not there before: he deals last.");
+      return;
+    }
+    setPocket((value) => [...value, "Torn half"]);
+    setNote("In the ash at the fire's edge, half a playing card. The two of spades, singed black at the edges. The fire would not take it. You take the singed half.");
   }
 
   function rattleChains() {
+    if (scratchDone) {
+      setNote("The chains are still now. They are listening.");
+      return;
+    }
     setNote("Chains bolted to the cell wall. They are empty. They were not always empty — the links are worn smooth where wrists were.");
   }
 
   const [scratchCount, setScratchCount] = useState(0);
   function readScratches() {
+    if (scratchDone) {
+      setNote("Forty-two. You do not count again.");
+      return;
+    }
     const next = scratchCount + 1;
     setScratchCount(next);
     if (next === 1) setNote("Scratch marks on the cell wall. Someone was counting days. Or hands. Or heartbeats.");
     else if (next === 2) setNote("You count the marks. Forty-one. They stop mid-stroke, as if the hand was taken away.");
-    else setNote("Forty-one and a half. You stop counting. Some things should not be finished.");
+    else if (next === 3) setNote("Forty-one and a half. You stop counting. Some things should not be finished.");
+    else {
+      // The irreversible beat: no warning, no fanfare. The world notices.
+      setScratchDone(true);
+      setNote("Your nail finds the groove and finishes the stroke before you tell it to. Forty-two. In the corner, the chains shift their weight.");
+    }
+  }
+
+  /** A loose stone, low in the cell wall. Worked free, it gives up a hollow. */
+  function workStone() {
+    if (pocket.includes("Folded scrap")) {
+      setNote("The hollow behind the stone is empty.");
+      return;
+    }
+    if (!stoneOut) {
+      setStoneOut(true);
+      setNote("You work the loose stone free. Behind it, a hollow — and in the hollow, a folded scrap of paper.");
+      return;
+    }
+    setPocket((value) => [...value, "Folded scrap"]);
+    setNote("The scrap, unfolded: 'don't let him deal' — the hand is hurried, the ink is old.");
   }
 
   function peerGlass() {
@@ -1167,7 +1265,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const guttered = signed && isDark(light);
 
   return (
-    <section className={`scene${litClass}${guttered ? " guttered" : ""}`} aria-label={age.name}>
+    <section className={`scene${litClass}${guttered ? " guttered" : ""}${seated ? " seated" : ""}`} aria-label={age.name}>
       <button
         type="button"
         className="pause-btn"
@@ -1219,7 +1317,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       {signed && met && age.key === "hall" && view === "table" && (
         <>
           <button type="button" className="hot hot-deck" onClick={examineDeck} aria-label="The deck" />
-          <button type="button" className="hot hot-chair" onClick={examineChair} aria-label="The chair" />
+          <button type="button" className="hot hot-chair" onClick={chairAct} aria-label={seated ? "Stand up" : "The chair"} />
         </>
       )}
       {jokerVisit && (
@@ -1246,7 +1344,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             aria-label="The door"
           />
           <button type="button" className="hot hot-window" onClick={examineWindow} aria-label="The window" />
-          <button type="button" className="hot hot-floor" onClick={examineFloor} aria-label="The floorboards" />
+          <button type="button" className="hot hot-floor" onClick={floorHalf} aria-label="The floorboards" />
         </>
       )}
       {signed && met && age.key === "hall" && view === "cell" && (
@@ -1255,13 +1353,17 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           <button type="button" className="hot hot-wall" onClick={farWall} aria-label="The far wall" />
           <button type="button" className="hot hot-chains" onClick={rattleChains} aria-label="The chains" />
           <button type="button" className="hot hot-scratches" onClick={readScratches} aria-label="Scratch marks" />
+          <button type="button" className="hot hot-stone" onClick={workStone} aria-label="A loose stone" />
         </>
       )}
       {signed && met && age.key === "hall" && view === "glass" && (
         <button type="button" className="hot hot-glass" onClick={peerGlass} aria-label="Peer through the glass" />
       )}
       {signed && met && age.key === "hall" && view === "burn" && (
-        <button type="button" className="hot hot-fire" onClick={feedFire} aria-label="Feed the fire" />
+        <>
+          <button type="button" className="hot hot-fire" onClick={feedFire} aria-label="Feed the fire" />
+          <button type="button" className="hot hot-ash" onClick={ashHalf} aria-label="Ash at the fire's edge" />
+        </>
       )}
       {grave && age.key === "hole" && (
         <button
