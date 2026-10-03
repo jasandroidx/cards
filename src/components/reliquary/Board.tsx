@@ -251,6 +251,7 @@ function linesFor(
   if (pocket.includes("Torn half")) lines.push("Half a two of spades. The other half is somewhere.");
   if (pocket.includes("Mended two")) lines.push("A mended two of spades. Across the tear: he deals last.");
   if (pocket.includes("Folded scrap")) lines.push("A folded scrap. 'Don't let him deal.'");
+  if (pocket.includes("Drowned card")) lines.push("A drowned card. On its back, in pencil: NIX.");
   if (hearthFed) lines.push("You fed the chapel hearth. It showed you her hands.");
   if (pocket.some((item) => item !== "Blank card" && item !== "Bent key" && item !== "Cracked cup")) lines.push("The games you win leave a piece behind.");
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
@@ -287,6 +288,8 @@ type Save = {
   scratchDone?: boolean;
   stoneOut?: boolean;
   hearthFed?: boolean;
+  stoneRighted?: boolean;
+  wallSolved?: boolean;
   skipRoll?: boolean;
   pipOwed?: boolean;
   kingOwed?: boolean;
@@ -408,6 +411,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [chapelView, setChapelView] = useState<"hearth" | "pews" | "altar">("hearth");
   const [hearthFed, setHearthFed] = useState(false);
   const bowlCount = useRef(0);
+  // Myst slice 4: the yard has its own views — stones, mire edge, word wall.
+  const [yardView, setYardView] = useState<"stones" | "mire" | "wall">("stones");
+  const [stoneRighted, setStoneRighted] = useState(false); // saved — the fallen stone stands
+  const [wallSolved, setWallSolved] = useState(false); // saved — the wall reads NIX
+  const [wallTiles, setWallTiles] = useState<string[]>(["·", "·", "·"]); // session only — the tiles turn
   const [cupboard, setCupboard] = useState(false);
   const [door, setDoor] = useState(false);
   // Myst slice: the world remembers being touched.
@@ -446,6 +454,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (!nextAge) return;
     setView("table");
     setChapelView("hearth");
+    setYardView("stones");
     if (nextAge.key === "hall") {
       setAgeIndex(0);
       setNote(null);
@@ -759,6 +768,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setScratchDone(Boolean(data.scratchDone));
           setStoneOut(Boolean(data.stoneOut));
           setHearthFed(Boolean(data.hearthFed));
+          setStoneRighted(Boolean(data.stoneRighted));
+          setWallSolved(Boolean(data.wallSolved));
           setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
           setKingOwed(Boolean(data.kingOwed));
@@ -790,7 +801,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
   }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed]);
 
@@ -1171,6 +1182,66 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote("Behind the altar, a niche in the stone. It is empty — and exactly the size of five dice. They are not in it. Someone took them out. Someone was playing.");
   }
 
+  // --- Myst slice 4: the yard. ---
+
+  function examineStones() {
+    if (mawBeaten) {
+      setNote("The standing stones. The letters are gone from them now — weathered past reading. Whatever they spelled, the house has forgotten it.");
+    } else if (queenFaced) {
+      setNote("The standing stones, half-sunk and leaning. Three letters would be enough. You know that now.");
+    } else {
+      setNote("Standing stones, set in a row like tiles. Letters cut deep in the rock, half-erased by weather. Three letters would be enough.");
+    }
+  }
+
+  function rightStone() {
+    if (stoneRighted) {
+      setNote("The stone stands straight now. The hollow beneath it is empty.");
+      return;
+    }
+    setStoneRighted(true);
+    setNote("You right the fallen stone. Beneath it, a hollow — and in the hollow, scratch marks. A tally, kept in fives. And stopped.");
+  }
+
+  function examineMireEdge() {
+    setNote("The yard sinks here. The mud has taken stones, tiles, and — by the look of the ruts — someone's footing.");
+  }
+
+  function pullFromMud() {
+    if (pocket.includes("Drowned card")) {
+      setNote("The mud gives nothing else. It is keeping the rest.");
+      return;
+    }
+    setPocket((value) => [...value, "Drowned card"]);
+    setNote("You pull a playing card from the mud. Drowned, swollen — and on its back, in pencil: NIX.");
+  }
+
+  function examineWall() {
+    if (wallSolved) {
+      setNote("The wall reads NIX. The middle tile sits a finger's width deeper than the others.");
+      return;
+    }
+    setNote(`Three stone tiles, set in the wall. Worn nearly smooth. They turn under your hand. They read ${wallTiles.join("")}.`);
+  }
+
+  function turnTile(index: number) {
+    if (wallSolved) {
+      setNote("The tiles do not turn anymore. NIX is set.");
+      return;
+    }
+    const next = [...wallTiles];
+    const cur = next[index] ?? "·";
+    next[index] = cur === "·" ? "A" : cur === "Z" ? "A" : String.fromCharCode(cur.charCodeAt(0) + 1);
+    setWallTiles(next);
+    if (next.join("") === "NIX") {
+      setWallSolved(true);
+      setLetters((held) => addTile(held));
+      setNote("The stones shudder — once — and settle. Behind the middle tile, a hollow: a letter tile, dry as bone.");
+      return;
+    }
+    setNote(`The tiles read ${next.join("")}.`);
+  }
+
   function riverTakes() {
     const lost = carried[0];
     if (!lost) {
@@ -1329,10 +1400,15 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               ? "/chapel.jpg"
               : age.key === "chapel" && chapelView === "altar"
                 ? "/plates/chapel-altar.jpg"
-                : // The climb past the yard to the Maw: mist over the hill road.
-                  age.key === "yard" && position >= 21 && position < 27
-                  ? "/plates/hill-road.jpg"
-                  : age.src;
+                : // Myst slice 4: the yard's inner views — only at the yard itself.
+                  age.key === "yard" && position < 21 && yardView === "mire"
+                  ? "/plates/mire.jpg"
+                  : age.key === "yard" && position < 21 && yardView === "wall"
+                    ? "/plates/rune-cards.jpg"
+                    : // The climb past the yard to the Maw: mist over the hill road.
+                      age.key === "yard" && position >= 21 && position < 27
+                      ? "/plates/hill-road.jpg"
+                      : age.src;
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
@@ -1457,6 +1533,26 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <>
           <button type="button" className="hot hot-chbowl" onClick={offerBowl} aria-label="The offering bowl" />
           <button type="button" className="hot hot-chniche" onClick={behindAltar} aria-label="Behind the altar" />
+        </>
+      )}
+      {signed && met && age.key === "yard" && position < 21 && yardView === "stones" && (
+        <>
+          <button type="button" className="hot hot-ystones" onClick={examineStones} aria-label="The standing stones" />
+          <button type="button" className="hot hot-yfallen" onClick={rightStone} aria-label="A fallen stone" />
+        </>
+      )}
+      {signed && met && age.key === "yard" && position < 21 && yardView === "mire" && (
+        <>
+          <button type="button" className="hot hot-ymud" onClick={examineMireEdge} aria-label="The sinking mud" />
+          <button type="button" className="hot hot-ypull" onClick={pullFromMud} aria-label="Something in the mud" />
+        </>
+      )}
+      {signed && met && age.key === "yard" && position < 21 && yardView === "wall" && (
+        <>
+          <button type="button" className="hot hot-ywall" onClick={examineWall} aria-label="The word wall" />
+          <button type="button" className="hot hot-ytile0" onClick={() => turnTile(0)} aria-label="First tile" />
+          <button type="button" className="hot hot-ytile1" onClick={() => turnTile(1)} aria-label="Second tile" />
+          <button type="button" className="hot hot-ytile2" onClick={() => turnTile(2)} aria-label="Third tile" />
         </>
       )}
       {grave && age.key === "hole" && (
@@ -1685,6 +1781,21 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         {age.key === "chapel" && chapelView !== "hearth" && (
           <button className="book-btn" type="button" onClick={() => setChapelView("hearth")}>
             Back to the hearth
+          </button>
+        )}
+        {age.key === "yard" && position < 21 && yardView === "stones" && (
+          <>
+            <button className="book-btn" type="button" onClick={() => setYardView("mire")}>
+              The mire edge
+            </button>
+            <button className="book-btn" type="button" onClick={() => setYardView("wall")}>
+              The word wall
+            </button>
+          </>
+        )}
+        {age.key === "yard" && position < 21 && yardView !== "stones" && (
+          <button className="book-btn" type="button" onClick={() => setYardView("stones")}>
+            Back to the stones
           </button>
         )}
           <>
