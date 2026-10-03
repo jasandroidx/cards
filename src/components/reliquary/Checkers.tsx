@@ -224,7 +224,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   const [tokens, setTokens] = useState<Token[]>(() => tokensFrom(startBoard()));
   const [selected, setSelected] = useState<Sq | null>(null);
   const [lock, setLock] = useState<Sq | null>(null);
-  const [note, setNote] = useState("You are red, at the bottom. First to three captures takes the mark.");
+  const [note, setNote] = useState("You are red, at the bottom. First to three captures takes the poker chip.");
   const [over, setOver] = useState(false);
   const [air, setAir] = useState<{ r: number; c: number; jump: boolean } | null>(null);
   const [ghosts, setGhosts] = useState<{ id: number; r: number; c: number; you: boolean }[]>([]);
@@ -247,7 +247,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
     setOver(true);
     setSelected(null);
     setLock(null);
-    setNote(won ? "Three of theirs are gone. One mark." : "They took three of yours. No mark.");
+    setNote(won ? "Three of theirs are gone. One poker chip." : "They took three of yours. No poker chip.");
     if (!paid.current) {
       paid.current = true;
       onEarn(won ? 1 : 0);
