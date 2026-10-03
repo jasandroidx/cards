@@ -396,7 +396,7 @@ export function Euchre({
                         ? "A march. Three marks."
                         : "Made. Two marks."}
                   </p>
-                  <button type="button" className="close-book go" onClick={() => again}>
+                  <button type="button" className="close-book go" onClick={again}>
                     Deal again
                   </button>
                 </div>
