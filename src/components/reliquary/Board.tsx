@@ -7,6 +7,7 @@ import { Border, Yacht } from "@/components/reliquary/Games";
 import { Shout } from "@/components/reliquary/Shout";
 import { borderAfter, borderPay, borderSpreadsSilver, type BorderResult } from "@/lib/reliquary/border";
 import { Scaffold } from "@/components/reliquary/Scaffold";
+import { Finale } from "@/components/reliquary/Finale";
 import { Queen } from "@/components/reliquary/Queen";
 import { Well } from "@/components/reliquary/Well";
 import { Nix, NixLamp, Tiles, Yard } from "@/components/reliquary/Mire";
@@ -203,12 +204,12 @@ type Save = {
   kingOwed?: boolean;
 };
 
-export function Board() {
+export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]) => void }) {
   const [ageIndex, setAgeIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [table, setTable] = useState(false);
   const [euchreOpen, setEuchreOpen] = useState(false);
-  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | null>(null);
+  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | null>(null);
   const [shouting, setShouting] = useState(false);
   const [picked, setPicked] = useState(0);
   const [marks, setMarks] = useState(0);
@@ -893,6 +894,14 @@ export function Board() {
             Her coat
           </button>
         )}
+        {position === 29 && queenFaced && playing !== "finale" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("finale")}>
+            The last chair
+          </button>
+        )}
+        {position === 29 && !queenFaced && (
+          <p className="leaf-body">The chair is empty. Her face is still out there, somewhere behind you.</p>
+        )}
         {mode === "bid" && (
           <button className="book-btn" type="button" onClick={() => setEuchreOpen(true)}>
             Euchre
@@ -1181,6 +1190,17 @@ export function Board() {
           }}
           onLost={() => setNote("Nothing left to answer. Her face is still gone, and you stay on the square.")}
           onClose={() => setPlaying(null)}
+        />
+      )}
+
+      {playing === "finale" && (
+        <Finale
+          boons={boons}
+          onClose={() => setPlaying(null)}
+          onWin={() => {
+            setPlaying(null);
+            onReturn?.(marks, boons);
+          }}
         />
       )}
 
