@@ -246,6 +246,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [shouting, setShouting] = useState(false);
   const [picked, setPicked] = useState(0);
   const [marks, setMarks] = useState(0);
+  const [burst, setBurst] = useState(0);
   const [owned, setOwned] = useState<string[]>([]);
   const [mawBeaten, setMawBeaten] = useState(false);
   const [heartsLit, setHeartsLit] = useState(false);
@@ -539,6 +540,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
     if (amount > 0) markSound();
     else if (amount < 0) lossSound();
+    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
@@ -546,6 +548,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   function award(amount: number) {
     if (amount > 0) markSound();
     else if (amount < 0) lossSound();
+    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
@@ -804,6 +807,22 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <i />
       </div>
       <div className="grain" aria-hidden="true" />
+      {burst > 0 && (
+        <div key={burst} className="mark-burst" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      )}
       {signed && met && age.key === "hall" && view === "table" && (
         <button type="button" className="hot hot-lamp" onClick={takeKey} aria-label="The lamp" />
       )}
