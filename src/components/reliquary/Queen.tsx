@@ -53,7 +53,7 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
                 const legal = queenLegal(state).some((held) => held.id === card.id);
                 return (
                   <button key={card.id} type="button" className="card-btn" disabled={!legal} onClick={() => play(card.id)}>
-                    <span className={`card ${isRed(card.suit) ? "red" : ""}`}>
+                    <span className={`card ${isRed(card.suit) ? "red " : ""}${card.rank === 1 ? "ace" : ""}`.trimEnd()}>
                       <b>{rankLabel(card.rank)}</b>
                       <i>{suitMark(card.suit)}</i>
                     </span>

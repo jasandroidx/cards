@@ -398,8 +398,8 @@ body::before {
 .dice3d-face {
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, #f2e9d4 0%, #d9cba8 100%);
-  border: 2px solid #241c12;
+  background: linear-gradient(145deg, #261b10 0%, #120c07 100%);
+  border: 2px solid #4a3a24;
   border-radius: 9px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -407,6 +407,7 @@ body::before {
   padding: 6px;
   box-sizing: border-box;
   backface-visibility: hidden;
+  box-shadow: inset 0 1px 0 rgba(216, 178, 92, 0.22);
 }
 
 .dice3d-cube.lit .dice3d-face {
@@ -417,9 +418,11 @@ body::before {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #241c12;
+  background: radial-gradient(circle at 35% 30%, #f4dc9a 0%, #d8b25c 60%, #a8823c 100%);
   place-self: center;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 0 6px rgba(216, 178, 92, 0.75),
+    inset 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .farkle-die {
@@ -645,10 +648,41 @@ body::before {
   overflow: auto;
   display: grid;
   grid-template-columns: 1.4fr 0.8fr;
-  background: #10241c;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.09) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #17352a 0%, #10241c 55%, #0a1812 100%);
   color: #f3eadc;
-  border: 1px solid rgba(239, 226, 200, 0.35);
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(216, 178, 92, 0.42);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.65),
+    inset 0 0 90px rgba(0, 0, 0, 0.6),
+    inset 0 0 22px rgba(0, 0, 0, 0.5),
+    0 40px 100px rgba(0, 0, 0, 0.62),
+    0 0 44px rgba(216, 178, 92, 0.07);
+}
+
+/* Candlelight breathing on the felt. */
+.table::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse 72% 52% at 50% 20%, rgba(255, 196, 118, 0.13) 0%, transparent 66%);
+  animation: candle-flicker 4.6s ease-in-out infinite;
+}
+
+@keyframes candle-flicker {
+  0%, 100% { opacity: 1; }
+  9% { opacity: 0.84; }
+  17% { opacity: 0.97; }
+  31% { opacity: 0.9; }
+  46% { opacity: 1; }
+  62% { opacity: 0.87; }
+  77% { opacity: 0.96; }
+  89% { opacity: 0.91; }
 }
 
 .table.one-col {
@@ -659,18 +693,26 @@ body::before {
 .die {
   width: 52px;
   height: 52px;
-  border: 1px solid rgba(239, 226, 200, 0.45);
-  background: linear-gradient(160deg, #fffaf1, #e6d8c0);
-  color: #1a1410;
+  border: 1px solid #4a3a24;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #261b10, #120c07);
+  color: #e9c96e;
   font-family: var(--font-display);
   font-size: 28px;
-  box-shadow: 0 6px 0 #1a1410;
+  text-shadow: 0 0 8px rgba(216, 178, 92, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(216, 178, 92, 0.25),
+    0 6px 0 #060402,
+    0 10px 14px rgba(0, 0, 0, 0.4);
   transition: transform 0.15s ease;
 }
 
 .die.held {
   transform: translateY(-8px);
-  box-shadow: 0 12px 0 #1a1410;
+  box-shadow:
+    inset 0 1px 0 rgba(216, 178, 92, 0.25),
+    0 12px 0 #060402,
+    0 0 16px rgba(216, 178, 92, 0.35);
 }
 
 .die.has-cube {
@@ -1157,10 +1199,86 @@ body::before {
   flex-direction: column;
   justify-content: space-between;
   padding: 8px 10px;
-  background: #f7f1e4;
+  background:
+    radial-gradient(ellipse at 28% 12%, rgba(255, 255, 255, 0.55) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 92%, rgba(122, 90, 48, 0.14) 0%, transparent 55%),
+    linear-gradient(160deg, #f8f2e4 0%, #f0e4c9 58%, #e4d2ae 100%);
   color: #1a1410;
-  border: 1px solid #d9cbb4;
+  border: 1px solid #b3965e;
+  border-radius: 7px;
   box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(122, 90, 48, 0.25),
+    0 10px 16px rgba(0, 0, 0, 0.38),
+    0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Aces carry a gold inner frame — the deck's only royalty. */
+.card.ace {
+  box-shadow:
+    inset 0 0 0 2px rgba(176, 132, 52, 0.85),
+    inset 0 0 0 4px #f4ead2,
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 10px 16px rgba(0, 0, 0, 0.38),
+    0 0 16px rgba(216, 178, 92, 0.28);
+}
+
+/* Designed card back: black lacquer, gold arcane filigree, diamond seal. */
+.card.back,
+.win-face.back {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 42%, #1c130a 0%, #0d0a06 72%),
+    #0d0a06;
+  border: 1px solid #3d2e17;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 0 0 3px #0d0a06,
+    inset 0 0 0 4px rgba(216, 178, 92, 0.55),
+    0 10px 16px rgba(0, 0, 0, 0.42),
+    0 2px 5px rgba(0, 0, 0, 0.32);
+}
+
+.card.back::before,
+.win-face.back::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(216, 178, 92, 0.38);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(45deg, rgba(216, 178, 92, 0.07) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(216, 178, 92, 0.07) 0 2px, transparent 2px 9px);
+  pointer-events: none;
+}
+
+.card.back::after,
+.win-face.back::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid rgba(216, 178, 92, 0.75);
+  border-radius: 3px;
+  background:
+    radial-gradient(circle, rgba(216, 178, 92, 0.9) 0 2.5px, transparent 3.5px),
+    repeating-linear-gradient(45deg, rgba(216, 178, 92, 0.1) 0 2px, transparent 2px 6px);
+  box-shadow:
+    inset 0 0 0 5px rgba(216, 178, 92, 0.1),
+    0 0 14px rgba(216, 178, 92, 0.28);
+  pointer-events: none;
+}
+
+/* Position labels stay legible on the dark back. */
+.card.back b,
+.card.back i,
+.win-face.back b,
+.win-face.back i {
+  color: rgba(216, 178, 92, 0.8);
 }
 
 .card.empty {
@@ -1469,11 +1587,16 @@ body::before {
   flex-direction: column;
   justify-content: space-between;
   padding: 6px 7px;
-  border: 1px solid #222;
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid #b3965e;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at 28% 12%, rgba(255, 255, 255, 0.55) 0%, transparent 52%),
+    linear-gradient(160deg, #f8f2e4 0%, #f0e4c9 58%, #e4d2ae 100%);
   color: #161616;
   text-align: left;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 8px 14px rgba(0, 0, 0, 0.35);
 }
 
 .win-face b {
@@ -1491,11 +1614,6 @@ body::before {
 .win-face.red,
 .win-face.red i {
   color: #d40000;
-}
-
-.win-face.back {
-  border-color: #0d2f66;
-  background: repeating-linear-gradient(45deg, #1d4f9c, #1d4f9c 7px, #173f7c 7px, #173f7c 14px);
 }
 
 .win-face.blank {
@@ -1809,4 +1927,70 @@ body::before {
   border: 1px solid rgba(216, 178, 92, 0.55);
   border-radius: 6px;
   text-align: left;
+}
+
+/* ============ Dark-fantasy atmosphere: film grain + dust motes ============ */
+
+.grain {
+  position: fixed;
+  inset: -40px;
+  pointer-events: none;
+  z-index: 2000;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+  animation: grain-shift 0.9s steps(3) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-14px, 9px); }
+  66% { transform: translate(11px, -13px); }
+  100% { transform: translate(0, 0); }
+}
+
+.dust {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1999;
+  overflow: hidden;
+}
+
+.dust i {
+  position: absolute;
+  top: 105%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 222, 160, 0.55);
+  box-shadow: 0 0 7px rgba(255, 200, 130, 0.65);
+  animation: dust-drift linear infinite;
+  opacity: 0;
+}
+
+.dust i:nth-child(1) { left: 8%; animation-duration: 17s; animation-delay: 0s; }
+.dust i:nth-child(2) { left: 22%; animation-duration: 23s; animation-delay: -7s; width: 2px; height: 2px; }
+.dust i:nth-child(3) { left: 37%; animation-duration: 19s; animation-delay: -12s; }
+.dust i:nth-child(4) { left: 51%; animation-duration: 26s; animation-delay: -4s; width: 4px; height: 4px; }
+.dust i:nth-child(5) { left: 63%; animation-duration: 15s; animation-delay: -9s; width: 2px; height: 2px; }
+.dust i:nth-child(6) { left: 74%; animation-duration: 21s; animation-delay: -2s; }
+.dust i:nth-child(7) { left: 86%; animation-duration: 18s; animation-delay: -14s; width: 2px; height: 2px; }
+.dust i:nth-child(8) { left: 93%; animation-duration: 24s; animation-delay: -6s; }
+.dust i:nth-child(9) { left: 45%; animation-duration: 16s; animation-delay: -11s; width: 2px; height: 2px; }
+.dust i:nth-child(10) { left: 15%; animation-duration: 22s; animation-delay: -16s; }
+
+@keyframes dust-drift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  8% { opacity: 0.85; }
+  85% { opacity: 0.5; }
+  100% { transform: translateY(-118vh) translateX(5vw); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .dust,
+  .table::before {
+    animation: none;
+  }
+  .grain { opacity: 0.05; }
 }

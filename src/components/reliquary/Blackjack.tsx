@@ -53,15 +53,11 @@ function CardFace({ card, down, index }: { card?: Card; down?: boolean; index: n
     animationFillMode: "backwards",
   } as const;
   if (down || !card) {
-    return (
-      <span className="card" style={{ ...style, background: "#241a12", borderColor: "#4a3a28" }}>
-        <b style={{ color: "#d8b25c" }}>✦</b>
-        <i> </i>
-      </span>
-    );
+    return <span className="card back" style={style} aria-label="Face-down card" />;
   }
+  const ace = card.rank === 1;
   return (
-    <span className={isRed(card.suit) ? "card red" : "card"} style={style}>
+    <span className={isRed(card.suit) ? (ace ? "card red ace" : "card red") : ace ? "card ace" : "card"} style={style}>
       <b>{bjLabel(card.rank)}</b>
       <i>{suitMark(card.suit)}</i>
     </span>

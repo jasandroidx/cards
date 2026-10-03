@@ -606,8 +606,9 @@ function Hand({ cards, legal, onPlay }: { cards: Card[]; legal: (card: Card) => 
 
 function CardFace({ card }: { card: Card }) {
   const red = card.suit === "hearts";
+  const ace = card.rank === 1;
   return (
-    <span className={red ? "card red" : "card"}>
+    <span className={red ? (ace ? "card red ace" : "card red") : ace ? "card ace" : "card"}>
       <b>{rankLabel(card.rank)}</b>
       <i>{red ? "♥" : "♠"}</i>
     </span>

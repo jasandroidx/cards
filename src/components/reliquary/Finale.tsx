@@ -110,7 +110,7 @@ export function Finale({
               aria-label={`Draw ${drawCount}`}
             >
               {game.stock.length > 0 ? (
-                <span className="win-face back" />
+                <span className="card back" aria-label="Face-down card" />
               ) : (
                 <span className="win-empty" />
               )}
@@ -156,7 +156,7 @@ export function Finale({
                         select({ kind: "tableau", col, index });
                       }}
                     >
-                      {card.up ? <Face card={card} /> : <span className="win-face back" />}
+                      {card.up ? <Face card={card} /> : <span className="card back" aria-label="Face-down card" />}
                     </button>
                   );
                 })}

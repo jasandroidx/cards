@@ -34,11 +34,12 @@ function makeDeck(ranks: number[]): C[] {
 }
 
 function Face({ card, down = false }: { card?: C; down?: boolean }) {
-  if (!card || down) return <span className="card empty">Card</span>;
+  if (!card || down) return <span className="card back" aria-label="Face-down card" />;
   const red = card.suit === "hearts" || card.suit === "diamonds";
   const mark = card.suit === "hearts" ? "♥" : card.suit === "diamonds" ? "♦" : card.suit === "clubs" ? "♣" : "♠";
+  const ace = card.rank === 1;
   return (
-    <span className={red ? "card red" : "card"}>
+    <span className={red ? (ace ? "card red ace" : "card red") : ace ? "card ace" : "card"}>
       <b>
         {label(card.rank)}
         {mark}

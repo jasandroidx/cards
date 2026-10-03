@@ -278,8 +278,9 @@ export function Euchre({
 }
 
 function CardFace({ card }: { card: EuchreCard }) {
+  const ace = card.rank === 1;
   return (
-    <span className={isRed(card.suit) ? "card red" : "card"}>
+    <span className={isRed(card.suit) ? (ace ? "card red ace" : "card red") : ace ? "card ace" : "card"}>
       <b>{rankLabel(card.rank)}</b>
       <i>{suitMark(card.suit)}</i>
     </span>
