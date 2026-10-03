@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { ORDER, scoreFrom, cpuAim, playerScatter, type Throw } from "../logic";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { dartThud } from "../audio";
 import { W, H, makeVignette, makeDot, makeGlow, makeDart } from "../textures";
 
@@ -55,6 +56,9 @@ export class DartsScene extends Phaser.Scene {
 
   /** Called once when the match ends. Bound by the React bridge before boot. */
   private onMatchEnd: (result: DartsResult) => void = () => undefined;
+  // Onboarding nudge: claimed once per scene; while held, the player's
+  // scatter is gentled so the first match lands near the aim.
+  private nudged = false;
 
   constructor() {
     super("darts");
@@ -66,6 +70,7 @@ export class DartsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.nudged = takeFirstGameNudge();
     makeVignette(this);
     makeDot(this);
     makeGlow(this);
@@ -317,10 +322,13 @@ export class DartsScene extends Phaser.Scene {
     if (this.over) return;
     if (this.flying || this.cpuTurn || this.throws.length >= 3) return;
 
-    // to board units, then scatter
+    // to board units, then scatter (gentled for the first-game nudge)
     const bx = (px - BX) / S;
     const by = (py - BY) / S;
-    const s = playerScatter(bx, by);
+    const raw = playerScatter(bx, by);
+    const s = this.nudged
+      ? { dx: bx + (raw.dx - bx) * 0.35, dy: by + (raw.dy - by) * 0.35 }
+      : raw;
     const hit = scoreFrom(s.dx, s.dy);
     const hx = BX + s.dx * S;
     const hy = BY + s.dy * S;

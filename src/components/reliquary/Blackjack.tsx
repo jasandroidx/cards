@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { isRed, suitMark, type Suit } from "@/lib/reliquary/euchre";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
@@ -108,6 +109,13 @@ export function Blackjack({ onEarn }: { onEarn: (n: number) => void }) {
 
   function newHand() {
     deckRef.current = buildDeck();
+    // Onboarding nudge: the first table game of the session opens with a
+    // blackjack for the player. The deck is drawn from the end.
+    if (takeFirstGameNudge()) {
+      const d = deckRef.current;
+      d[d.length - 1] = { rank: 14, suit: "spades" };
+      d[d.length - 2] = { rank: 13, suit: "hearts" };
+    }
     const p = [draw(), draw()];
     const d = [draw(), draw()];
     setPlayer(p);

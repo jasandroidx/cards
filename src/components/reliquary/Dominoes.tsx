@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
 type Tile = { a: number; b: number }; // canonical: a <= b, in hands
@@ -145,11 +146,20 @@ export function Dominoes({ onEarn }: { onEarn: (n: number) => void }) {
     }
     const y = tiles.slice(0, 7);
     const c = tiles.slice(7, 14);
-    const { tile, by } = highestDoubleFirst(y, c);
+    // Onboarding nudge: the first table game of the session deals the player
+    // the seven lowest bones — fewest pips wins the count.
+    let youTiles = y;
+    let cpuTiles = c;
+    if (takeFirstGameNudge()) {
+      const low = [...tiles].sort((p, q) => p.a + p.b - (q.a + q.b));
+      youTiles = low.slice(0, 7);
+      cpuTiles = low.slice(7, 14);
+    }
+    const { tile, by } = highestDoubleFirst(youTiles, cpuTiles);
     const sortHand = (h: Tile[]) =>
       [...h].sort((p, q) => q.a + q.b - (p.a + p.b) || Math.max(q.a, q.b) - Math.max(p.a, p.b));
-    setYou(sortHand(y.filter((t) => t !== tile)));
-    setCpu(c.filter((t) => t !== tile));
+    setYou(sortHand(youTiles.filter((t) => t !== tile)));
+    setCpu(cpuTiles.filter((t) => t !== tile));
     setBoard([{ a: tile.a, b: tile.b }]);
     bankTick();
     if (by === "you") {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick, bookSound, cardSnap, cupRattle, cupSlam, cupThunk, diceClatter, farkleSting, liarLoseSting, liarSting, liarWinSting } from "@/lib/reliquary/atmosphere";
 
 type Suit = "hearts" | "spades" | "diamonds" | "clubs";
@@ -284,7 +285,15 @@ export function Die3D({
 
 export function LiarsDice({ onEarn }: { onEarn: (n: number) => void }) {
   const deal = (n: number) => Array.from({ length: n }, rollDie);
-  const [youDice, setYouDice] = useState<number[]>(() => deal(3));
+  // Onboarding nudge: the first table game of the session opens with trips,
+  // a hand worth bidding on.
+  const [youDice, setYouDice] = useState<number[]>(() => {
+    if (takeFirstGameNudge()) {
+      const face = 4 + Math.floor(Math.random() * 3);
+      return [face, face, face];
+    }
+    return deal(3);
+  });
   const [cpuDice, setCpuDice] = useState<number[]>(() => deal(3));
   const [bid, setBid] = useState<LiarBid | null>(null);
   const [turn, setTurn] = useState<"you" | "cpu">("you");
@@ -583,7 +592,12 @@ export function Farkle({ onEarn }: { onEarn: (n: number) => void }) {
     setShaking(true);
     cupRattle();
     window.setTimeout(() => {
-      const d = Array.from({ length: n }, rollDie);
+      let d = Array.from({ length: n }, rollDie);
+      // Onboarding nudge: the first table game of the session never opens
+      // with a dead roll.
+      if (w === "you" && takeFirstGameNudge()) {
+        while (farkleGroups(d).score === 0) d = Array.from({ length: n }, rollDie);
+      }
       setDice(d);
       setSelected(d.map(() => false));
       setShaking(false);
@@ -850,7 +864,16 @@ function booksIn(hand: C[]): { hand: C[]; books: number } {
 }
 
 export function GoFish({ onEarn }: { onEarn: (n: number) => void }) {
-  const [deal] = useState(() => makeDeck([1, 2, 3, 4, 5, 6, 7, 8]));
+  const [deal] = useState(() => {
+    const d = makeDeck([1, 2, 3, 4, 5, 6, 7, 8]);
+    // Onboarding nudge: the first table game of the session opens with a pair
+    // in hand, one ask away from a book.
+    if (takeFirstGameNudge()) {
+      const mate = d.findIndex((c, i) => i > 1 && c.rank === d[0]!.rank);
+      if (mate > 0) [d[1], d[mate]] = [d[mate]!, d[1]!];
+    }
+    return d;
+  });
   const [you, setYou] = useState<C[]>(() => deal.slice(0, 5));
   const [cpu, setCpu] = useState<C[]>(() => deal.slice(5, 10));
   const [stock, setStock] = useState<C[]>(() => deal.slice(10));

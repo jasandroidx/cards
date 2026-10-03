@@ -461,6 +461,15 @@ body::before {
   box-shadow: 0 0 22px rgba(216, 178, 92, 0.35);
 }
 
+/* Beckon: the primary action pulses until the first mark is earned. */
+.book-btn.primary.beckon {
+  animation: beckon-pulse 2.2s ease-in-out infinite;
+}
+@keyframes beckon-pulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(216, 178, 92, 0.35); }
+  50% { box-shadow: 0 0 44px rgba(216, 178, 92, 0.75); }
+}
+
 .dice-line {
   font-size: 34px;
   letter-spacing: 0.15em;

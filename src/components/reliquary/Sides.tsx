@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
 type Grid = number[][];
@@ -132,6 +133,9 @@ const full = (board: Grid) => board.every((row) => row.every((cell) => cell !== 
 
 export function Four({ onEarn }: { onEarn: (n: number) => void }) {
   const [board, setBoard] = useState<Grid>(empty);
+  // Onboarding nudge: claimed once on mount; while held, the house plays
+  // blind instead of blocking.
+  const [nudged] = useState(() => takeFirstGameNudge());
   const [note, setNote] = useState("Drop a disc. Four in a row.");
   const [over, setOver] = useState(false);
   const [fall, setFall] = useState<{ column: number; row: number; player: 1 | 2; id: number } | null>(null);
@@ -184,7 +188,10 @@ export function Four({ onEarn }: { onEarn: (n: number) => void }) {
   }
 
   function cpuMove(yours: Grid) {
-    const cc = cpuColumn(yours);
+    const open = [3, 2, 4, 1, 5, 0, 6].filter((column) => !yours[0]?.[column]);
+    const cc = nudged
+      ? open[Math.floor(Math.random() * open.length)] ?? 0
+      : cpuColumn(yours);
     setCpuHint(cc);
     setNote("They are thinking.");
     window.setTimeout(() => {

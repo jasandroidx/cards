@@ -134,6 +134,9 @@ const JOKER = [
   "Spend the mark and the chapel opens. Then take the road. I'm leaving.",
 ];
 
+/** One line for the player who has signed before. The table remembers. */
+const JOKER_SHORT = ["Back again. The table remembers you."];
+
 /** Things the dark says when you are not looking at it. */
 const WHISPERS = [
   "It knows your name.",
@@ -305,6 +308,16 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [position, setPosition] = useState(-1);
   const [lastRoll, setLastRoll] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  // Returning player: a signed save exists, so the Joker skips his speech.
+  const [returning] = useState(() => {
+    try {
+      const raw = localStorage.getItem("reliquary-v3");
+      if (!raw) return false;
+      return (JSON.parse(raw) as { signed?: boolean }).signed === true;
+    } catch {
+      return false;
+    }
+  });
   const [note, setNote] = useState<string | null>(null);
   const [gateCeremony, setGateCeremony] = useState<Gate | null>(null);
   const [riteStage, setRiteStage] = useState<"strain" | "broken">("strain");
@@ -1324,7 +1337,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               </button>
             )}
             {primary && waylay === null && !kingOwed && !pipOwed && (
-              <button className="book-btn primary" type="button" onClick={primary.onClick}>
+              <button
+                className={`book-btn primary${primary.label === "Play a hand" && marks === 0 ? " beckon" : ""}`}
+                type="button"
+                onClick={primary.onClick}
+              >
                 {primary.label}
               </button>
             )}
@@ -1435,7 +1452,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       </div>
       )}
 
-      {!met && <JokerMeet onLeave={() => setMet(true)} />}
+      {!met && <JokerMeet short={returning} onLeave={() => setMet(true)} />}
 
       {met && !signed && (
         <Paper
@@ -1775,9 +1792,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   );
 }
 
-function JokerMeet({ onLeave }: { onLeave: () => void }) {
+function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
+  const lines = short ? JOKER_SHORT : JOKER;
   const [line, setLine] = useState(0);
-  const last = line >= JOKER.length - 1;
+  const last = line >= lines.length - 1;
 
   return (
     <div className="journal-back">
@@ -1787,7 +1805,7 @@ function JokerMeet({ onLeave }: { onLeave: () => void }) {
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
         <b>Joker</b>
-        <p>{JOKER[line]}</p>
+        <p>{lines[line]}</p>
         <i>{last ? "He leaves" : "Click"}</i>
       </button>
     </div>
