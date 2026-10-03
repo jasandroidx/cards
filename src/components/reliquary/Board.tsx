@@ -1230,7 +1230,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             setJokerVisit(null);
           }}
         >
-          <span className="joker-sigil">J</span>
+          <img className="joker-visit-img" src="/plates/joker.jpg" alt="" aria-hidden="true" />
         </button>
       )}
       {signed && met && age.key === "hall" && view === "room" && (
@@ -1868,6 +1868,7 @@ function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void })
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
         <b>Joker</b>
+        <img className="plate joker-face" src="/plates/joker.jpg" alt="The Joker" />
         <p>{lines[line]}</p>
         <i>{last ? "He leaves" : "Click"}</i>
       </button>
