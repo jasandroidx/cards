@@ -17,7 +17,8 @@ import { Box } from "@/components/reliquary/Box";
 import { Farkle, GoFish, LiarsDice } from "@/components/reliquary/Quick";
 import { mawApproach } from "@/lib/reliquary/death";
 import { MAX_LIGHT } from "@/lib/reliquary/light";
-import { Darts, Four } from "@/components/reliquary/Sides";
+import { Four } from "@/components/reliquary/Sides";
+import { Darts } from "@/components/reliquary/PhaserDarts";
 import { Blackjack } from "@/components/reliquary/Blackjack";
 import { Dominoes } from "@/components/reliquary/Dominoes";
 import { Checkers } from "@/components/reliquary/Checkers";
@@ -50,7 +51,6 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
 export function Table({
   mode,
   marks,
-  displayMarks,
   owned,
   mawBeaten,
   pocket,
@@ -71,7 +71,6 @@ export function Table({
 }: {
   mode: Mode;
   marks: number;
-  displayMarks: number;
   owned: string[];
   mawBeaten: boolean;
   pocket: string[];
@@ -127,7 +126,7 @@ export function Table({
             <Sequence mode={mode} onEarn={onEarn} onSour={joltTable} />
           )}
           <div className="table-row">
-            <strong>{displayMarks} marks</strong>
+            <strong>{marks} marks</strong>
             <button type="button" className="close-book" onClick={onClose}>
               Stand up
             </button>
