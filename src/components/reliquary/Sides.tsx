@@ -179,57 +179,18 @@ export function Darts({ onEarn }: { onEarn: (n: number) => void }) {
             if (event.target === event.currentTarget) setWobbling(false);
           }}
         >
-          <defs>
-            <radialGradient id="dart-wood" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#3a2517" />
-              <stop offset="70%" stopColor="#22140b" />
-              <stop offset="100%" stopColor="#120a05" />
-            </radialGradient>
-            <linearGradient id="dart-brass" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f4dc9a" />
-              <stop offset="40%" stopColor="#d8b25c" />
-              <stop offset="80%" stopColor="#8a6a22" />
-              <stop offset="100%" stopColor="#f4dc9a" />
-            </linearGradient>
-            <radialGradient id="dart-felt" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#1a1410" />
-              <stop offset="100%" stopColor="#0d0907" />
-            </radialGradient>
-            <radialGradient id="dart-hit-glow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fff3d1" />
-              <stop offset="40%" stopColor="#d8b25c" />
-              <stop offset="100%" stopColor="#8a6a22" />
-            </radialGradient>
-          </defs>
-          <circle cx="160" cy="160" r="160" fill="url(#dart-wood)" />
-          <circle cx="160" cy="160" r="156.5" fill="none" stroke="url(#dart-brass)" strokeWidth="1.5" />
-          <circle cx="160" cy="160" r="155" fill="url(#dart-felt)" />
+          <circle cx="160" cy="160" r="156" fill="#1a1410" />
           {ORDER.map((_, index) => (
-            <path key={`o${index}`} d={wedge(index, 136, 150)} fill={index % 2 === 0 ? "#8a221c" : "#1e4a2e"} />
+            <path key={`o${index}`} d={wedge(index, 136, 150)} fill={index % 2 === 0 ? "#7a2e28" : "#2f6b45"} />
           ))}
           {ORDER.map((_, index) => (
-            <path key={`s${index}`} d={wedge(index, 22, 136)} fill={index % 2 === 0 ? "#14100d" : "#f0e4ca"} />
+            <path key={`s${index}`} d={wedge(index, 22, 136)} fill={index % 2 === 0 ? "#1a1410" : "#f4ead6"} />
           ))}
           {ORDER.map((_, index) => (
-            <path key={`t${index}`} d={wedge(index, 96, 112)} fill={index % 2 === 0 ? "#8a221c" : "#1e4a2e"} />
+            <path key={`t${index}`} d={wedge(index, 96, 112)} fill={index % 2 === 0 ? "#7a2e28" : "#2f6b45"} />
           ))}
-          <circle cx="160" cy="160" r="22" fill="#1e4a2e" />
-          <circle cx="160" cy="160" r="10" fill="#8a221c" />
-          <circle cx="160" cy="160" r="150" fill="none" stroke="rgba(216, 178, 92, 0.45)" strokeWidth="1" />
-          <circle cx="160" cy="160" r="136" fill="none" stroke="rgba(216, 178, 92, 0.45)" strokeWidth="1" />
-          <circle cx="160" cy="160" r="112" fill="none" stroke="rgba(216, 178, 92, 0.45)" strokeWidth="1" />
-          <circle cx="160" cy="160" r="96" fill="none" stroke="rgba(216, 178, 92, 0.45)" strokeWidth="1" />
-          <circle cx="160" cy="160" r="22" fill="none" stroke="rgba(216, 178, 92, 0.55)" strokeWidth="1" />
-          <circle cx="160" cy="160" r="10" fill="none" stroke="rgba(216, 178, 92, 0.55)" strokeWidth="1" />
-          {ORDER.map((_, index) => {
-            const step = (Math.PI * 2) / 20;
-            const angle = -Math.PI / 2 - step / 2 + index * step;
-            const x1 = 160 + Math.cos(angle) * 22;
-            const y1 = 160 + Math.sin(angle) * 22;
-            const x2 = 160 + Math.cos(angle) * 150;
-            const y2 = 160 + Math.sin(angle) * 150;
-            return <line key={`wire-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(216, 178, 92, 0.35)" strokeWidth="0.8" />;
-          })}
+          <circle cx="160" cy="160" r="22" fill="#2f6b45" />
+          <circle cx="160" cy="160" r="10" fill="#7a2e28" />
           {ORDER.map((number, index) => {
             const step = (Math.PI * 2) / 20;
             const angle = -Math.PI / 2 + index * step;
@@ -240,20 +201,15 @@ export function Darts({ onEarn }: { onEarn: (n: number) => void }) {
                 y={160 + Math.sin(angle) * 124}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={index % 2 === 0 ? "#f4ead6" : "#d8b25c"}
+                fill={index % 2 === 0 ? "#f4ead6" : "#1a1410"}
                 fontSize="11"
-                fontWeight="600"
-                style={{ fontFamily: "var(--font-sans)" }}
               >
                 {number}
               </text>
             );
           })}
           {marks.map((spot, index) => (
-            <g key={index} className="hit">
-              <circle cx={spot.x} cy={spot.y} r="5" fill="rgba(0,0,0,0.5)" />
-              <circle cx={spot.x} cy={spot.y} r="3.5" fill="url(#dart-hit-glow)" stroke="#1a1005" strokeWidth="0.5" />
-            </g>
+            <circle key={index} className="hit" cx={spot.x} cy={spot.y} r="4" fill="#d4b36a" />
           ))}
         </svg>
         {flight && (
@@ -266,27 +222,9 @@ export function Darts({ onEarn }: { onEarn: (n: number) => void }) {
             }}
           >
             <svg width="26" height="36" viewBox="0 0 26 36" aria-hidden="true">
-              <defs>
-                <linearGradient id="dart-tip-metal" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#cfd4d8" />
-                  <stop offset="50%" stopColor="#ffffff" />
-                  <stop offset="100%" stopColor="#8a929a" />
-                </linearGradient>
-                <linearGradient id="dart-shaft-brass" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#8a6a22" />
-                  <stop offset="50%" stopColor="#f4dc9a" />
-                  <stop offset="100%" stopColor="#a8823c" />
-                </linearGradient>
-                <linearGradient id="dart-wing-red" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#a82820" />
-                  <stop offset="60%" stopColor="#63140e" />
-                  <stop offset="100%" stopColor="#3b0a06" />
-                </linearGradient>
-              </defs>
-              <polygon points="13,1 15.5,11 10.5,11" fill="url(#dart-tip-metal)" />
-              <rect x="11" y="11" width="4" height="14" rx="1" fill="url(#dart-shaft-brass)" stroke="#4a3610" strokeWidth="0.5" />
-              <polygon points="13,22 21,35 13,31 5,35" fill="url(#dart-wing-red)" stroke="#d8b25c" strokeWidth="0.75" />
-              <line x1="13" y1="22" x2="13" y2="31" stroke="#d8b25c" strokeWidth="1" />
+              <polygon points="13,1 17,11 9,11" fill="#cfd4d8" />
+              <line x1="13" y1="11" x2="13" y2="25" stroke="#d4b36a" strokeWidth="4" strokeLinecap="round" />
+              <polygon points="13,25 19,35 13,32 7,35" fill="#7a2e28" />
             </svg>
           </div>
         )}
@@ -350,7 +288,7 @@ function cpuColumn(board: Grid): number {
 }
 
 const FOUR_CSS = `
-.four-wrap { position: relative; display: inline-block; margin-top: 28px; }
+.four-wrap { position: relative; display: inline-block; }
 .four-wrap .disc.you, .four-wrap .disc.them { animation: none; }
 .four-wrap .disc.falling {
   position: absolute;
@@ -370,8 +308,8 @@ const FOUR_CSS = `
   animation: four-win-pulse 0.55s ease-out backwards;
   box-shadow:
     0 0 0 2px #d8b25c,
-    0 0 18px rgba(216, 178, 92, 0.9),
-    inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    0 0 18px rgba(216, 178, 92, 0.8),
+    inset 0 3px 0 rgba(255, 255, 255, 0.28);
 }
 @keyframes four-win-pulse {
   0% { transform: scale(1); }
@@ -380,7 +318,7 @@ const FOUR_CSS = `
 }
 .four-wrap .disc.ghost {
   position: absolute;
-  opacity: 0.45;
+  opacity: 0.3;
   pointer-events: none;
   z-index: 2;
 }
@@ -390,15 +328,13 @@ const FOUR_CSS = `
   height: 36px;
   border-radius: 50%;
   border: 2px dashed #d8b25c;
-  background: radial-gradient(circle, rgba(216, 178, 92, 0.3) 0%, transparent 70%);
-  box-shadow: 0 0 12px rgba(216, 178, 92, 0.5);
   animation: four-hint-pulse 0.55s ease-in-out infinite;
   pointer-events: none;
   z-index: 2;
 }
 @keyframes four-hint-pulse {
-  0%, 100% { opacity: 0.4; transform: scale(0.92); }
-  50% { opacity: 1; transform: scale(1.08); }
+  0%, 100% { opacity: 0.35; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 `;
 
