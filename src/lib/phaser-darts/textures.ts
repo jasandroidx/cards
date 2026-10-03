@@ -114,3 +114,25 @@ export function makeDart(scene: Phaser.Scene): void {
 
   tex.refresh();
 }
+
+/**
+ * Film grain: a tile of monochrome noise, laid over the scene at very low
+ * alpha. Two tiles drifting against each other read as grain in motion.
+ */
+export function makeGrain(scene: Phaser.Scene): void {
+  if (scene.textures.exists("grain")) return;
+  const s = 128;
+  const tex = scene.textures.createCanvas("grain", s, s);
+  if (!tex) return;
+  const ctx = tex.getContext();
+  const img = ctx.createImageData(s, s);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.floor(Math.random() * 255);
+    img.data[i] = v;
+    img.data[i + 1] = v;
+    img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  tex.refresh();
+}
