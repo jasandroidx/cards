@@ -30,7 +30,7 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   lamp: {
     kicker: "The hall",
     title: "The lamp",
-    rule: "Play onto the pile. Match the suit, match the number, or play one higher. Four cards earns a mark. A mark is this place agreeing to let you through.",
+    rule: "Play onto the pile. Match the suit, match the number, or play one higher. Four cards earns a poker chip. A poker chip is this place agreeing to let you through.",
   },
   cut: {
     kicker: "The chapel",
@@ -45,7 +45,7 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   maw: {
     kicker: "In the road",
     title: "The Maw",
-    rule: "It loves poker chips. Bring one, or don't come close. Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a mark.",
+    rule: "It loves poker chips. Bring one, or don't come close. Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a poker chip.",
   },
 };
 
@@ -129,7 +129,7 @@ export function Table({
             <Sequence mode={mode} onEarn={onEarn} onSour={joltTable} />
           )}
           <div className="table-row">
-            <strong>{displayMarks} marks</strong>
+            <strong>{displayMarks} poker chip{displayMarks === 1 ? "" : "s"}</strong>
             <button type="button" className="close-book" onClick={onClose}>
               Stand up
             </button>
@@ -141,7 +141,7 @@ export function Table({
             <>
               <h3>{gate.name}</h3>
               <p>
-                You have {marks}. {gate.opens} stays shut until you pay {gate.cost} {gate.cost === 1 ? "mark" : "marks"}.
+                You have {marks}. {gate.opens} stays shut until you pay {gate.cost} {gate.cost === 1 ? "poker chip" : "poker chips"}.
               </p>
               <button type="button" className="close-book go" disabled={!afford} onClick={() => onBuy(gate)}>
                 {afford ? "Buy it" : "Not enough"}
@@ -155,7 +155,7 @@ export function Table({
           ) : mawBeaten ? (
             <p>The road is open. The reliquary will take you.</p>
           ) : (
-            <p>Past the yard, something is in the road. It loves poker chips. Marks will not move it.</p>
+            <p>Past the yard, something is in the road. It loves poker chips. Yours will not move it.</p>
           )}
         </div>
       </div>
@@ -187,7 +187,7 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
   }
 
   if (out) {
-    return <p className="table-end">The lamp went out. The hand is gone, and it took a mark.</p>;
+    return <p className="table-end">The lamp went out. The hand is gone, and it took a poker chip.</p>;
   }
 
   return (
@@ -457,7 +457,7 @@ function MawApproach({
       <>
         <p className="table-rule">
           Flesh of cards. Bone of dice. The Maw. It was the Queen's royal guard, before the rot took
-          its face. It does not want marks — it wants the ante. You hold the poker chip out. It takes
+          its face. It does not want poker chips — it wants the ante. You hold the poker chip out. It takes
           it gently, for something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
           one a trick.
         </p>
@@ -569,7 +569,7 @@ function Maw({
           {forfeited.current
             ? "The candle gutters. It loses interest."
             : state.passed
-              ? "It moves. Three marks, and the road past it can be bought."
+              ? "It moves. Three poker chips, and the road past it can be bought."
               : "It does not move."}
         </p>
       )}
@@ -589,7 +589,7 @@ function End({ payout, again, sour = false }: { payout: number; again: () => voi
   return (
     <div className="table-row">
       <p className="table-end">
-        {sour ? "The seven of spades. The lamp puts the hand out." : payout === 0 ? "Nothing for the purse." : `${payout} mark${payout === 1 ? "" : "s"}.`}
+        {sour ? "The seven of spades. The lamp puts the hand out." : payout === 0 ? "Nothing for the purse." : `${payout} poker chip${payout === 1 ? "" : "s"}.`}
       </p>
       <button type="button" className="close-book go" onClick={again}>
         Deal again
