@@ -129,14 +129,15 @@ const WAYLAY: Record<number, "sift" | "glimpse"> = {
 };
 
 const JOKER = [
-  "The air of light is gone. The fall was a silence. You are nothing now. A face without a suit.",
-  "We are Under the Table. I'm the Joker. I wasn't in that deck.",
-  "A new fool. Win one hand at the lamp. It pays a poker chip.",
-  "Spend the poker chip and the chapel opens. Then take the road. I'm leaving.",
+  "Up, fool. The fall didn't kill you, it filed you. Under the Table. Where lost games go.",
+  "I am the Jester — bells and motley. I serve the Table, and I laugh at everyone down here.",
+  "That lamp is your life, still burning. Win a hand beneath it, and it pays a poker chip.",
+  "One chip opens the chapel. Then the road. Then — if you're still funny — the Queen.",
+  "Sign the paper. Play. And do try to amuse me. The last fool didn't.",
 ];
 
 /** One line for the player who has signed before. The table remembers. */
-const JOKER_SHORT = ["Back again. The table remembers you."];
+const JOKER_SHORT = ["Back again, fool. The table remembers you. I remember you funnier."];
 
 /** Things the dark says when you are not looking at it. */
 const WHISPERS = [
@@ -1007,16 +1008,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote("You sit in the Dealer's chair. The wood is warm. It knows the shape of you.");
   }
 
-  function examineWindow() {
-    if (position >= 0) {
-      setNote("The window shows the road you are standing on. From inside, it looked further away.");
-    } else if (owned.includes("chapel")) {
-      setNote("Rain on the glass. The road is out there, waiting. You can see your own footprints — but you have not left yet.");
-    } else {
-      setNote("A window, black with rain. Nothing beyond it. Not yet.");
-    }
-  }
-
   /** The torn two of spades: one half under the floorboards, the other in the ash.
    *  Either half taken alone is "Torn half"; holding one and taking the other
    *  mends it — and the rejoined card carries something across the tear. */
@@ -1049,14 +1040,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
     setPocket((value) => [...value, "Torn half"]);
     setNote("In the ash at the fire's edge, half a playing card. The two of spades, singed black at the edges. The fire would not take it. You take the singed half.");
-  }
-
-  function rattleChains() {
-    if (scratchDone) {
-      setNote("The chains are still now. They are listening.");
-      return;
-    }
-    setNote("Chains bolted to the cell wall. They are empty. They were not always empty — the links are worn smooth where wrists were.");
   }
 
   const [scratchCount, setScratchCount] = useState(0);
@@ -1496,7 +1479,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             onClick={() => (door ? setView("cell") : setPad(true))}
             aria-label="The door"
           />
-          <button type="button" className="hot hot-window" onClick={examineWindow} aria-label="The window" />
           <button type="button" className="hot hot-floor" onClick={floorHalf} aria-label="The floorboards" />
         </>
       )}
@@ -1504,7 +1486,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <>
           <button type="button" className="hot hot-shelf" onClick={takeCup} aria-label="The shelf" />
           <button type="button" className="hot hot-wall" onClick={farWall} aria-label="The far wall" />
-          <button type="button" className="hot hot-chains" onClick={rattleChains} aria-label="The chains" />
           <button type="button" className="hot hot-scratches" onClick={readScratches} aria-label="Scratch marks" />
           <button type="button" className="hot hot-stone" onClick={workStone} aria-label="A loose stone" />
           <button type="button" className="hot hot-noughts" onClick={() => setPlaying("noughts")} aria-label="A scratched grid" />
@@ -1814,7 +1795,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       </div>
       )}
 
-      {!met && <JokerMeet short={returning} onLeave={() => setMet(true)} />}
+      {!met && <JesterMeet short={returning} onLeave={() => setMet(true)} />}
 
       {met && !signed && (
         <Paper
@@ -2184,7 +2165,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   );
 }
 
-function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
+function JesterMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
   const lines = short ? JOKER_SHORT : JOKER;
   const [line, setLine] = useState(0);
   const last = line >= lines.length - 1;
@@ -2196,7 +2177,7 @@ function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void })
         type="button"
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
-        <b>Joker</b>
+        <b>The Jester</b>
         <video
           className="plate joker-face"
           src="/plates/joker-deals.mp4"
@@ -2205,7 +2186,7 @@ function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void })
           muted
           loop
           playsInline
-          aria-label="The Joker dealing"
+          aria-label="The Jester dealing"
         />
         <p>{lines[line]}</p>
         <i>{last ? "He leaves" : "Click"}</i>
