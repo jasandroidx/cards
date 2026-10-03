@@ -63,9 +63,9 @@ const AGES = [
     at: 27,
     key: "maw",
     name: "The Maw",
-    src: "/maw.jpg",
-    alt: "A faceless thing of cards and bone blocking the mountain road",
-    line: "It is in the road. It does not want marks.",
+    src: "/plates/maw.jpg",
+    alt: "The Maw — a faceless thing of cards and bone blocking the mountain road",
+    line: "Flesh of cards. Bone of dice. It does not want marks.",
   },
   {
     at: 28,
@@ -79,9 +79,9 @@ const AGES = [
     at: 29,
     key: "reliquary",
     name: "The Reliquary",
-    src: "/hall.jpg",
-    alt: "The hall again, waiting",
-    line: "The same room. The deck is the one you carried.",
+    src: "/plates/reliquary.jpg",
+    alt: "The reliquary, waiting",
+    line: "The same room. But the seat is warm now.",
   },
 ] as const;
 
@@ -127,11 +127,20 @@ const WAYLAY: Record<number, "sift" | "glimpse"> = {
 };
 
 const JOKER = [
-  "You fell through the table. I watched it open.",
-  "This is the room under it. I'm the Joker. I wasn't in that deck.",
-  "Win one hand at the lamp. It pays a mark.",
+  "The air of light is gone. The fall was a silence. You are nothing now. A face without a suit.",
+  "We are Under the Table. I'm the Joker. I wasn't in that deck.",
+  "A new fool. Win one hand at the lamp. It pays a mark.",
   "Spend the mark and the chapel opens. Then take the road. I'm leaving.",
 ];
+
+/** The rite spoken when a gate's chain breaks. Not a transaction — a ritual. */
+const GATE_RITE: Record<string, string> = {
+  chapel: "One debt paid. A chain breaks. The rules loosen. Enter the chapel and find what is broken.",
+  bridge: "Two marks spent. Another chain falls. The river remembers being crossed.",
+  yard: "Two marks spent. Another chain falls. The mud keeps what it is given.",
+  queen: "Three marks. The last lock. The heart of the Table waits — throne and dungeon. Give her a suit. Give her a law. Restore her.",
+  reliquary: "Three marks. The final chain. It opens.",
+};
 
 /** The current directive, in plain language. Answers "what do I do now." */
 function objective(
@@ -145,7 +154,7 @@ function objective(
   if (!signed) return "Sign the paper.";
   const gate = nextGate(owned, mawBeaten);
   if (position < 0 && !owned.includes("chapel")) {
-    if (marks < 1) return "Win a mark at the lamp — sit at any table game.";
+    if (marks < 1) return "Win a mark at the lamp — the flame is all that says you are here. Sit at any table game.";
     return "Open the chapel.";
   }
   if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
@@ -167,7 +176,7 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
     return "The king's square. Beyond him the dark has teeth: it loves a poker chip, and it eats the empty-handed. Go back kindled, or don't go.";
   }
   if (position < 0 && !owned.includes("chapel")) {
-    if (marks < 1) return "Play one hand at the lamp. A win pays a mark.";
+    if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a mark.";
     return `${purse} Open the chapel. Then take the road.`;
   }
   if (position < 0) return `${purse} The chapel is open. Take the road and roll.`;
@@ -260,6 +269,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [lastRoll, setLastRoll] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [gateCeremony, setGateCeremony] = useState<string | null>(null);
+  const [ended, setEnded] = useState(false);
   const [deckOpen, setDeckOpen] = useState(false);
   const [carried, setCarried] = useState<{ rank: number; suit: string }[]>([]);
   const [fallen, setFallen] = useState(false);
@@ -558,6 +569,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setMarks((value) => value - gate.cost);
     setOwned((value) => [...value, gate.key]);
     gateSound();
+    setGateCeremony(gate.key);
     setNote(`${gate.opens} is open.`);
   }
 
@@ -687,7 +699,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   function face(won: boolean) {
     if (won) {
       setMawBeaten(true);
-      setNote("It moves. The coat can be bought.");
+      setNote("The ante is accepted. The cards fall. The Maw was a royal guard — once, it had a name. It is free now. Remember it.");
     } else {
       lossSound();
       setMarks((value) => Math.max(0, value - 1));
@@ -988,7 +1000,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             type="button"
             onClick={() => {
               setLight(kindle());
-              setNote("You kindle the candle at the hearth. Five wax.");
+              setNote("This wax was his. His game is over. Take his flame and remember: you cannot escape the Table. You only burn. Burn brightly.");
             }}
           >
             Kindle the candle
@@ -1289,7 +1301,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <Queen
           onWon={() => {
             setQueenFaced(true);
-            setNote("You beat her four times. There is a face on her now.");
+            setNote("Four rounds. The Queen has a face. The houses burn — and something in the dark is waiting for its Dealer.");
           }}
           onLost={() => setNote("Nothing left to answer. Her face is still gone, and you stay on the square.")}
           onClose={() => setPlaying(null)}
@@ -1302,7 +1314,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           onClose={() => setPlaying(null)}
           onWin={() => {
             setPlaying(null);
-            onReturn?.(marks, boons);
+            setEnded(true);
           }}
         />
       )}
@@ -1341,6 +1353,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         />
       )}
       {dead && <Death />}
+      {ended && <Ending onReturn={() => onReturn?.(marks, boons)} />}
+      {gateCeremony && (
+        <div className="journal-back" onClick={() => setGateCeremony(null)}>
+          <div className="gate-rite" role="dialog" aria-label="A chain breaks" onClick={(event) => event.stopPropagation()}>
+            <p className="leaf-kicker">A chain breaks</p>
+            <p className="gate-rite-line">{GATE_RITE[gateCeremony] ?? "The chain breaks."}</p>
+            <button type="button" className="close-book go" onClick={() => setGateCeremony(null)}>
+              Step through
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -1378,9 +1402,10 @@ function Paper({ onSign }: { onSign: () => void }) {
     <div className="journal-back">
       <div className="paper" role="dialog" aria-label="A paper on the table">
         <p className="leaf-kicker">On the table</p>
-        <p className="paper-line">I am still playing.</p>
-        <p className="paper-old">still playing</p>
-        {ink && <p className="paper-new">still playing</p>}
+        <img className="plate" src="/plates/signing.jpg" alt="The signing" />
+        <p className="paper-line">Here, rules are law. Law is debt. And the Table always gets its debt.</p>
+        <p className="paper-old">I am still playing.</p>
+        {ink && <p className="paper-new">I am still playing.</p>}
         {!ink && (
           <button type="button" className="close-book go" onClick={sign}>
             Sign
@@ -1418,6 +1443,48 @@ function Death() {
         <div className="table-row">
           <button type="button" className="close-book go" onClick={beginAgain}>
             Begin again
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** The Reliquary opens — and it is not an exit. You are the Table now. */
+function Ending({ onReturn }: { onReturn: () => void }) {
+  function newDealer() {
+    try {
+      localStorage.removeItem("reliquary-v3");
+    } catch {
+      // the dark keeps nothing anyway
+    }
+    window.location.reload();
+  }
+
+  return (
+    <div className="journal-back" role="dialog" aria-label="The Reliquary">
+      <div className="table one-col">
+        <p className="leaf-kicker">The Reliquary</p>
+        <img className="plate" src="/plates/reliquary.jpg" alt="The reliquary" />
+        <h2>The seat is yours. Dealer.</h2>
+        <p className="leaf-body">
+          The final chain breaks. The Reliquary opens — and it looks familiar. The dark. The table.
+          The cards. The same room you fell into.
+        </p>
+        <p className="leaf-body">
+          She is whole. Her face has come back, and the world is free. But as the chains re-forge
+          around your waist, you understand: the Reliquary was never an exit. It is her throne.
+          And thrones need a Dealer.
+        </p>
+        <p className="leaf-body">
+          <em>We must play.</em>
+        </p>
+        <div className="table-row">
+          <button type="button" className="close-book go" onClick={newDealer}>
+            New Dealer
+          </button>
+          <button type="button" className="close-book" onClick={onReturn}>
+            Leave the table
           </button>
         </div>
       </div>

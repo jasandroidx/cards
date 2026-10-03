@@ -31,7 +31,7 @@ export const SQUARES: Square[] = [
     house: "breach",
     game: "Arrival",
     blurb:
-      "This is where you landed. The hall is behind you. The road ahead is every game that broke. Roll to walk. When it stops, go back and play a hand.",
+      "Where you landed. The hall is behind you; the road ahead is every game that broke. Roll to walk. When it stops, go back and play a hand.",
     labeled: true,
   },
   {
@@ -41,7 +41,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "breach",
     game: "Walk",
-    blurb: "Empty road. Roll and keep climbing.",
+    blurb: "The road is not stone. It is bone. And dice.",
     labeled: false,
   },
   {
@@ -51,7 +51,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "breach",
     game: "Walk",
-    blurb: "Empty road. The fog has not lifted.",
+    blurb: "Ash underfoot. The fog has not lifted. Something was dealt here, and left.",
     labeled: false,
   },
   {
@@ -62,7 +62,7 @@ export const SQUARES: Square[] = [
     house: "breach",
     game: "Cut",
     blurb:
-      "A page with no face, holding a lantern that does not reach his feet. He calls a rank. You slap the rifling deck. Win, or you do not pass. His light is the first on the road.",
+      "A page with no face, holding a lantern that does not reach his feet. He calls a rank. You cut the deck. Win, or you do not pass.",
     labeled: true,
   },
   {
@@ -73,7 +73,7 @@ export const SQUARES: Square[] = [
     house: "breach",
     game: "Shortcut to the stair's end",
     blurb:
-      "Land here exactly and the stair skips the cracked cup. It does not skip Mabel. Pip is the one who told you it was here.",
+      "A stair of cracked cards, going up. Land here exactly and it carries you past the cup and the row. It will not carry you past Mabel.",
     labeled: true,
   },
   {
@@ -83,7 +83,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "breach",
     game: "Walk",
-    blurb: "Empty road, if you did not take the stair.",
+    blurb: "If you took the stair, you never stood here. If you did not — ash, and the road going on.",
     labeled: false,
   },
   {
@@ -103,7 +103,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "breach",
     game: "Walk",
-    blurb: "Empty road.",
+    blurb: "Nothing here but the sound of your own walking. The Table is listening.",
     labeled: false,
   },
   {
@@ -115,7 +115,7 @@ export const SQUARES: Square[] = [
     game: "Rent",
     relic: "A street of deeds. Only the rent survived.",
     blurb:
-      "Four burnt deeds and a little iron house. Land here and the row charges one card from your hand. Pay, or lose the next roll. The stair skips this if you take it.",
+      "A street of burnt deeds. Land here and the row charges one card from your hand. Pay, or lose your next roll.",
     labeled: true,
   },
   {
@@ -137,7 +137,7 @@ export const SQUARES: Square[] = [
     game: "Yacht",
     relic: "Five dice, three throws. The chapel kept only this.",
     blurb:
-      "Five bone dice, three throws, hold what you like. She keeps the Heart banner. Beat her and the chapel goes from black stone to firelight. That light stays.",
+      "Five bone dice on a chapel altar. Three throws, hold what you like. Beat her and the chapel burns. That light stays.",
     labeled: true,
   },
   {
@@ -159,7 +159,7 @@ export const SQUARES: Square[] = [
     game: "The Shout",
     relic: "A color game. Only the matching survived.",
     blurb:
-      "Cards race the current in four ugly colors. Throw a match, same color or the next rank, before they hit the center. Miss and the river takes a card. The reward, if you clear it, is a Heart boon: at the reliquary you draw one, not three.",
+      "Cards race the current in four ugly colors. Match the color or the next rank before they reach the center. Miss, and the river takes a card.",
     labeled: true,
   },
   {
@@ -169,7 +169,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "hearts",
     game: "Walk",
-    blurb: "Empty road down to the bridge.",
+    blurb: "The road goes down to the bridge. The water below is black, and does not hurry.",
     labeled: false,
   },
   {
@@ -181,7 +181,7 @@ export const SQUARES: Square[] = [
     game: "Spades",
     relic: "One hand, bid and made. The river kept only this.",
     blurb:
-      "The Dealer and two empty chairs. One hand of spades, you and him against the dead seats. Make the bid and the bridge drops. The water turns silver. The Spade house lights.",
+      "The Dealer and two empty chairs. One hand of spades — you and him against the dead seats. Make the bid and the bridge drops. The water turns silver.",
     labeled: true,
   },
   {
@@ -191,7 +191,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "spades",
     game: "Walk",
-    blurb: "The far side of the river. Silver only if the bridge is down.",
+    blurb: "The far bank. If the bridge is down, the water runs silver. If not, you are still on the wrong side.",
     labeled: false,
   },
   {
@@ -203,7 +203,7 @@ export const SQUARES: Square[] = [
     game: "Three dice",
     relic: "A war map. Only one battle survived.",
     blurb:
-      "A black territory with no name. You roll three dice, the border rolls two. Higher takes it. Win and the silver spreads. Lose and you step back one, still on the far bank.",
+      "A black territory with no name. You roll three dice, the border rolls two. Higher takes it. Win, and the silver spreads.",
     labeled: true,
   },
   {
@@ -214,7 +214,7 @@ export const SQUARES: Square[] = [
     house: "mire",
     game: "The fall",
     blurb:
-      "You are one card, kicking off ledges as you drop. Miss and you fall faster. The reward is the Black Ace. Nix will take it in place of a harder game.",
+      "You are one card, kicking off ledges as you drop. Miss and you fall faster. At the bottom: the Black Ace. Nix will take it in place of a harder game.",
     labeled: true,
   },
   {
@@ -235,7 +235,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "mire",
     game: "Take a letter",
-    blurb: "A letter tile standing in the mud. Walk it and you carry the letter. The ledge skips this.",
+    blurb: "A letter tile standing in the mud. Walk it and you carry the letter.",
     labeled: false,
   },
   {
@@ -257,7 +257,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "mire",
     game: "Take a letter",
-    blurb: "Another tile. The last one before the ledge comes out.",
+    blurb: "Another tile in the mud. The last one before the ledge comes out.",
     labeled: false,
   },
   {
@@ -278,7 +278,7 @@ export const SQUARES: Square[] = [
     house: "mire",
     game: "The Ace, the word, or the lamp",
     blurb:
-      "A saint who sank. The Black Ace clears the mire. A word from the yard does too. Neither, and you play in a shrinking circle of lamplight while loose cards creep in. This opens the road. It does not light a house.",
+      "A saint who sank. The Black Ace clears the mire. A word from the yard does too. Neither, and you play in a shrinking circle of lamplight while loose cards creep in.",
     labeled: true,
   },
   {
@@ -289,7 +289,7 @@ export const SQUARES: Square[] = [
     house: "diamonds",
     game: "Monte",
     blurb:
-      "Three cards. Follow the queen. The hands cheat once, so you watch the hands. The reward is a Diamond boon: one undo in the final hand.",
+      "Three cards. Follow the queen. The hands cheat once — so watch the hands, not the cards.",
     labeled: true,
   },
   {
@@ -300,7 +300,7 @@ export const SQUARES: Square[] = [
     house: "clubs",
     game: "House of cards",
     blurb:
-      "Build a house on the felt. The table bumps. It has to be standing when the lamp steadies. The reward is a Club boon: a queen may open an empty column at the end.",
+      "Build a house on the felt. The table bumps. It has to be standing when the lamp steadies.",
     labeled: true,
   },
   {
@@ -312,7 +312,7 @@ export const SQUARES: Square[] = [
     game: "One square",
     relic: "A whole board, and one piece left on it.",
     blurb:
-      "A lone king on a burnt square. It moves once, toward you. Roll even and you step past. Roll odd and it takes a card from your hand.",
+      "A lone king on a burnt square. It moves once, toward you. Roll even and you step past. Roll odd and it takes a card from your hand. Beyond him the dark has teeth.",
     labeled: true,
   },
   {
@@ -322,7 +322,7 @@ export const SQUARES: Square[] = [
     kind: "road",
     house: "clubs",
     game: "Walk",
-    blurb: "The wood thickens toward the Queen.",
+    blurb: "Flesh of cards. Bone of dice. The Maw. It is in the road. It does not want marks — it wants the ante. Feed it a poker chip, or be eaten.",
     labeled: false,
   },
   {
@@ -333,7 +333,7 @@ export const SQUARES: Square[] = [
     house: "nave",
     game: "Court",
     blurb:
-      "Faceless, too large for her square, coat like a broken window. You play on her while she tries to cast you off. Win, and her face returns. Clubs and Diamonds light together.",
+      "Faceless. Too large for her square. Coat like a broken window. You play on her while she tries to cast you off. Four rounds. Win, and her face returns.",
     labeled: true,
   },
   {
@@ -344,7 +344,7 @@ export const SQUARES: Square[] = [
     house: "nave",
     game: "Solitaire",
     blurb:
-      "Sealed until all four houses burn. It opens onto the hall you started in. Same lamp. Same quiet game. The deck is full, and the boons you carried are the only mercy in it.",
+      "Sealed until all four houses burn. It opens onto the hall you started in. Same lamp. Same quiet game. But the seat is warm now. Dealer.",
     labeled: true,
   },
 ];

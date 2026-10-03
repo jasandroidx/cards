@@ -2,6 +2,14 @@ import { useState } from "react";
 import { QUEEN_HAND, QUEEN_ROUNDS, QUEEN_THROW_ROUND, queenLegal, queenOutcome, queenPlay, queenStalled, startQueen, type QueenState } from "@/lib/reliquary/queen";
 import { rankLabel, suitMark, isRed } from "@/lib/reliquary/klondike";
 
+/** She remembers herself one round at a time. Victory is turning into horror. */
+const QUEEN_STAGES = [
+  "A finger moves. Silence screeches.",
+  "The torso shudders. She is not alive, but she is remembering life.",
+  "An eye socket appears. Darkness, given shape.",
+  "The final card turns. Light floods the suit.",
+];
+
 export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: () => void; onClose: () => void }) {
   const [state, setState] = useState<QueenState>(() => startQueen());
   const [settled, setSettled] = useState(false);
@@ -47,6 +55,10 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
 
           {state.thrown.length > 0 && <p className="table-rule">She has cast off {state.thrown.length}.</p>}
 
+          {!settled && state.round > 0 && (
+            <p className="table-rule"><em>{QUEEN_STAGES[state.round - 1]}</em></p>
+          )}
+
           {!settled && (
             <div className="table-row" style={{ flexWrap: "wrap", gap: 4 }}>
               {state.mine.map((card) => {
@@ -63,7 +75,12 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
             </div>
           )}
 
-          {outcome === "won" && <p className="table-end">You beat her {QUEEN_ROUNDS} times. There is a face on her now.</p>}
+          {outcome === "won" && (
+            <p className="table-end">
+              The Queen has a face. "Dealer," she whispers, her voice a bell, "my world is free.
+              But your debt must be paid."
+            </p>
+          )}
           {settled && outcome !== "won" && <p className="table-end">Nothing left to answer. Her face is still gone.</p>}
 
           <div className="table-row">
