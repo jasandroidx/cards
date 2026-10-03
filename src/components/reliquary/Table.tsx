@@ -447,8 +447,9 @@ function MawApproach({
     return (
       <>
         <p className="table-rule">
-          It is hungry, but it loves poker chips more. You hold yours out. It takes it — gently, for
-          something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
+          Flesh of cards. Bone of dice. The Maw. It was the Queen's royal guard, before the rot took
+          its face. It does not want marks — it wants the ante. You hold the poker chip out. It takes
+          it gently, for something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
           one a trick.
         </p>
         <div className="table-row">
