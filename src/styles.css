@@ -2797,3 +2797,197 @@ body::before {
 .bj-actions {
   gap: 14px;
 }
+
+/* ============ Mire Games Dressing: Well, Tiles, Yard ============ */
+
+/* Mire modal container / table backdrop: murky dark water and sucking mud */
+.table.mire-table {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 5px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #0c1815 0%, #070e0c 55%, #030605 100%);
+  border: 1px solid rgba(138, 118, 72, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 100px rgba(2, 8, 6, 0.85),
+    0 40px 100px rgba(0, 0, 0, 0.85),
+    0 0 50px rgba(16, 36, 28, 0.3);
+}
+
+.table.mire-table::before {
+  /* Subtle murky flicker / rippling water light */
+  background: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(68, 92, 76, 0.12) 0%, transparent 70%);
+}
+
+.mire-kicker {
+  color: #a8925c !important;
+  letter-spacing: 0.22em;
+}
+
+/* Pool / Well pit */
+.mire-well-pool {
+  position: relative;
+  padding: 20px;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(14, 28, 23, 0.7) 0%, rgba(4, 9, 7, 0.95) 100%),
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0 4px, transparent 4px 12px);
+  border: 1px solid rgba(100, 85, 55, 0.3);
+  box-shadow:
+    inset 0 10px 30px rgba(0, 0, 0, 0.9),
+    inset 0 0 15px rgba(10, 24, 18, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Ledges floating over dark water */
+.mire-ledge-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(15, 24, 20, 0.8);
+  border: 1px solid rgba(168, 146, 92, 0.3);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: #d8c8a8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.mire-ledge-bar b {
+  color: var(--pit-gold);
+  font-size: 22px;
+}
+
+/* Half-drowned letter tiles and card tiles */
+.mire-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 68px;
+  border-radius: 6px;
+  background: linear-gradient(165deg, #1c2621 0%, #0e1411 60%, #070a08 100%);
+  border: 1px solid rgba(168, 146, 92, 0.4);
+  color: #e6dac3;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 500;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.7),
+    0 6px 12px rgba(0, 0, 0, 0.6);
+  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+  position: relative;
+}
+
+.mire-tile::after {
+  /* Mud line / silt tide mark at the bottom of the tile */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  background: linear-gradient(to top, rgba(12, 10, 8, 0.75), transparent);
+  border-radius: 0 0 5px 5px;
+  pointer-events: none;
+}
+
+.mire-tile:hover:not(:disabled) {
+  transform: translateY(-5px);
+  border-color: var(--pit-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 10px 18px rgba(0, 0, 0, 0.7),
+    0 0 12px rgba(216, 178, 92, 0.25);
+}
+
+.mire-tile:disabled {
+  opacity: 0.3;
+  cursor: default;
+  filter: grayscale(0.8);
+}
+
+.mire-tile.picked-slot {
+  border-color: var(--pit-gold);
+  background: linear-gradient(165deg, #2a3830 0%, #141f1a 100%);
+  box-shadow:
+    0 0 14px rgba(216, 178, 92, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Sucking mud bed for Yard / Tiles */
+.mire-mud-bed {
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(18, 14, 10, 0.8) 0%, rgba(8, 6, 4, 0.95) 100%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.4) 0 3px, transparent 3px 8px);
+  border: 1px solid rgba(120, 100, 65, 0.3);
+  border-radius: 8px;
+  box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Yard Input Field */
+.mire-input {
+  background: rgba(10, 14, 12, 0.85);
+  border: 1px solid rgba(168, 146, 92, 0.4);
+  border-radius: 4px;
+  color: #f3eadc;
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  text-align: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.mire-input:focus {
+  outline: none;
+  border-color: var(--pit-gold);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(216, 178, 92, 0.3);
+}
+
+/* Mire buttons */
+.mire-btn {
+  border: 1px solid rgba(168, 146, 92, 0.5);
+  background: rgba(12, 18, 15, 0.8);
+  color: #e6dac3;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.mire-btn:hover:not(:disabled) {
+  background: rgba(168, 146, 92, 0.2);
+  border-color: var(--pit-gold);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(216, 178, 92, 0.2);
+}
+
+.mire-btn.go {
+  border-color: #d8b25c;
+  background: rgba(40, 30, 15, 0.7);
+  color: var(--pit-gold);
+}
+
+.mire-btn.go:hover:not(:disabled) {
+  background: var(--pit-gold);
+  color: #1a1208;
+}
+
+.mire-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
