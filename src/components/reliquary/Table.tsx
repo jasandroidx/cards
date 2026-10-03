@@ -321,7 +321,7 @@ function Sequence({ mode, onEarn, onSour }: { mode: "lamp" | "cut"; onEarn: (n: 
   return (
     <>
       <div className="felt">
-        <img className="plate" src="/hand.jpg" alt="" />
+        <img className="plate" src="/plates/card-table.jpg" alt="The lamp table" />
         <div className="lamp">
           {sitting.top ? (
             <div key={sitting.top.id} className="deal-wrap">
@@ -455,6 +455,7 @@ function MawApproach({
   if (mawApproach(pocket) === "plays") {
     return (
       <>
+        <img className="plate" src="/plates/claw.jpg" alt="A black claw over the cards" />
         <p className="table-rule">
           Flesh of cards. Bone of dice. The Maw. It was the Queen's royal guard, before the rot took
           its face. It does not want poker chips — it wants the ante. You hold the poker chip out. It takes
