@@ -303,6 +303,14 @@ body::before {
   height: 24%;
 }
 
+/* The prisoner's game: noughts scratched low on the cell wall. */
+.hot-noughts {
+  left: 3%;
+  top: 70%;
+  width: 24%;
+  height: 26%;
+}
+
 /* Myst slice 2: the chapel. */
 .hot-chdice {
   left: 12%;
@@ -346,47 +354,61 @@ body::before {
   height: 28%;
 }
 
-/* Myst slice 3: the bridge. */
-.hot-brbreak {
-  left: 35%;
-  top: 25%;
-  width: 30%;
-  height: 25%;
-}
-
-.hot-brplank {
-  left: 20%;
-  top: 62%;
-  width: 25%;
-  height: 20%;
-}
-
-.hot-branchor {
-  left: 5%;
-  top: 55%;
-  width: 18%;
-  height: 25%;
-}
-
-.hot-brmarker {
-  left: 30%;
-  top: 68%;
-  width: 18%;
-  height: 22%;
-}
-
-.hot-brwater {
-  left: 10%;
-  top: 55%;
-  width: 80%;
-  height: 35%;
-}
-
-.hot-brchain {
-  left: 60%;
-  top: 10%;
-  width: 15%;
+/* Myst slice 4: the yard. */
+.hot-ystones {
+  left: 8%;
+  top: 30%;
+  width: 50%;
   height: 40%;
+}
+
+.hot-yfallen {
+  left: 64%;
+  top: 38%;
+  width: 20%;
+  height: 15%;
+}
+
+.hot-ymud {
+  left: 5%;
+  top: 42%;
+  width: 55%;
+  height: 30%;
+}
+
+.hot-ypull {
+  left: 66%;
+  top: 34%;
+  width: 24%;
+  height: 26%;
+}
+
+.hot-ywall {
+  left: 5%;
+  top: 18%;
+  width: 90%;
+  height: 24%;
+}
+
+.hot-ytile0 {
+  left: 18%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
+}
+
+.hot-ytile1 {
+  left: 42.5%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
+}
+
+.hot-ytile2 {
+  left: 67%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
 }
 
 /* From the Dealer's seat, the room is wrong. */
