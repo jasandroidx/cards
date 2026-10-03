@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick, cupThunk, diceClatter, gateSound, lossSound } from "@/lib/reliquary/atmosphere";
 
 function canMatch(open: number[], target: number): boolean {
@@ -110,7 +111,12 @@ export function Box({ onEarn }: { onEarn: (n: number) => void }) {
   }
 
   function roll() {
-    const next = 2 + Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6);
+    let next = 2 + Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6);
+    // Onboarding nudge: the first table game of the session never opens with
+    // an unshuttable roll.
+    if (takeFirstGameNudge()) {
+      while (!canMatch(open, next)) next = 2 + Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6);
+    }
     diceClatter(2);
     if (!canMatch(open, next)) {
       finish(open);

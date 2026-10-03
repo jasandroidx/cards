@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
 const CHK_CSS = `
@@ -217,6 +218,9 @@ function moveToken(tokens: Token[], step: Step, board: Board): Token[] {
 
 export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   const [board, setBoard] = useState<Board>(startBoard);
+  // Onboarding nudge: claimed once on mount; while held, the house moves
+  // blind instead of searching.
+  const [nudged] = useState(() => takeFirstGameNudge());
   const [tokens, setTokens] = useState<Token[]>(() => tokensFrom(startBoard()));
   const [selected, setSelected] = useState<Sq | null>(null);
   const [lock, setLock] = useState<Sq | null>(null);
@@ -289,7 +293,11 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   }
 
   function runCpu(from: Board) {
-    const turn = cpuTurn(from);
+    let turn = cpuTurn(from);
+    if (nudged) {
+      const options = turns(from, -1);
+      if (options.length > 0) turn = options[Math.floor(Math.random() * options.length)] ?? null;
+    }
     if (!turn) {
       busy.current = false;
       finish(true);

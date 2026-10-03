@@ -13,6 +13,7 @@ import {
   type Gate,
   type Mode,
 } from "@/lib/reliquary/sitting";
+import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { Box } from "@/components/reliquary/Box";
 import { Farkle, GoFish, LiarsDice } from "@/components/reliquary/Quick";
 import { mawApproach } from "@/lib/reliquary/death";
@@ -280,7 +281,12 @@ function Sequence({ mode, onEarn, onSour }: { mode: "lamp" | "cut"; onEarn: (n: 
   const legal = mode === "cut" ? canCut : canPlay;
   const pay = mode === "cut" ? cutMarks : marksFor;
   const [sitting, setSitting] = useState(() => {
-    const deck = shuffleDeck();
+    let deck = shuffleDeck();
+    // Onboarding nudge: the first table game of the session opens with no
+    // sour seven in hand, so the first win is never an instant loss.
+    if (takeFirstGameNudge()) {
+      while (deck.slice(0, 3).some(isSour)) deck = shuffleDeck();
+    }
     return {
       deck: deck.slice(3),
       hand: deck.slice(0, 3),
