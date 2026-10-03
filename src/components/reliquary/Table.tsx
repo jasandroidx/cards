@@ -91,10 +91,15 @@ export function Table({
   const copy = COPY[mode];
   const gate = nextGate(owned, mawBeaten);
   const afford = gate ? marks >= gate.cost : false;
+  const [jolt, setJolt] = useState(false);
+  function joltTable() {
+    setJolt(true);
+    window.setTimeout(() => setJolt(false), 450);
+  }
 
   return (
     <div className="journal-back" onClick={onClose}>
-      <div className="table" role="dialog" aria-label={copy.title} onClick={(event) => event.stopPropagation()}>
+      <div className={jolt ? "table jolt" : "table"} role="dialog" aria-label={copy.title} onClick={(event) => event.stopPropagation()}>
         <div className="table-top">
           <p className="leaf-kicker">{copy.kicker}</p>
           <h2>{copy.title}</h2>
@@ -117,7 +122,7 @@ export function Table({
           ) : mode === "lamp" ? (
             <HallSeat onEarn={onEarn} onSat={onSat} onKeep={onKeep} />
           ) : (
-            <Sequence mode={mode} onEarn={onEarn} />
+            <Sequence mode={mode} onEarn={onEarn} onSour={joltTable} />
           )}
           <div className="table-row">
             <strong>{marks} marks</strong>
@@ -268,7 +273,7 @@ function Wick({ seconds, onOut }: { seconds: number; onOut: () => void }) {
   );
 }
 
-function Sequence({ mode, onEarn }: { mode: "lamp" | "cut"; onEarn: (n: number) => void }) {
+function Sequence({ mode, onEarn, onSour }: { mode: "lamp" | "cut"; onEarn: (n: number) => void; onSour?: () => void }) {
   const legal = mode === "cut" ? canCut : canPlay;
   const pay = mode === "cut" ? cutMarks : marksFor;
   const [sitting, setSitting] = useState(() => {
@@ -293,6 +298,7 @@ function Sequence({ mode, onEarn }: { mode: "lamp" | "cut"; onEarn: (n: number) 
     const played = sitting.played + 1;
     if (mode === "lamp" && isSour(card)) {
       wrongSound();
+      onSour?.();
       onEarn(-1);
       setSitting({ deck, hand, top: card, played, done: true, payout: -1, sour: true });
       return;

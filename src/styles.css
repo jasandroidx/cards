@@ -1318,15 +1318,35 @@ body::before {
 }
 
 @keyframes card-in {
-  from {
-    transform: translateY(-14px);
+  0% {
+    transform: translateY(-16px) scale(1.09);
     opacity: 0;
+  }
+  55% {
+    transform: translateY(2px) scale(0.985);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
   }
 }
 
 @keyframes card-flip {
-  from {
-    transform: rotateY(90deg);
+  0% {
+    transform: rotateY(90deg) translateY(-6px);
+    opacity: 0.35;
+  }
+  55% {
+    transform: rotateY(6deg) translateY(-11px);
+    opacity: 1;
+  }
+  78% {
+    transform: rotateY(-5deg) translateY(-2px);
+  }
+  100% {
+    transform: rotateY(0) translateY(0);
+    opacity: 1;
   }
 }
 
@@ -1900,11 +1920,18 @@ body::before {
 }
 
 @keyframes card-deal-in {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(26px) rotate(2deg);
+    transform: translateY(-52px) rotate(-5deg) scale(0.94);
   }
-  to {
+  55% {
+    opacity: 1;
+    transform: translateY(5px) rotate(1.2deg) scale(1.012);
+  }
+  78% {
+    transform: translateY(-2px) rotate(-0.4deg) scale(1);
+  }
+  100% {
     opacity: 1;
     transform: none;
   }
@@ -1912,7 +1939,7 @@ body::before {
 
 .deal-wrap {
   display: inline-block;
-  animation: card-deal-in 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+  animation: card-deal-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
 
 .objective {
@@ -1993,4 +2020,144 @@ body::before {
     animation: none;
   }
   .grain { opacity: 0.05; }
+}
+
+/* ============ Motion with weight ============ */
+
+/* Playable cards rise to meet the finger. */
+.card-btn .card,
+.card-btn .win-face {
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 0.18s ease;
+}
+
+.card-btn:not(:disabled) {
+  cursor: pointer;
+}
+
+.card-btn:not(:disabled):hover .card,
+.card-btn:not(:disabled):hover .win-face {
+  transform: translateY(-9px);
+}
+
+.card-btn:not(:disabled):hover .card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(122, 90, 48, 0.25),
+    0 20px 26px rgba(0, 0, 0, 0.45),
+    0 4px 8px rgba(0, 0, 0, 0.35),
+    0 0 18px rgba(216, 178, 92, 0.18);
+}
+
+.card-btn:not(:disabled):hover .card.back {
+  box-shadow:
+    inset 0 0 0 3px #0d0a06,
+    inset 0 0 0 4px rgba(216, 178, 92, 0.55),
+    0 20px 26px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(216, 178, 92, 0.3);
+}
+
+.card-btn:not(:disabled):hover .card.ace {
+  box-shadow:
+    inset 0 0 0 2px rgba(176, 132, 52, 0.85),
+    inset 0 0 0 4px #f4ead2,
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 20px 26px rgba(0, 0, 0, 0.45),
+    0 0 22px rgba(216, 178, 92, 0.35);
+}
+
+.card-btn:not(:disabled):active .card,
+.card-btn:not(:disabled):active .win-face {
+  transform: translateY(-3px) scale(0.98);
+  transition-duration: 0.08s;
+}
+
+/* Flips get depth. */
+.card-btn {
+  perspective: 700px;
+}
+
+.card-btn.up .card {
+  animation: card-flip 0.5s cubic-bezier(0.3, 0.7, 0.3, 1);
+  transform-style: preserve-3d;
+}
+
+/* The table shudders on a sour play. */
+.table.jolt {
+  animation: table-jolt 0.42s ease;
+}
+
+@keyframes table-jolt {
+  0%, 100% { transform: translate(-50%, -50%); }
+  18% { transform: translate(calc(-50% - 8px), -50%); }
+  38% { transform: translate(calc(-50% + 6px), -50%); }
+  58% { transform: translate(calc(-50% - 4px), -50%); }
+  78% { transform: translate(calc(-50% + 2px), -50%); }
+}
+
+/* Gold burst when a mark is earned. */
+.mark-burst {
+  position: fixed;
+  left: 50%;
+  top: 36%;
+  z-index: 2100;
+  pointer-events: none;
+}
+
+.mark-burst::before {
+  content: "";
+  position: absolute;
+  left: -34px;
+  top: -34px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2px solid rgba(216, 178, 92, 0.9);
+  animation: mark-ring 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes mark-ring {
+  0% { transform: scale(0.25); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.mark-burst i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9a8 0%, #d8b25c 65%, #a8823c 100%);
+  box-shadow: 0 0 10px rgba(216, 178, 92, 0.9);
+  animation: mark-burst-fly 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.mark-burst i:nth-child(1) { --tx: 0px; --ty: -95px; }
+.mark-burst i:nth-child(2) { --tx: 67px; --ty: -67px; }
+.mark-burst i:nth-child(3) { --tx: 95px; --ty: 0px; }
+.mark-burst i:nth-child(4) { --tx: 67px; --ty: 67px; }
+.mark-burst i:nth-child(5) { --tx: 0px; --ty: 95px; }
+.mark-burst i:nth-child(6) { --tx: -67px; --ty: 67px; }
+.mark-burst i:nth-child(7) { --tx: -95px; --ty: 0px; }
+.mark-burst i:nth-child(8) { --tx: -67px; --ty: -67px; }
+.mark-burst i:nth-child(9) { --tx: 34px; --ty: -110px; width: 4px; height: 4px; }
+.mark-burst i:nth-child(10) { --tx: -34px; --ty: 110px; width: 4px; height: 4px; }
+.mark-burst i:nth-child(11) { --tx: 110px; --ty: 34px; width: 4px; height: 4px; }
+.mark-burst i:nth-child(12) { --tx: -110px; --ty: -34px; width: 4px; height: 4px; }
+
+@keyframes mark-burst-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.15); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-burst,
+  .table.jolt,
+  .card-btn.up .card {
+    animation-duration: 0.01s;
+  }
+  .card-btn:not(:disabled):hover .card,
+  .card-btn:not(:disabled):hover .win-face {
+    transform: none;
+  }
 }
