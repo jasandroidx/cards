@@ -155,6 +155,25 @@ body::before {
   50% { opacity: 1; transform: scale(1.08); }
 }
 
+/* The Joker's face. */
+.joker-face {
+  margin: 4px 0 18px;
+  height: 240px;
+  border: 3px solid #1a1410;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  filter: sepia(0.25) contrast(1.05);
+}
+
+.joker-visit-img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.7);
+}
+
 .scene.warm .scene-img {
   filter: sepia(0.26) saturate(1.16) brightness(1.12);
 }
