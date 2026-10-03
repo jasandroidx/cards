@@ -94,6 +94,7 @@ export function Yard({
         <div className="table-top">
           <p className="leaf-kicker mire-kicker">The mire</p>
           <h2>The yard</h2>
+          <img className="plate" src="/plates/rune-cards.jpg" alt="Old rune-marked cards" />
           <p className="table-rule">Three letters make a word. Pick three from your letters and spell them in order.</p>
 
           <div className="mire-mud-bed">
@@ -175,6 +176,7 @@ export function Nix({
         <div className="table-top">
           <p className="leaf-kicker">The mire</p>
           <h2>Nix</h2>
+          <img className="plate" src="/plates/mud-dice.jpg" alt="Dice and torn cards sunk in the mud" />
           <p className="table-rule">A saint who sank. The Black Ace clears him, or a word from the yard does. Neither, and you go into the lamp.</p>
           {route === "ace" && (
             <button type="button" className="close-book go" onClick={() => onPass("ace")}>

@@ -32,16 +32,16 @@ const AGES = [
     at: 0,
     key: "hole",
     name: "The Hole",
-    src: "/street.jpg",
-    alt: "The drop under the table, into the dark of broken games",
+    src: "/plates/road-lamp.jpg",
+    alt: "A lamp on the cobbled road under the table",
     line: "You fell. Under the table is every game that broke.",
   },
   {
     at: 10,
     key: "chapel",
     name: "The Chapel",
-    src: "/chapel.jpg",
-    alt: "A ruined chapel held by one hearth fire",
+    src: "/plates/dice-fireplace.jpg",
+    alt: "Five dice kept by the hearth fire",
     line: "Someone kept five dice, and the fire.",
   },
   {
@@ -64,7 +64,7 @@ const AGES = [
     at: 27,
     key: "maw",
     name: "The Maw",
-    src: "/plates/maw.jpg",
+    src: "/plates/maw-portrait.jpg",
     alt: "The Maw — a faceless thing of cards and bone blocking the mountain road",
     line: "Flesh of cards. Bone of dice. It does not want poker chips.",
   },
@@ -1155,7 +1155,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           ? "/glass.jpg"
           : age.key === "hall" && view === "burn"
             ? "/burn.jpg"
-            : age.src;
+            : // The climb past the yard to the Maw: mist over the hill road.
+              age.key === "yard" && position >= 21 && position < 27
+              ? "/plates/hill-road.jpg"
+              : age.src;
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
