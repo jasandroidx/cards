@@ -133,6 +133,28 @@ const JOKER = [
   "Spend the mark and the chapel opens. Then take the road. I'm leaving.",
 ];
 
+/** Things the dark says when you are not looking at it. */
+const WHISPERS = [
+  "It knows your name.",
+  "The cards have not moved.",
+  "Something dealt here, and left.",
+  "The wax is thin. You are thin.",
+  "Do not count the chairs.",
+  "She is dreaming of a face.",
+  "The road remembers your feet.",
+  "Ante up. Ante up. Ante up.",
+];
+
+/** The Joker drops by, uninvited. Taunts follow your progress. */
+function jokerTaunt(owned: string[], mawBeaten: boolean, queenFaced: boolean): string {
+  if (queenFaced) return "She sees you now. I do too. The seat is warm, Dealer.";
+  if (mawBeaten) return "You fed the guard. Kind. It had a name, once. I ate the name.";
+  if (owned.includes("yard")) return "Three letters. You spell like a child. Keep walking.";
+  if (owned.includes("bridge")) return "The river took your bid and kept the change.";
+  if (owned.includes("chapel")) return "Kindled, are we? Burn brightly. It makes the dark darker.";
+  return "Still at the lamp, little fool? The marks won't spend themselves.";
+}
+
 /** The rite spoken when a gate's chain breaks. Not a transaction — a ritual. */
 const GATE_RITE: Record<string, string> = {
   chapel: "One debt paid. A chain breaks. The rules loosen. Enter the chapel and find what is broken.",
@@ -271,6 +293,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [note, setNote] = useState<string | null>(null);
   const [gateCeremony, setGateCeremony] = useState<string | null>(null);
   const [ended, setEnded] = useState(false);
+  const [whisper, setWhisper] = useState<string | null>(null);
+  const [jokerVisit, setJokerVisit] = useState<{ x: number; y: number } | null>(null);
   const [deckOpen, setDeckOpen] = useState(false);
   const [carried, setCarried] = useState<{ rank: number; suit: string }[]>([]);
   const [fallen, setFallen] = useState(false);
@@ -322,8 +346,31 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setPicked(nextAge.at);
   }
 
-  function fall() {
-    setPosition(0);
+  // The dark whispers, every minute or so.
+  useEffect(() => {
+    if (!signed) return;
+    const id = window.setInterval(() => {
+      if (Math.random() < 0.6) {
+        setWhisper(WHISPERS[Math.floor(Math.random() * WHISPERS.length)] ?? null);
+        window.setTimeout(() => setWhisper(null), 8000);
+      }
+    }, 75000);
+    return () => window.clearInterval(id);
+  }, [signed]);
+
+  // The Joker drops by, rarely, uninvited.
+  useEffect(() => {
+    if (!signed || !met) return;
+    const id = window.setInterval(() => {
+      if (!jokerVisit && Math.random() < 0.25) {
+        setJokerVisit({ x: 8 + Math.random() * 84, y: 12 + Math.random() * 40 });
+        window.setTimeout(() => setJokerVisit(null), 20000);
+      }
+    }, 120000);
+    return () => window.clearInterval(id);
+  }, [signed, met, jokerVisit]);
+
+  function fall() {    setPosition(0);
     setPicked(0);
     setAgeIndex(vistaIndex(0));
     setNote(null);
@@ -668,6 +715,82 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote("The far wall is on fire. You have nothing that can look through it.");
   }
 
+  // --- The rooms are alive: examinations that change with your progress. ---
+
+  function examineDeck() {
+    if (queenFaced) {
+      setNote("Your deck. Every card is accounted for — except one. There is a blank card that was not there before.");
+    } else if (owned.length >= 3) {
+      setNote("Your deck, worn soft at the edges. It has carried you this far. It will carry you further.");
+    } else {
+      setNote("A deck of cards on the table. Yours. The backs are black and gold. You do not remember picking it up.");
+    }
+  }
+
+  function examineChair() {
+    if (queenFaced) {
+      setNote("The Dealer's chair. It is empty. It will not always be.");
+    } else if (ended) {
+      setNote("Your chair.");
+    } else {
+      setNote("A tall chair at the head of the table. No one sits in it. No one has ever sat in it. The wood is warm.");
+    }
+  }
+
+  function examineWindow() {
+    if (position >= 0) {
+      setNote("The window shows the road you are standing on. From inside, it looked further away.");
+    } else if (owned.includes("chapel")) {
+      setNote("Rain on the glass. The road is out there, waiting. You can see your own footprints — but you have not left yet.");
+    } else {
+      setNote("A window, black with rain. Nothing beyond it. Not yet.");
+    }
+  }
+
+  function examineFloor() {
+    setNote("A loose board under the table. Beneath it: dust, a bent nail, and a playing card — the two of spades, torn in half.");
+  }
+
+  function rattleChains() {
+    setNote("Chains bolted to the cell wall. They are empty. They were not always empty — the links are worn smooth where wrists were.");
+  }
+
+  const [scratchCount, setScratchCount] = useState(0);
+  function readScratches() {
+    const next = scratchCount + 1;
+    setScratchCount(next);
+    if (next === 1) setNote("Scratch marks on the cell wall. Someone was counting days. Or hands. Or heartbeats.");
+    else if (next === 2) setNote("You count the marks. Forty-one. They stop mid-stroke, as if the hand was taken away.");
+    else setNote("Forty-one and a half. You stop counting. Some things should not be finished.");
+  }
+
+  function peerGlass() {
+    if (queenFaced) {
+      setNote("Through the glass: the Queen's hall. She is sitting upright now. She is looking back.");
+    } else {
+      setNote("Through the glass: a vast hall, and a throne. Something sits on it, faceless. It does not move. Yet.");
+    }
+  }
+
+  function feedFire() {
+    if (light < 1) {
+      setNote("The fire is hungry, but your candle is out. Kindle at the chapel first.");
+      return;
+    }
+    const gate = nextGate(owned, mawBeaten);
+    setLight((value) => spendLight(value, 1));
+    if (!gate) {
+      setNote("You feed the fire a wax. The flames lean toward the reliquary. It is waiting.");
+    } else if (gate.key === "chapel") {
+      setNote("You feed the fire a wax. In the flames: a chapel door, and a chain. One mark breaks it.");
+    } else if (gate.key === "maw" || (position >= 26 && !mawBeaten)) {
+      setNote("You feed the fire a wax. In the flames: teeth. Cards. Bone. It does not want marks.");
+    } else {
+      const name = gate.opens.charAt(0).toLowerCase() + gate.opens.slice(1);
+      setNote(`You feed the fire a wax. In the flames: ${name}, and a chain. ${gate.cost} marks break it.`);
+    }
+  }
+
   function riverTakes() {
     const lost = carried[0];
     if (!lost) {
@@ -808,11 +931,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const cool = spadesLit && age.key === "bridge";
   const litClass = warm ? " warm" : cool ? (silver ? " cool silver" : " cool") : queenFaced ? " faced" : "";
   const darkWood = isWood(position) && isDark(light);
+  const guttered = signed && isDark(light);
 
   return (
-    <section className={`scene${litClass}`} aria-label={age.name}>
+    <section className={`scene${litClass}${guttered ? " guttered" : ""}`} aria-label={age.name}>
       <img key={picture} className="scene-img" src={picture} alt={age.alt} />
       <div className="scene-vignette" />
+      <div className="scene-fog" aria-hidden="true" />
+      {guttered && (
+        <div className="gutter-eyes" aria-hidden="true">
+          &#9679;&#8195;&#9679;
+        </div>
+      )}
       <div className="dust" aria-hidden="true">
         <i />
         <i />
@@ -845,6 +975,26 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       {signed && met && age.key === "hall" && view === "table" && (
         <button type="button" className="hot hot-lamp" onClick={takeKey} aria-label="The lamp" />
       )}
+      {signed && met && age.key === "hall" && view === "table" && (
+        <>
+          <button type="button" className="hot hot-deck" onClick={examineDeck} aria-label="The deck" />
+          <button type="button" className="hot hot-chair" onClick={examineChair} aria-label="The chair" />
+        </>
+      )}
+      {jokerVisit && (
+        <button
+          type="button"
+          className="joker-visit"
+          style={{ left: `${jokerVisit.x}%`, top: `${jokerVisit.y}%` }}
+          aria-label="Something in the corner"
+          onClick={() => {
+            setNote(jokerTaunt(owned, mawBeaten, queenFaced));
+            setJokerVisit(null);
+          }}
+        >
+          <span className="joker-sigil">J</span>
+        </button>
+      )}
       {signed && met && age.key === "hall" && view === "room" && (
         <>
           <button type="button" className="hot hot-cupboard" onClick={openCupboard} aria-label="The cupboard" />
@@ -854,13 +1004,23 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             onClick={() => (door ? setView("cell") : setPad(true))}
             aria-label="The door"
           />
+          <button type="button" className="hot hot-window" onClick={examineWindow} aria-label="The window" />
+          <button type="button" className="hot hot-floor" onClick={examineFloor} aria-label="The floorboards" />
         </>
       )}
       {signed && met && age.key === "hall" && view === "cell" && (
         <>
           <button type="button" className="hot hot-shelf" onClick={takeCup} aria-label="The shelf" />
           <button type="button" className="hot hot-wall" onClick={farWall} aria-label="The far wall" />
+          <button type="button" className="hot hot-chains" onClick={rattleChains} aria-label="The chains" />
+          <button type="button" className="hot hot-scratches" onClick={readScratches} aria-label="Scratch marks" />
         </>
+      )}
+      {signed && met && age.key === "hall" && view === "glass" && (
+        <button type="button" className="hot hot-glass" onClick={peerGlass} aria-label="Peer through the glass" />
+      )}
+      {signed && met && age.key === "hall" && view === "burn" && (
+        <button type="button" className="hot hot-fire" onClick={feedFire} aria-label="Feed the fire" />
       )}
       {pad && (
         <div className="pad">
@@ -902,6 +1062,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             {darkWood && <em>Dark. You can't see the square. The chapel hearth kindles candles.</em>}
             {(heartsLit || spadesLit || queenFaced) && <em className="lit">{lightCopy(position)}</em>}
             {note && <em>{note}</em>}
+            {whisper && (
+              <em key={whisper} className="whisper">
+                {whisper}
+              </em>
+            )}
           </>
         ) : (
           <strong>The Hall</strong>

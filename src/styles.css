@@ -50,6 +50,109 @@ body::before {
   inset: 0;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+  animation: vignette-breathe 7s ease-in-out infinite;
+}
+
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* The scene itself breathes — a very slow push inward. */
+.scene-img {
+  animation: myst-in 1.1s ease, scene-breathe 24s ease-in-out infinite;
+}
+
+@keyframes scene-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+/* Drifting fog. */
+.scene-fog {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 40% 22% at 20% 70%, rgba(160, 160, 170, 0.05), transparent 70%),
+    radial-gradient(ellipse 34% 18% at 75% 60%, rgba(160, 160, 170, 0.04), transparent 70%),
+    radial-gradient(ellipse 28% 15% at 50% 80%, rgba(160, 160, 170, 0.05), transparent 70%);
+  animation: fog-drift 38s ease-in-out infinite alternate;
+}
+
+@keyframes fog-drift {
+  0% { transform: translateX(-4%); }
+  100% { transform: translateX(4%); }
+}
+
+/* When the candle gutters out, the dark is total — except for eyes. */
+.scene.guttered .scene-img {
+  filter: brightness(0.25) saturate(0.6);
+}
+.scene.guttered .scene-vignette {
+  background: radial-gradient(ellipse at center, transparent 18%, rgba(0, 0, 0, 0.92) 100%);
+}
+.gutter-eyes {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: 26px;
+  letter-spacing: 0.6em;
+  color: #d4af37;
+  opacity: 0;
+  animation: eyes-blink 9s ease-in-out infinite;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+}
+@keyframes eyes-blink {
+  0%, 88%, 100% { opacity: 0; }
+  91%, 95% { opacity: 0.85; }
+}
+
+/* Whispers fade in and out of the caption. */
+.whisper {
+  display: block;
+  margin-top: 6px;
+  font-style: italic;
+  color: #9a8a6a;
+  animation: whisper-in 8s ease forwards;
+}
+@keyframes whisper-in {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* The Joker visits. */
+.joker-visit {
+  position: absolute;
+  z-index: 4;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+  animation: joker-flicker 0.9s ease-in-out infinite;
+}
+
+.joker-sigil {
+  display: inline-block;
+  width: 34px;
+  height: 34px;
+  line-height: 32px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.7);
+  border-radius: 50%;
+  background: rgba(10, 8, 5, 0.8);
+  transform: rotate(-8deg);
+}
+@keyframes joker-flicker {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
 .scene.warm .scene-img {
@@ -109,6 +212,62 @@ body::before {
   top: 20%;
   width: 22%;
   height: 50%;
+}
+
+.hot-deck {
+  left: 35%;
+  top: 42%;
+  width: 30%;
+  height: 26%;
+}
+
+.hot-chair {
+  left: 40%;
+  top: 74%;
+  width: 20%;
+  height: 22%;
+}
+
+.hot-window {
+  left: 38%;
+  top: 6%;
+  width: 24%;
+  height: 20%;
+}
+
+.hot-floor {
+  left: 5%;
+  top: 78%;
+  width: 30%;
+  height: 18%;
+}
+
+.hot-chains {
+  left: 4%;
+  top: 8%;
+  width: 20%;
+  height: 26%;
+}
+
+.hot-scratches {
+  left: 30%;
+  top: 68%;
+  width: 40%;
+  height: 24%;
+}
+
+.hot-glass {
+  left: 20%;
+  top: 15%;
+  width: 60%;
+  height: 70%;
+}
+
+.hot-fire {
+  left: 30%;
+  top: 55%;
+  width: 40%;
+  height: 40%;
 }
 
 .pad {
