@@ -423,7 +423,8 @@ export function LiarsDice({ onEarn }: { onEarn: (n: number) => void }) {
       </p>
       <div className="liar-table">
         <div className="liar-side">
-          <div className="liar-tray">
+          <span className="dice-pit-label">You · {youDice.length} {youDice.length === 1 ? "die" : "dice"}</span>
+          <div className="liar-tray dice-pit">
             <div className="liar-dice">
               {youDice.map((d, i) => (
                 <Die3D
@@ -437,10 +438,10 @@ export function LiarsDice({ onEarn }: { onEarn: (n: number) => void }) {
             </div>
             <div className={`liar-cup${!shaking ? " lifted" : ""}${shaking ? " shaking" : ""}`} />
           </div>
-          <span>You · {youDice.length} {youDice.length === 1 ? "die" : "dice"}</span>
         </div>
         <div className="liar-side">
-          <div className="liar-tray">
+          <span className="dice-pit-label">Them · {cpuDice.length} {cpuDice.length === 1 ? "die" : "dice"}</span>
+          <div className="liar-tray dice-pit">
             <div className="liar-dice">
               {cpuDice.map((d, i) => (
                 <Die3D
@@ -454,12 +455,11 @@ export function LiarsDice({ onEarn }: { onEarn: (n: number) => void }) {
             </div>
             <div className={`liar-cup${cpuShown ? " lifted" : ""}`} />
           </div>
-          <span>Them · {cpuDice.length} {cpuDice.length === 1 ? "die" : "dice"}</span>
         </div>
       </div>
       {shaking && <p className="table-end">The cups go down. Something rattles inside.</p>}
       {bid && !reveal && !shaking && (
-        <p className="table-end">
+        <p className="table-end liar-bid">
           The bid is {bidWords(bid)}. {turn === "you" ? "Your throw." : revealing ? "The cups lift." : "Their throw."}
         </p>
       )}
@@ -782,32 +782,30 @@ export function Farkle({ onEarn }: { onEarn: (n: number) => void }) {
         Bank your turn's points or push your luck on the rest. Roll no scorers and it's a farkle:
         the turn's points are gone. Three turns each, highest total takes a mark.
       </p>
-      <p className="table-end">
+      <p className="table-end farkle-score">
         You {youTotal} — Them {cpuTotal} · {phase === "over" ? "Match over" : roundLabel(round)}
         {keptCount > 0 && phase !== "over" ? ` · Set aside: ${keptCount}` : ""}
         {phase !== "over" ? ` · Turn: ${turnScore}` : ""}
       </p>
-      <div className="liar-table">
-        <div className="liar-side">
-          <div className="liar-tray">
-            <div className="liar-dice">
-              {dice.map((d, i) => (
-                <button
-                  key={`f-${i}`}
-                  type="button"
-                  className={`farkle-die${selected[i] ? " picked" : ""}`}
-                  disabled={phase !== "select" || whose !== "you"}
-                  onClick={() => toggleSelect(i)}
-                  aria-label={`die ${d}${selected[i] ? " selected" : ""}`}
-                >
-                  <Die3D value={d} rollKey={rollKey} delay={i * 110} />
-                </button>
-              ))}
-            </div>
-            <div className={`liar-cup${!shaking ? " lifted" : ""}${shaking ? " shaking" : ""}`} />
+      <div className="farkle-table">
+        <div className="farkle-pit dice-pit">
+          <div className="farkle-dice">
+            {dice.map((d, i) => (
+              <button
+                key={`f-${i}`}
+                type="button"
+                className={`farkle-die${selected[i] ? " picked" : ""}`}
+                disabled={phase !== "select" || whose !== "you"}
+                onClick={() => toggleSelect(i)}
+                aria-label={`die ${d}${selected[i] ? " selected" : ""}`}
+              >
+                <Die3D value={d} rollKey={rollKey} delay={i * 110} />
+              </button>
+            ))}
           </div>
-          <span>{whose === "you" ? "Your throw" : "Their throw"}</span>
+          <div className={`liar-cup${!shaking ? " lifted" : ""}${shaking ? " shaking" : ""}`} />
         </div>
+        <p className="dice-pit-label">{whose === "you" ? "Your throw" : "Their throw"}</p>
       </div>
       <p className="table-end">{note}</p>
       {phase === "select" && whose === "you" && (
