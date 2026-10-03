@@ -346,6 +346,63 @@ body::before {
   height: 28%;
 }
 
+/* Myst slice 4: the yard. */
+.hot-ystones {
+  left: 8%;
+  top: 30%;
+  width: 50%;
+  height: 40%;
+}
+
+.hot-yfallen {
+  left: 64%;
+  top: 38%;
+  width: 20%;
+  height: 15%;
+}
+
+.hot-ymud {
+  left: 5%;
+  top: 42%;
+  width: 55%;
+  height: 30%;
+}
+
+.hot-ypull {
+  left: 66%;
+  top: 34%;
+  width: 24%;
+  height: 26%;
+}
+
+.hot-ywall {
+  left: 5%;
+  top: 18%;
+  width: 90%;
+  height: 24%;
+}
+
+.hot-ytile0 {
+  left: 18%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
+}
+
+.hot-ytile1 {
+  left: 42.5%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
+}
+
+.hot-ytile2 {
+  left: 67%;
+  top: 46%;
+  width: 15%;
+  height: 18%;
+}
+
 /* From the Dealer's seat, the room is wrong. */
 .scene.seated .scene-img {
   filter: saturate(0.65) brightness(0.82);
