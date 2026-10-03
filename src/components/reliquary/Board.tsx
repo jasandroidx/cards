@@ -238,6 +238,7 @@ function linesFor(
   pocket: string[],
   blankSpent: boolean,
   cupboard: boolean,
+  hearthFed: boolean,
 ): string[] {
   const lines = ["These came down with you. The rest are still in the dark."];
   if (position > 0) lines.push("Someone went down first.");
@@ -250,6 +251,7 @@ function linesFor(
   if (pocket.includes("Torn half")) lines.push("Half a two of spades. The other half is somewhere.");
   if (pocket.includes("Mended two")) lines.push("A mended two of spades. Across the tear: he deals last.");
   if (pocket.includes("Folded scrap")) lines.push("A folded scrap. 'Don't let him deal.'");
+  if (hearthFed) lines.push("You fed the chapel hearth. It showed you her hands.");
   if (pocket.some((item) => item !== "Blank card" && item !== "Bent key" && item !== "Cracked cup")) lines.push("The games you win leave a piece behind.");
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
   if (owned.includes("bridge")) lines.push("He deals, and then he tells you what the hand meant.");
@@ -284,6 +286,7 @@ type Save = {
   door?: boolean;
   scratchDone?: boolean;
   stoneOut?: boolean;
+  hearthFed?: boolean;
   skipRoll?: boolean;
   pipOwed?: boolean;
   kingOwed?: boolean;
@@ -401,6 +404,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [pocket, setPocket] = useState<string[]>([]);
   const [blankSpent, setBlankSpent] = useState(false);
   const [view, setView] = useState<"table" | "room" | "cell" | "glass" | "burn">("table");
+  // Myst slice 2: the chapel has its own views — hearth, pews, altar.
+  const [chapelView, setChapelView] = useState<"hearth" | "pews" | "altar">("hearth");
+  const [hearthFed, setHearthFed] = useState(false);
+  const bowlCount = useRef(0);
   const [cupboard, setCupboard] = useState(false);
   const [door, setDoor] = useState(false);
   // Myst slice: the world remembers being touched.
@@ -438,6 +445,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     const nextAge = AGES[index];
     if (!nextAge) return;
     setView("table");
+    setChapelView("hearth");
     if (nextAge.key === "hall") {
       setAgeIndex(0);
       setNote(null);
@@ -750,6 +758,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setDoor(Boolean(data.door));
           setScratchDone(Boolean(data.scratchDone));
           setStoneOut(Boolean(data.stoneOut));
+          setHearthFed(Boolean(data.hearthFed));
           setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
           setKingOwed(Boolean(data.kingOwed));
@@ -781,9 +790,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -1100,6 +1109,68 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
   }
 
+  /** Myst slice 2: the chapel. Mabel's kept dice, her hearth, her altar. */
+
+  function examineChapelDice() {
+    if (mawBeaten) {
+      setNote("Five bone dice. The sixes are worn soft — someone favored them. She is gone, and the dice are still warm.");
+    } else if (queenFaced) {
+      setNote("Five bone dice, kept by the fire. You have seen what the house does with dice. These were thrown by kinder hands.");
+    } else if (heartsLit) {
+      setNote("Five bone dice on the cloth. Warm, as if thrown recently. Someone was just here.");
+    } else {
+      setNote("Five bone dice, kept by the hearth fire. The pips are worn soft on the sixes. Someone favored them.");
+    }
+  }
+
+  function feedHearth() {
+    if (light < 1) {
+      setNote("The hearth is hungry, but your candle is out. Kindle first.");
+      return;
+    }
+    setLight((value) => spendLight(value, 1));
+    if (!hearthFed) {
+      setHearthFed(true);
+      setNote("You feed the hearth a wax. The flames rise — and in them: five dice, mid-throw, and a woman's hands. Then only fire.");
+      return;
+    }
+    setNote("You feed the hearth another wax. The flames lean toward the altar, listening.");
+  }
+
+  function examinePrayerBook() {
+    if (mawBeaten) {
+      setNote("The prayer book lies open where it lay. The tallies in the margins have not grown. Nothing here counts anymore.");
+    } else {
+      setNote("A worn book on a fallen pew, open, a page corner turned down. The margins are full of tallies — someone was counting here too.");
+    }
+  }
+
+  function examinePews() {
+    setNote("The pews lie in broken rows. The dust is disturbed along one of them, and the stone is still warm where someone knelt.");
+  }
+
+  function offerBowl() {
+    if (marks < 1) {
+      setNote("The offering bowl is empty. So is your purse.");
+      return;
+    }
+    setMarks((value) => value - 1);
+    bowlCount.current += 1;
+    if (bowlCount.current === 1) {
+      setNote(
+        hearthFed
+          ? "You lay a poker chip in the bowl. The chip blackens. In the soot: five pips, staring up."
+          : "You lay a poker chip in the bowl. The fire leans toward it. Nothing gives it back."
+      );
+      return;
+    }
+    setNote("Another chip in the bowl. The chapel keeps what it is given.");
+  }
+
+  function behindAltar() {
+    setNote("Behind the altar, a niche in the stone. It is empty — and exactly the size of five dice. They are not in it. Someone took them out. Someone was playing.");
+  }
+
   function riverTakes() {
     const lost = carried[0];
     if (!lost) {
@@ -1253,10 +1324,15 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           ? "/glass.jpg"
           : age.key === "hall" && view === "burn"
             ? "/burn.jpg"
-            : // The climb past the yard to the Maw: mist over the hill road.
-              age.key === "yard" && position >= 21 && position < 27
-              ? "/plates/hill-road.jpg"
-              : age.src;
+            : // Myst slice 2: the chapel's inner views.
+              age.key === "chapel" && chapelView === "pews"
+              ? "/chapel.jpg"
+              : age.key === "chapel" && chapelView === "altar"
+                ? "/plates/chapel-altar.jpg"
+                : // The climb past the yard to the Maw: mist over the hill road.
+                  age.key === "yard" && position >= 21 && position < 27
+                  ? "/plates/hill-road.jpg"
+                  : age.src;
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
@@ -1363,6 +1439,24 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <>
           <button type="button" className="hot hot-fire" onClick={feedFire} aria-label="Feed the fire" />
           <button type="button" className="hot hot-ash" onClick={ashHalf} aria-label="Ash at the fire's edge" />
+        </>
+      )}
+      {signed && met && age.key === "chapel" && chapelView === "hearth" && (
+        <>
+          <button type="button" className="hot hot-chdice" onClick={examineChapelDice} aria-label="Five bone dice" />
+          <button type="button" className="hot hot-chfire" onClick={feedHearth} aria-label="The hearth fire" />
+        </>
+      )}
+      {signed && met && age.key === "chapel" && chapelView === "pews" && (
+        <>
+          <button type="button" className="hot hot-chbook" onClick={examinePrayerBook} aria-label="A worn book" />
+          <button type="button" className="hot hot-chpews" onClick={examinePews} aria-label="The pews" />
+        </>
+      )}
+      {signed && met && age.key === "chapel" && chapelView === "altar" && (
+        <>
+          <button type="button" className="hot hot-chbowl" onClick={offerBowl} aria-label="The offering bowl" />
+          <button type="button" className="hot hot-chniche" onClick={behindAltar} aria-label="Behind the altar" />
         </>
       )}
       {grave && age.key === "hole" && (
@@ -1577,6 +1671,21 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             {view === "cell" ? "Back to the room" : view === "glass" || view === "burn" ? "Back to the cell" : "Back to the table"}
           </button>
         )}
+        {age.key === "chapel" && chapelView === "hearth" && (
+          <>
+            <button className="book-btn" type="button" onClick={() => setChapelView("pews")}>
+              The pews
+            </button>
+            <button className="book-btn" type="button" onClick={() => setChapelView("altar")}>
+              The altar
+            </button>
+          </>
+        )}
+        {age.key === "chapel" && chapelView !== "hearth" && (
+          <button className="book-btn" type="button" onClick={() => setChapelView("hearth")}>
+            Back to the hearth
+          </button>
+        )}
           <>
             <button className="book-btn" type="button" onClick={() => setDeckOpen(true)}>
               Deck
@@ -1608,7 +1717,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           <div className="deck-sheet" role="dialog" aria-label="The deck" onClick={(event) => event.stopPropagation()}>
             <p className="leaf-kicker">In your hand</p>
             <h2>The deck</h2>
-            {linesFor(marks, owned, mawBeaten, position, pocket, blankSpent, cupboard).map((line) => (
+            {linesFor(marks, owned, mawBeaten, position, pocket, blankSpent, cupboard, hearthFed).map((line) => (
               <p key={line} className="leaf-body">
                 {line}
               </p>
