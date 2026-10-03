@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { cellOf, COLS, lightCopy, SQUARES, type Square } from "@/lib/reliquary/road";
+import { MAW_ITEM } from "@/lib/reliquary/death";
+import { MAX_LIGHT, isDark, isWood, kindle, spendLight } from "@/lib/reliquary/light";
 import { nextGate, roadOpen, type Gate, type Mode } from "@/lib/reliquary/sitting";
 import { Table } from "@/components/reliquary/Table";
 import { Euchre } from "@/components/reliquary/Euchre";
@@ -135,7 +137,10 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
   const gate = nextGate(owned, mawBeaten);
   const purse = `${marks} ${marks === 1 ? "mark" : "marks"}.`;
   if (position >= 27 && position < 28 && !mawBeaten) {
-    return "It is lying in the road. You have to play it. Marks will not move it.";
+    return "It is lying in the road. It loves poker chips. Marks will not move it.";
+  }
+  if (position === 26 && !mawBeaten) {
+    return "The king's square. Beyond him the dark has teeth: it loves a poker chip, and it eats the empty-handed. Go back kindled, or don't go.";
   }
   if (position < 0 && !owned.includes("chapel")) {
     if (marks < 1) return "Play one hand at the lamp. A win pays a mark.";
@@ -173,6 +178,7 @@ function linesFor(
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
   if (owned.includes("bridge")) lines.push("He deals, and then he tells you what the hand meant.");
   if (mawBeaten) lines.push("It was never a place. It moved.");
+  if (pocket.includes(MAW_ITEM)) lines.push("A poker chip. The liar's. It loves these.");
   if (owned.includes("queen")) lines.push("Through the glass, the lamp is yours.");
   return lines;
 }
@@ -196,6 +202,7 @@ type Save = {
   sat?: number;
   met?: boolean;
   pocket?: string[];
+  light?: number;
   blankSpent?: boolean;
   cupboard?: boolean;
   door?: boolean;
@@ -208,6 +215,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [ageIndex, setAgeIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [table, setTable] = useState(false);
+  const [dead, setDead] = useState(false);
+  const [light, setLight] = useState(0);
   const [euchreOpen, setEuchreOpen] = useState(false);
   const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | null>(null);
   const [shouting, setShouting] = useState(false);
@@ -366,8 +375,13 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         return;
       }
       if (call === "card") {
+        if (light > 0) {
+          setLight((value) => spendLight(value, 1));
+          setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd. He takes your light instead of a card.`);
+          return;
+        }
         setKingOwed(true);
-        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd. A card from your hand, or your next roll — choose.`);
+        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and your candle is out. A card from your hand, or your next roll — choose.`);
         return;
       }
       setSkipRoll(true);
@@ -470,6 +484,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setSat(typeof data.sat === "number" ? data.sat : 0);
           setMet(Boolean(data.met));
           setPocket(Array.isArray(data.pocket) ? data.pocket : []);
+          setLight(typeof data.light === "number" ? Math.max(0, Math.min(MAX_LIGHT, data.light)) : 0);
           setBlankSpent(Boolean(data.blankSpent));
           setCupboard(Boolean(data.cupboard));
           setDoor(Boolean(data.door));
@@ -490,9 +505,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -543,10 +558,14 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 ? "A red disc"
                 : kind === "checkers"
                   ? "A red king"
-                  : "";
+                  : kind === "liars"
+                    ? MAW_ITEM
+                    : "";
     if (!name) return;
     setPocket((value) => (value.includes(name) ? value : [...value, name]));
-    setNote(`You kept a ${name.toLowerCase()}.`);
+    setNote(
+      name === MAW_ITEM ? "You kept a poker chip. Something down the road loves these." : `You kept a ${name.toLowerCase()}.`,
+    );
   }
 
   function findBlank() {
@@ -742,6 +761,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
   const litClass = warm ? " warm" : cool ? (silver ? " cool silver" : " cool") : queenFaced ? " faced" : "";
+  const darkWood = isWood(position) && isDark(light);
 
   return (
     <section className={`scene${litClass}`} aria-label={age.name}>
@@ -787,8 +807,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         {signed ? (
           <>
             <strong>
-              {view === "room"
-                ? "The room"
+              {darkWood
+                ? "Dark."
+                : view === "room"
+                  ? "The room"
                 : view === "cell"
                   ? "The cell"
                   : view === "glass"
@@ -802,6 +824,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                           : age.name}
             </strong>
             <span>{where(marks, owned, mawBeaten, position, sat)}</span>
+            {darkWood && <em>Dark. You can't see the square. The chapel hearth kindles candles.</em>}
             {(heartsLit || spadesLit || queenFaced) && <em className="lit">{lightCopy(position)}</em>}
             {note && <em>{note}</em>}
           </>
@@ -899,6 +922,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             The last chair
           </button>
         )}
+        {age.key === "chapel" && heartsLit && light < MAX_LIGHT && (
+          <button
+            className="book-btn"
+            type="button"
+            onClick={() => {
+              setLight(kindle());
+              setNote("You kindle the candle at the hearth. Five wax.");
+            }}
+          >
+            Kindle the candle
+          </button>
+        )}
         {position === 29 && !queenFaced && (
           <p className="leaf-body">The chair is empty. Her face is still out there, somewhere behind you.</p>
         )}
@@ -961,6 +996,13 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               </p>
             ))}
             {pocket.length > 0 && <p className="leaf-relic">Pocket: {pocket.join(", ")}</p>}
+            {light > 0 && (
+              <p className="leaf-relic">
+                Candle: {"●".repeat(light)}
+                {"○".repeat(MAX_LIGHT - light)}
+              </p>
+            )}
+            {isDark(light) && <p className="leaf-relic">Candle: out.</p>}
             {boons.length > 0 && <p className="leaf-relic">Carried forward: {boons.join(", ")}</p>}
             <div className="carried">
               {carried.map((card) => (
@@ -1105,7 +1147,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             }
           }}
           onFall={() => {
-            setNote("The house of cards fell.");
+            setLight((value) => spendLight(value, 1));
+            setNote("The house of cards fell. The collapse gutters your candle.");
           }}
           onClose={() => setPlaying(null)}
         />
@@ -1214,6 +1257,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           marks={marks}
           owned={owned}
           mawBeaten={mawBeaten}
+          pocket={pocket}
+          light={light}
           onEarn={earn}
           onBuy={buy}
           onSpendBlank={spendBlank}
@@ -1222,9 +1267,20 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           onMaw={face}
           onBid={bidMade}
           onSat={() => setSat((value) => Math.min(3, value + 1))}
+          onOfferTribute={() => setPocket((value) => value.filter((item) => item !== MAW_ITEM))}
+          onBurn={(n) => setLight((value) => spendLight(value, n))}
+          onForfeit={() => {
+            setTable(false);
+            setNote("The candle gutters. It loses interest. Kindle at the chapel, win another chip, and come back.");
+          }}
+          onDeath={() => {
+            setTable(false);
+            setDead(true);
+          }}
           onClose={() => setTable(false)}
         />
       )}
+      {dead && <Death />}
     </section>
   );
 }
@@ -1270,6 +1326,40 @@ function Paper({ onSign }: { onSign: () => void }) {
             Sign
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Eaten by the Maw: a full wipe, per the standing rule. */
+function Death() {
+  useEffect(() => {
+    lossSound();
+  }, []);
+
+  function beginAgain() {
+    try {
+      localStorage.removeItem("reliquary-v3");
+    } catch {
+      // the dark keeps nothing anyway
+    }
+    window.location.reload();
+  }
+
+  return (
+    <div className="journal-back" role="dialog" aria-label="Eaten">
+      <div className="table one-col">
+        <p className="leaf-kicker">The Maw</p>
+        <h2>It ate you.</h2>
+        <p className="leaf-body">
+          No chip, no game. The marks, the road, everything you carried — gone down its throat. The
+          chair is empty again.
+        </p>
+        <div className="table-row">
+          <button type="button" className="close-book go" onClick={beginAgain}>
+            Begin again
+          </button>
+        </div>
       </div>
     </div>
   );

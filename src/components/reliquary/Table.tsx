@@ -15,6 +15,8 @@ import {
 } from "@/lib/reliquary/sitting";
 import { Box } from "@/components/reliquary/Box";
 import { Farkle, GoFish, LiarsDice } from "@/components/reliquary/Quick";
+import { mawApproach } from "@/lib/reliquary/death";
+import { MAX_LIGHT } from "@/lib/reliquary/light";
 import { Darts, Four } from "@/components/reliquary/Sides";
 import { Blackjack } from "@/components/reliquary/Blackjack";
 import { Dominoes } from "@/components/reliquary/Dominoes";
@@ -41,7 +43,7 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   maw: {
     kicker: "In the road",
     title: "The Maw",
-    rule: "Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a mark.",
+    rule: "It loves poker chips. Bring one, or don't come close. Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a mark.",
   },
 };
 
@@ -50,6 +52,8 @@ export function Table({
   marks,
   owned,
   mawBeaten,
+  pocket,
+  light,
   onEarn,
   onBuy,
   onSpendBlank,
@@ -58,12 +62,18 @@ export function Table({
   onBid,
   onSat,
   onKeep,
+  onOfferTribute,
+  onBurn,
+  onForfeit,
+  onDeath,
   onClose,
 }: {
   mode: Mode;
   marks: number;
   owned: string[];
   mawBeaten: boolean;
+  pocket: string[];
+  light: number;
   onEarn: (amount: number) => void;
   onBuy: (gate: Gate) => void;
   onSpendBlank?: (gate: Gate) => void;
@@ -72,6 +82,10 @@ export function Table({
   onBid?: (made: boolean) => void;
   onSat?: () => void;
   onKeep?: (kind: string) => void;
+  onOfferTribute: () => void;
+  onBurn: (n: number) => void;
+  onForfeit: () => void;
+  onDeath: () => void;
   onClose: () => void;
 }) {
   const copy = COPY[mode];
@@ -88,7 +102,18 @@ export function Table({
           {mode === "bid" ? (
             <Bid onEarn={onEarn} onBid={onBid} />
           ) : mode === "maw" ? (
-            <Maw onEarn={onEarn} onMaw={onMaw} />
+            <MawApproach
+              pocket={pocket}
+              mawBeaten={mawBeaten}
+              light={light}
+              onEarn={onEarn}
+              onMaw={onMaw}
+              onOfferTribute={onOfferTribute}
+              onBurn={onBurn}
+              onForfeit={onForfeit}
+              onDeath={onDeath}
+              onClose={onClose}
+            />
           ) : mode === "lamp" ? (
             <HallSeat onEarn={onEarn} onSat={onSat} onKeep={onKeep} />
           ) : (
@@ -121,7 +146,7 @@ export function Table({
           ) : mawBeaten ? (
             <p>The road is open. The reliquary will take you.</p>
           ) : (
-            <p>Past the yard, something is in the road. Marks will not move it.</p>
+            <p>Past the yard, something is in the road. It loves poker chips. Marks will not move it.</p>
           )}
         </div>
       </div>
@@ -165,7 +190,7 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
       {surprise.kind === "wick" && game !== "pick" && <Wick seconds={surprise.seconds} onOut={snuff} />}
       {game === "pick" && (
         <>
-          <p className="table-rule">Cards, dice, darts, and a board. Win and you keep a piece of it.</p>
+          <p className="table-rule">Cards, dice, darts, and a board. Win and you keep a piece of it. The liar plays for a poker chip.</p>
           <div className="table-row">
             <button type="button" className="close-book go" onClick={() => setGame("hand")}>
               The hand
@@ -386,8 +411,92 @@ function Bid({ onEarn, onBid }: { onEarn: (n: number) => void; onBid?: (made: bo
   );
 }
 
-function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: boolean) => void }) {
+function MawApproach({
+  pocket,
+  mawBeaten,
+  light,
+  onEarn,
+  onMaw,
+  onOfferTribute,
+  onBurn,
+  onForfeit,
+  onDeath,
+  onClose,
+}: {
+  pocket: string[];
+  mawBeaten: boolean;
+  light: number;
+  onEarn: (n: number) => void;
+  onMaw: (won: boolean) => void;
+  onOfferTribute: () => void;
+  onBurn: (n: number) => void;
+  onForfeit: () => void;
+  onDeath: () => void;
+  onClose: () => void;
+}) {
+  const [dealt, setDealt] = useState(false);
+  if (mawBeaten) return <p className="table-end">It moved. The road past it is open.</p>;
+  if (dealt) return <Maw onEarn={onEarn} onMaw={onMaw} light={light} onBurn={onBurn} onForfeit={onForfeit} />;
+  if (mawApproach(pocket) === "plays") {
+    return (
+      <>
+        <p className="table-rule">
+          It is hungry, but it loves poker chips more. You hold yours out. It takes it — gently, for
+          something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
+          one a trick.
+        </p>
+        <div className="table-row">
+          <button
+            type="button"
+            className="close-book go"
+            onClick={() => {
+              onOfferTribute();
+              setDealt(true);
+            }}
+          >
+            Let it deal
+          </button>
+          <button type="button" className="close-book" onClick={onClose}>
+            Step back
+          </button>
+        </div>
+      </>
+    );
+  }
+  return (
+    <>
+      <p className="table-rule">
+        It is hungry. Your pocket holds no poker chip. Step closer and it will eat you — the marks,
+        the road, everything you carried, gone.
+      </p>
+      <div className="table-row">
+        <button type="button" className="close-book go" onClick={onDeath}>
+          Step closer
+        </button>
+        <button type="button" className="close-book" onClick={onClose}>
+          Step back
+        </button>
+      </div>
+    </>
+  );
+}
+
+function Maw({
+  onEarn,
+  onMaw,
+  light,
+  onBurn,
+  onForfeit,
+}: {
+  onEarn: (n: number) => void;
+  onMaw: (won: boolean) => void;
+  light: number;
+  onBurn: (n: number) => void;
+  onForfeit: () => void;
+}) {
   const [state, setState] = useState(() => openTrick(shuffleDeck(), 1, 0));
+  const [wax, setWax] = useState(light);
+  const forfeited = useRef(false);
 
   function play(card: Card) {
     if (state.done || !state.threat || !beats(card, state.threat)) return;
@@ -400,12 +509,22 @@ function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: bool
   }
 
   function advance(took: boolean, shown: Card | null) {
+    if (forfeited.current) return;
     const won = state.won + (took ? 1 : 0);
+    const waxLeft = Math.max(0, wax - 1);
+    setWax(waxLeft);
+    onBurn(1);
     if (state.trick >= 5) {
       const passed = won >= 3;
       onEarn(passed ? 3 : 0);
       onMaw(passed);
       setState({ ...state, hand: state.hand.filter((c) => c.id !== (took ? shown?.id : "")), threat: state.threat, won, done: true, passed });
+      return;
+    }
+    if (waxLeft <= 0 && won < 3) {
+      forfeited.current = true;
+      setState({ ...state, won, done: true, passed: false });
+      onForfeit();
       return;
     }
     const deck = state.deck.slice();
@@ -419,7 +538,7 @@ function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: bool
         <div className="lamp">
           {state.threat ? <CardFace card={state.threat} /> : <div className="card empty">Still</div>}
           <span>
-            Trick {Math.min(state.trick, 5)} of 5 · {state.won} won
+            Trick {Math.min(state.trick, 5)} of 5 · {state.won} won · candle {"●".repeat(wax)}{"○".repeat(Math.max(0, MAX_LIGHT - wax))}
           </span>
         </div>
         <Hand cards={state.hand} legal={(card) => !state.done && !!state.threat && beats(card, state.threat)} onPlay={play} />
@@ -431,7 +550,11 @@ function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: bool
       </div>
       {state.done && (
         <p className="table-end">
-          {state.passed ? "It moves. Three marks, and the road past it can be bought." : "It does not move."}
+          {forfeited.current
+            ? "The candle gutters. It loses interest."
+            : state.passed
+              ? "It moves. Three marks, and the road past it can be bought."
+              : "It does not move."}
         </p>
       )}
     </>
