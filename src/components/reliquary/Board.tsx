@@ -1116,8 +1116,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         onClick: () => buy(gate),
       };
     }
-    // Chapel open: the road is the move.
-    if (heard && (position < 0 || age.key === "hall")) {
+    // Chapel open: the road is the move. Never before the chapel — a fresh
+    // player with no marks needs the lamp, not the road.
+    if (heard && owned.includes("chapel") && (position < 0 || age.key === "hall")) {
       return {
         label: "Take the road",
         onClick: () => (position < 0 ? fall() : look(vistaIndex(position))),
