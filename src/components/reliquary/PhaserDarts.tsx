@@ -31,7 +31,7 @@ export function Darts({ onEarn }: { onEarn: (n: number) => void }) {
       if (destroyed || !mountRef.current || gameRef.current) return;
       const Phaser = phaserModule.default;
       const game = new Phaser.Game({
-        type: Phaser.AUTO,
+        type: (new URLSearchParams(window.location.search).get("r") === "canvas" ? phaserModule.CANVAS : phaserModule.AUTO) as typeof Phaser.AUTO,
         parent: "phaser-darts-mount",
         width: 1280,
         height: 800,
@@ -69,13 +69,13 @@ export function Darts({ onEarn }: { onEarn: (n: number) => void }) {
   return (
     <div className="felt">
       <img className="plate" src="/darts.jpg" alt="" />
-      <p className="table-rule">Darts. Three throws. Click the board — your arm wavers, and the house aims at triple twenty. Beat their score for a mark.</p>
+      <p className="table-rule">Darts. Three throws. Your arm wavers — time it. Beat the house for a poker chip.</p>
       <div ref={mountRef} id="phaser-darts-mount" className="phaser-darts-mount" role="img" aria-label="Dartboard" />
       <p className="table-end">
         {result
           ? result.won
-            ? `You scored ${result.you}. They scored ${result.house}. You win a mark.`
-            : `You scored ${result.you}. They scored ${result.house}. No mark.`
+            ? `You scored ${result.you}. They scored ${result.house}. You win a poker chip.`
+            : `You scored ${result.you}. They scored ${result.house}. No poker chip.`
           : "Click to throw."}
       </p>
     </div>

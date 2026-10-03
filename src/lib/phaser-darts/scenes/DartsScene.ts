@@ -1,19 +1,20 @@
 import Phaser from "phaser";
-import { ORDER, scoreFrom, cpuAim, playerScatter, type Throw } from "../logic";
+import { ORDER, scoreFrom, cpuAim, type Throw } from "../logic";
 import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
-import { dartThud } from "../audio";
-import { W, H, makeVignette, makeDot, makeGlow, makeDart } from "../textures";
+import { dartThud, wallThud } from "../audio";
+import { W, H, makeVignette, makeDot, makeGlow, makeGrain, makeDart } from "../textures";
 
 const BX = 640; // board center x
 const BY = 392; // board center y
-const S = 2; // board units -> pixels (original viewBox 320, radius 150)
+const S = 2; // board units -> pixels
 
 const GOLD = "#d8b25c";
-const PALE = "#f0e4ca";
-const RED = 0x8a221c;
-const GREEN = 0x1e4a2e;
-const BLACK_WEDGE = 0x14100d;
-const PARCHMENT = 0xc7b088;
+const PALE = "#e8dcc0";
+const DIM = "#8a7a5c";
+const BLOOD = 0x6e1a12; // dried blood — the red wedges, muted
+const MOSS = 0x152219; // dark moss — the green wedges, muted
+const BLACK_WEDGE = 0x0e0b08;
+const UMBER = 0x241b11; // aged dark wood for the pale singles
 
 export interface DartsResult {
   you: number;
@@ -49,15 +50,25 @@ export class DartsScene extends Phaser.Scene {
   private banner!: Phaser.GameObjects.Container;
   private bannerText!: Phaser.GameObjects.Text;
   private pips: Phaser.GameObjects.Image[] = [];
-  private glow!: Phaser.GameObjects.Image;
+  private lampGlow!: Phaser.GameObjects.Image;
+  private lampBaseAlpha = 0.16;
+  private houseDimmed = false;
+  private crosshair!: Phaser.GameObjects.Container;
+  private grainA!: Phaser.GameObjects.TileSprite;
+  private grainB!: Phaser.GameObjects.TileSprite;
   private shownYou = 0;
   private shownHouse = 0;
   private elapsed = 0;
+  private swayX = 0;
+  private swayY = 0;
+  private pointerX = BX;
+  private pointerY = BY;
+  private pointerSeen = false;
 
   /** Called once when the match ends. Bound by the React bridge before boot. */
   private onMatchEnd: (result: DartsResult) => void = () => undefined;
-  // Onboarding nudge: claimed once per scene; while held, the player's
-  // scatter is gentled so the first match lands near the aim.
+  // Onboarding nudge: claimed once per scene; while held, the arm's sway is
+  // gentled so the first match lands near the aim.
   private nudged = false;
 
   constructor() {
@@ -74,9 +85,10 @@ export class DartsScene extends Phaser.Scene {
     makeVignette(this);
     makeDot(this);
     makeGlow(this);
+    makeGrain(this);
     makeDart(this);
 
-    this.drawTavernWall();
+    this.drawDark();
 
     // ---- the board ----
     this.board = this.add.container(BX, BY).setDepth(2);
@@ -84,123 +96,122 @@ export class DartsScene extends Phaser.Scene {
     this.drawBoard(g);
     this.board.add(g);
 
-    // numbers ring
+    // numbers ring — small, dim, bone-colored
     for (let i = 0; i < 20; i++) {
       const step = (Math.PI * 2) / 20;
       const a = -Math.PI / 2 + i * step;
       const t = this.add
-        .text(Math.cos(a) * 315, Math.sin(a) * 315, String(ORDER[i]), {
+        .text(Math.cos(a) * 318, Math.sin(a) * 318, String(ORDER[i]), {
           fontFamily: "Georgia, serif",
-          fontSize: "24px",
-          color: i % 2 === 0 ? "#f4ead6" : GOLD,
-          fontStyle: "bold",
+          fontSize: "19px",
+          color: "#a89878",
         })
-        .setOrigin(0.5);
+        .setOrigin(0.5)
+        .setAlpha(0.85);
       this.board.add(t);
     }
 
+    // pointer tracking + the swaying crosshair
+    this.input.on("pointermove", (p: Phaser.Input.Pointer) => {
+      this.pointerX = p.x;
+      this.pointerY = p.y;
+      this.pointerSeen = true;
+    });
+    this.drawCrosshair();
+    const cursorApi = this.input as unknown as { setDefaultCursor?: (c: string) => void };
+    cursorApi.setDefaultCursor?.("none");
+
     // invisible hit area
-    const zone = this.add.zone(BX, BY, 640, 640).setInteractive({ useHandCursor: true });
+    const zone = this.add.zone(BX, BY, 680, 680).setInteractive({ useHandCursor: false });
     zone.on("pointerdown", (p: Phaser.Input.Pointer) => this.onAim(p.x, p.y));
 
-    // ---- candle glow + vignette ----
-    this.glow = this.add
-      .image(BX, BY - 20, "glow")
+    // ---- lamp glow from the right, like the one that lit the checkers board ----
+    this.lampGlow = this.add
+      .image(W - 170, 250, "glow")
       .setDepth(5)
-      .setScale(2.4)
-      .setAlpha(0.14)
+      .setScale(3.2)
+      .setAlpha(this.lampBaseAlpha)
       .setBlendMode(Phaser.BlendModes.ADD);
+    const lampCore = this.add
+      .image(W - 170, 250, "glow")
+      .setDepth(5)
+      .setScale(1.1)
+      .setAlpha(0.22)
+      .setBlendMode(Phaser.BlendModes.ADD);
+
+    // grain + vignette over everything but the UI
+    this.grainA = this.add.tileSprite(W / 2, H / 2, W, H, "grain").setDepth(6).setAlpha(0.045);
+    this.grainB = this.add.tileSprite(W / 2, H / 2, W, H, "grain").setDepth(6).setAlpha(0.03);
     this.add.image(W / 2, H / 2, "vignette").setDepth(6).setDisplaySize(W, H);
+    lampCore.setDepth(5);
 
     this.drawUI();
 
-    this.hintText.setText("Click the board — your arm wavers, and the house aims at triple twenty.");
+    this.hintText.setText("Your arm wavers. Time the throw.");
   }
 
   // ---------- backdrop ----------
 
-  private drawTavernWall(): void {
+  private drawDark(): void {
     const g = this.add.graphics().setDepth(0);
-    g.fillStyle(0x0d0906, 1);
+    g.fillStyle(0x050403, 1);
     g.fillRect(0, 0, W, H);
-    // planks
-    const plankW = 92;
-    let x = 0;
-    let i = 0;
-    while (x < W) {
-      const shades = [0x120c07, 0x0f0a06, 0x141009, 0x100b07];
-      g.fillStyle(shades[i % shades.length], 1);
-      g.fillRect(x, 0, plankW, H);
-      g.fillStyle(0x060403, 1);
-      g.fillRect(x, 0, 3, H);
-      // grain
-      g.lineStyle(1, 0x1c130a, 0.5);
-      for (let k = 0; k < 4; k++) {
-        const gx = x + 12 + ((k * 37 + i * 53) % (plankW - 24));
-        g.beginPath();
-        g.moveTo(gx, 0);
-        g.lineTo(gx + ((i * 7 + k * 13) % 9) - 4, H);
-        g.strokePath();
-      }
-      x += plankW;
-      i++;
-    }
-    // warm wash upper-left, as if from an unseen candle
-    for (let r = 560; r > 0; r -= 28) {
-      const a = 0.028 * (1 - r / 560);
+    // a breath of warm air on the right, where the lamp stands
+    for (let r = 620; r > 0; r -= 31) {
+      const a = 0.022 * (1 - r / 620);
       g.fillStyle(0xff9a4a, a);
-      g.fillCircle(180, 120, r);
+      g.fillCircle(W - 170, 250, r);
     }
-    // floor shadow at the bottom
-    g.fillStyle(0x000000, 0.45);
-    g.fillRect(0, H - 130, W, 130);
+    // the dark pools at the bottom
+    g.fillStyle(0x000000, 0.5);
+    g.fillRect(0, H - 150, W, 150);
   }
 
   private drawBoard(g: Phaser.GameObjects.Graphics): void {
     // drop shadow
-    g.fillStyle(0x000000, 0.65);
+    g.fillStyle(0x000000, 0.7);
     g.fillEllipse(14, 22, 700, 700);
-    // wood surround
-    g.fillStyle(0x2a1a0e, 1);
+    // worn wood surround
+    g.fillStyle(0x1a120a, 1);
     g.fillCircle(0, 0, 348);
-    g.fillStyle(0x1c1208, 1);
+    g.fillStyle(0x100b06, 1);
     g.fillCircle(0, 0, 340);
-    g.lineStyle(3, 0x0a0603, 1);
+    g.lineStyle(3, 0x060403, 1);
     g.strokeCircle(0, 0, 346);
-    // brass band
-    g.lineStyle(12, 0xd8b25c, 1);
+    // aged brass band
+    g.lineStyle(12, 0x8a6a2a, 1);
     g.strokeCircle(0, 0, 332);
-    g.lineStyle(2, 0xf4dc9a, 0.9);
+    g.lineStyle(2, 0xc7a54e, 0.45);
     g.strokeCircle(0, 0, 326);
-    g.lineStyle(2, 0x5c4416, 1);
+    g.lineStyle(2, 0x3a2c10, 1);
     g.strokeCircle(0, 0, 338);
     // number ring bed
-    g.fillStyle(0x0a0705, 1);
+    g.fillStyle(0x060403, 1);
     g.fillCircle(0, 0, 326);
     // felt bed
-    g.fillStyle(0x0d0907, 1);
+    g.fillStyle(0x0a0705, 1);
     g.fillCircle(0, 0, 300);
 
-    // wedges
+    // wedges — dried blood and dark moss
     for (let i = 0; i < 20; i++) {
       const alt = i % 2 === 0;
-      g.fillStyle(alt ? RED : GREEN, 1);
+      g.fillStyle(alt ? BLOOD : MOSS, 1);
       wedgePath(g, i, 272, 300); // doubles
-      g.fillStyle(alt ? BLACK_WEDGE : PARCHMENT, 1);
+      g.fillStyle(alt ? BLACK_WEDGE : UMBER, 1);
       wedgePath(g, i, 44, 272); // singles
-      g.fillStyle(alt ? RED : GREEN, 1);
+      g.fillStyle(alt ? BLOOD : MOSS, 1);
       wedgePath(g, i, 192, 224); // triples
     }
     // bulls
-    g.fillStyle(GREEN, 1);
+    g.fillStyle(MOSS, 1);
     g.fillCircle(0, 0, 44);
-    g.fillStyle(RED, 1);
+    g.fillStyle(BLOOD, 1);
     g.fillCircle(0, 0, 20);
 
-    // brass wires
-    g.lineStyle(2, 0xd8b25c, 0.5);
+    // brass wires, dulled
+    g.lineStyle(2, 0x8a6a2a, 0.4);
     for (const r of [300, 272, 224, 192, 44, 20]) g.strokeCircle(0, 0, r);
-    g.lineStyle(1.5, 0xd8b25c, 0.32);
+    g.lineStyle(1.5, 0x8a6a2a, 0.25);
     const step = (Math.PI * 2) / 20;
     for (let i = 0; i < 20; i++) {
       const a = -Math.PI / 2 - step / 2 + i * step;
@@ -209,6 +220,13 @@ export class DartsScene extends Phaser.Scene {
       g.lineTo(Math.cos(a) * 300, Math.sin(a) * 300);
       g.strokePath();
     }
+    // wear: pale scuffs where darts have landed for years
+    for (let k = 0; k < 40; k++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 60 + Math.random() * 220;
+      g.fillStyle(0xc7b088, 0.03 + Math.random() * 0.04);
+      g.fillCircle(Math.cos(a) * r, Math.sin(a) * r, 2 + Math.random() * 5);
+    }
     // seat the board: soft dark rim inside the felt edge
     for (let r = 300; r > 282; r -= 3) {
       g.lineStyle(3, 0x000000, 0.16 * (1 - (300 - r) / 18));
@@ -216,47 +234,48 @@ export class DartsScene extends Phaser.Scene {
     }
   }
 
+  private drawCrosshair(): void {
+    const g = this.add.graphics();
+    g.lineStyle(2, 0xd8b25c, 0.95);
+    g.strokeCircle(0, 0, 13);
+    g.lineStyle(2, 0xd8b25c, 0.7);
+    g.lineBetween(-24, 0, -17, 0);
+    g.lineBetween(17, 0, 24, 0);
+    g.lineBetween(0, -24, 0, -17);
+    g.lineBetween(0, 17, 0, 24);
+    g.fillStyle(0xd8b25c, 0.95);
+    g.fillCircle(0, 0, 2);
+    this.crosshair = this.add.container(this.pointerX, this.pointerY, [g]).setDepth(7);
+  }
+
   // ---------- UI ----------
 
   private drawUI(): void {
     const ui = this.add.container(0, 0).setDepth(10);
 
-    // title
+    // scores — small, no boxes, no shouting
     ui.add(
       this.add
-        .text(W / 2, 34, "D A R T S", {
-          fontFamily: "Georgia, serif",
-          fontSize: "30px",
-          color: GOLD,
-        })
+        .text(96, 92, "you", { fontFamily: "Georgia, serif", fontSize: "15px", color: DIM, fontStyle: "italic" })
         .setOrigin(0.5),
     );
-    ui.add(
-      this.add
-        .text(W / 2, 66, "Three throws against the house. Beat their score for a mark.", {
-          fontFamily: "Georgia, serif",
-          fontSize: "16px",
-          color: "#9a8a6a",
-          fontStyle: "italic",
-        })
-        .setOrigin(0.5),
-    );
-
-    // totems
-    this.makeTotem(ui, 150, "YOU");
-    this.makeTotem(ui, W - 150, "HOUSE");
     this.youScoreText = this.add
-      .text(150, 248, "0", { fontFamily: "Georgia, serif", fontSize: "58px", color: PALE })
+      .text(96, 138, "0", { fontFamily: "Georgia, serif", fontSize: "46px", color: PALE })
       .setOrigin(0.5);
     ui.add(this.youScoreText);
+    ui.add(
+      this.add
+        .text(W - 96, 92, "house", { fontFamily: "Georgia, serif", fontSize: "15px", color: DIM, fontStyle: "italic" })
+        .setOrigin(0.5),
+    );
     this.houseScoreText = this.add
-      .text(W - 150, 248, "0", { fontFamily: "Georgia, serif", fontSize: "58px", color: PALE })
+      .text(W - 96, 138, "0", { fontFamily: "Georgia, serif", fontSize: "46px", color: PALE })
       .setOrigin(0.5);
     ui.add(this.houseScoreText);
 
-    // dart pips under YOU
+    // dart pips under your score
     for (let i = 0; i < 3; i++) {
-      const pip = this.add.image(108 + i * 42, 340, "dart").setScale(0.4).setAlpha(0.5);
+      const pip = this.add.image(64 + i * 32, 210, "dart").setScale(0.32).setAlpha(0.4);
       ui.add(pip);
       this.pips.push(pip);
     }
@@ -265,7 +284,7 @@ export class DartsScene extends Phaser.Scene {
     this.labelText = this.add
       .text(W / 2, H - 108, "", {
         fontFamily: "Georgia, serif",
-        fontSize: "22px",
+        fontSize: "21px",
         color: GOLD,
         fontStyle: "italic",
       })
@@ -275,7 +294,7 @@ export class DartsScene extends Phaser.Scene {
       .text(W / 2, H - 72, "", {
         fontFamily: "Georgia, serif",
         fontSize: "15px",
-        color: "#7a6a4a",
+        color: "#6a5c42",
       })
       .setOrigin(0.5);
     ui.add(this.hintText);
@@ -283,9 +302,9 @@ export class DartsScene extends Phaser.Scene {
     // banner (hidden until the match ends; not interactive — no restart in the game)
     this.banner = this.add.container(W / 2, H / 2).setDepth(20).setVisible(false);
     const bg = this.add.graphics();
-    bg.fillStyle(0x0a0705, 0.94);
+    bg.fillStyle(0x070503, 0.95);
     bg.fillRoundedRect(-300, -110, 600, 220, 10);
-    bg.lineStyle(2, 0xd8b25c, 0.8);
+    bg.lineStyle(2, 0x8a6a2a, 0.7);
     bg.strokeRoundedRect(-300, -110, 600, 220, 10);
     this.bannerText = this.add
       .text(0, -10, "", {
@@ -299,22 +318,6 @@ export class DartsScene extends Phaser.Scene {
     this.banner.add([bg, this.bannerText]);
   }
 
-  private makeTotem(ui: Phaser.GameObjects.Container, x: number, name: string): void {
-    const g = this.add.graphics();
-    g.fillStyle(0x120c07, 0.92);
-    g.fillRoundedRect(x - 110, 120, 220, 190, 8);
-    g.lineStyle(2, 0xd8b25c, 0.55);
-    g.strokeRoundedRect(x - 110, 120, 220, 190, 8);
-    g.lineStyle(1, 0xd8b25c, 0.3);
-    g.strokeRoundedRect(x - 104, 126, 208, 178, 6);
-    ui.add(g);
-    ui.add(
-      this.add
-        .text(x, 158, name, { fontFamily: "Georgia, serif", fontSize: "20px", color: GOLD })
-        .setOrigin(0.5),
-    );
-  }
-
   // ---------- gameplay ----------
 
   private onAim(px: number, py: number): void {
@@ -322,19 +325,23 @@ export class DartsScene extends Phaser.Scene {
     if (this.over) return;
     if (this.flying || this.cpuTurn || this.throws.length >= 3) return;
 
-    // to board units, then scatter (gentled for the first-game nudge)
-    const bx = (px - BX) / S;
-    const by = (py - BY) / S;
-    const raw = playerScatter(bx, by);
-    const s = this.nudged
-      ? { dx: bx + (raw.dx - bx) * 0.35, dy: by + (raw.dy - by) * 0.35 }
-      : raw;
-    const hit = scoreFrom(s.dx, s.dy);
-    const hx = BX + s.dx * S;
-    const hy = BY + s.dy * S;
+    this.pointerX = px;
+    this.pointerY = py;
+    this.pointerSeen = true;
+
+    // the dart goes where the swaying crosshair is, plus a breath of error
+    const bx = (px - BX) / S + this.swayX;
+    const by = (py - BY) / S + this.swayY;
+    const jx = (Math.random() - 0.5) * 7;
+    const jy = (Math.random() - 0.5) * 7;
+    const hit = scoreFrom(bx + jx, by + jy);
+    const hx = BX + (bx + jx) * S;
+    const hy = BY + (by + jy) * S;
+    const missed = hit.label === "Miss";
 
     this.flying = true;
-    this.flyDart(hx, hy, () => this.landPlayerDart(hit, hx, hy));
+    this.crosshair.setVisible(false);
+    this.flyDart(hx, hy, () => this.landPlayerDart(hit, hx, hy, missed));
   }
 
   /** Tween a dart from below the board to the hit point. */
@@ -360,27 +367,43 @@ export class DartsScene extends Phaser.Scene {
     });
   }
 
-  private landPlayerDart(hit: Throw, hx: number, hy: number): void {
+  private landPlayerDart(hit: Throw, hx: number, hy: number, missed: boolean): void {
     this.throws.push(hit);
-    dartThud();
-    this.stickDart(hx, hy);
-    this.dustBurst(hx, hy);
-    this.wobbleBoard();
+    if (missed) {
+      wallThud();
+      this.stickDart(hx, hy, false);
+    } else {
+      dartThud();
+      this.stickDart(hx, hy, true);
+      this.dustBurst(hx, hy);
+      if (this.isPremium(hit)) this.flareLamp();
+    }
+    this.wobbleBoard(this.isPremium(hit) ? 1.8 : 1);
     this.flying = false;
     this.pips[this.throws.length - 1]?.setAlpha(1);
-    this.labelText.setText(`${hit.label} — ${hit.score}`);
+    this.labelText.setText(missed ? "Into the dark — nothing." : `${hit.label} — ${hit.score}`);
     this.countUp(this.youScoreText, this.shownYou, this.total(this.throws), (v) => (this.shownYou = v));
 
     if (this.throws.length >= 3) {
-      this.hintText.setText("The house takes its turn…");
-      this.time.delayedCall(900, () => this.cpuSequence(0));
+      this.time.delayedCall(900, () => this.startHouseTurn());
+    } else {
+      this.crosshair.setVisible(true);
     }
   }
 
+  private startHouseTurn(): void {
+    this.cpuTurn = true;
+    this.crosshair.setVisible(false);
+    this.labelText.setText("The house takes aim…");
+    this.hintText.setText("Do not breathe.");
+    this.dimLamp();
+    this.time.delayedCall(1200, () => this.cpuSequence(0));
+  }
+
   private cpuSequence(n: number): void {
-    if (n === 0) this.cpuTurn = true;
     if (n >= 3) {
       this.cpuTurn = false;
+      this.restoreLamp();
       this.finish();
       return;
     }
@@ -388,17 +411,24 @@ export class DartsScene extends Phaser.Scene {
     const hit = scoreFrom(aim.dx, aim.dy);
     const hx = BX + aim.dx * S;
     const hy = BY + aim.dy * S;
+    const missed = hit.label === "Miss";
     this.flying = true;
     this.flyDart(hx, hy, () => {
       this.cpuThrows.push(hit);
-      dartThud();
-      this.stickDart(hx, hy, true);
-      this.dustBurst(hx, hy);
-      this.wobbleBoard();
+      if (missed) {
+        wallThud();
+        this.stickDart(hx, hy, false);
+      } else {
+        dartThud();
+        this.stickDart(hx, hy, true);
+        this.dustBurst(hx, hy);
+        if (this.isPremium(hit)) this.flareLamp();
+      }
+      this.wobbleBoard(this.isPremium(hit) ? 1.8 : 1);
       this.flying = false;
-      this.labelText.setText(`The house throws — ${hit.label}`);
+      this.labelText.setText(missed ? "The house misses. It does not miss often." : `The house throws — ${hit.label}`);
       this.countUp(this.houseScoreText, this.shownHouse, this.total(this.cpuThrows), (v) => (this.shownHouse = v));
-      this.time.delayedCall(650, () => this.cpuSequence(n + 1));
+      this.time.delayedCall(850, () => this.cpuSequence(n + 1));
     });
   }
 
@@ -407,7 +437,7 @@ export class DartsScene extends Phaser.Scene {
     const you = this.total(this.throws);
     const house = this.total(this.cpuThrows);
     const won = you > house;
-    this.bannerText.setText(won ? "You take the match.\nOne mark." : "The house takes the match.\nNothing for the purse.");
+    this.bannerText.setText(won ? "You take the match.\nOne poker chip." : "The house takes the match.\nNothing for the purse.");
     this.bannerText.setColor(won ? "#f4dc9a" : "#9a8a6a");
     this.banner.setVisible(true);
     this.banner.setAlpha(0);
@@ -417,23 +447,55 @@ export class DartsScene extends Phaser.Scene {
     this.onMatchEnd({ you, house, won });
   }
 
+  private isPremium(hit: Throw): boolean {
+    return hit.label.startsWith("Triple") || hit.label.startsWith("Double") || hit.label === "Bull";
+  }
+
+  private dimLamp(): void {
+    this.houseDimmed = true;
+    this.tweens.killTweensOf(this.lampGlow);
+    this.tweens.add({ targets: this.lampGlow, alpha: 0.05, duration: 700, ease: "Sine.easeInOut" });
+  }
+
+  private restoreLamp(): void {
+    this.houseDimmed = false;
+    this.tweens.killTweensOf(this.lampGlow);
+    this.tweens.add({ targets: this.lampGlow, alpha: this.lampBaseAlpha, duration: 700, ease: "Sine.easeInOut" });
+  }
+
+  /** The lamp flares when a treble, double, or bull lands. */
+  private flareLamp(): void {
+    this.tweens.killTweensOf(this.lampGlow);
+    this.lampGlow.setAlpha(0.4);
+    this.tweens.add({
+      targets: this.lampGlow,
+      alpha: this.houseDimmed ? 0.05 : this.lampBaseAlpha,
+      duration: 550,
+      ease: "Sine.easeOut",
+    });
+  }
+
   // ---------- effects ----------
 
-  private stickDart(hx: number, hy: number, dim = false): void {
+  private stickDart(hx: number, hy: number, onBoard: boolean, house = false): void {
     // tip of the texture is at top-center; origin y ~0.02 plants the tip at the hit point
     const d = this.add
-      .image(hx - BX, hy - BY, "dart")
+      .image(onBoard ? hx - BX : hx, onBoard ? hy - BY : hy, "dart")
       .setOrigin(0.5, 0.02)
       .setScale(0.5)
       .setAngle(-6 + Math.random() * 12);
-    if (dim) d.setAlpha(0.92);
-    this.board.add(d);
+    if (onBoard) {
+      this.board.add(d);
+    } else {
+      d.setDepth(2).setAlpha(0.85); // in the wall beyond the board — it does not wobble with it
+    }
+    if (house) d.setAlpha(0.92);
     // fading hit glow
     const glowDot = this.add
       .image(hx, hy, "dot")
       .setDepth(3)
       .setScale(0.9)
-      .setAlpha(0.8)
+      .setAlpha(onBoard ? 0.8 : 0.3)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setTint(0xffd98a);
     this.tweens.add({ targets: glowDot, alpha: 0, scale: 1.6, duration: 500, onComplete: () => glowDot.destroy() });
@@ -455,19 +517,19 @@ export class DartsScene extends Phaser.Scene {
     this.time.delayedCall(900, () => p.destroy());
   }
 
-  private wobbleBoard(): void {
+  private wobbleBoard(strength = 1): void {
     const b = this.board;
     this.tweens.killTweensOf(b);
     b.setAngle(0);
     this.tweens.add({
       targets: b,
-      angle: 1.1,
+      angle: 1.1 * strength,
       duration: 70,
       yoyo: false,
       onComplete: () => {
         this.tweens.add({
           targets: b,
-          angle: -0.6,
+          angle: -0.6 * strength,
           duration: 110,
           onComplete: () => {
             this.tweens.add({ targets: b, angle: 0, duration: 220, ease: "Sine.easeOut" });
@@ -498,13 +560,28 @@ export class DartsScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    // candle flicker: layered sines + the odd random dip
     this.elapsed += delta / 1000;
     const t = this.elapsed;
+
+    // the arm's sway: layered sines the player times their throw against
+    const k = this.nudged ? 0.35 : 1;
+    this.swayX = (Math.sin(t * 1.9) * 10 + Math.sin(t * 3.7 + 1.3) * 6) * k;
+    this.swayY = (Math.cos(t * 1.6 + 0.5) * 10 + Math.sin(t * 4.3 + 2.1) * 6) * k;
+    if (!this.flying && !this.cpuTurn && !this.over && this.pointerSeen) {
+      this.crosshair.setPosition(this.pointerX + this.swayX * S, this.pointerY + this.swayY * S);
+    }
+
+    // grain drifts, barely
+    this.grainA.tilePositionX += delta * 0.004;
+    this.grainB.tilePositionY -= delta * 0.003;
+
+    // candle flicker: layered sines + the odd random dip
     const n =
       Math.sin(t * 7.3) * 0.5 + Math.sin(t * 13.7 + 1.7) * 0.3 + Math.sin(t * 29.1 + 0.6) * 0.2;
-    let a = 0.13 + n * 0.028;
+    let a = this.lampBaseAlpha + n * 0.028;
     if (Math.random() < 0.006) a -= 0.05; // the flame gutters for a heartbeat
-    this.glow.setAlpha(Phaser.Math.Clamp(a, 0.05, 0.22));
+    if (!this.houseDimmed && !this.tweens.isTweening(this.lampGlow)) {
+      this.lampGlow.setAlpha(Phaser.Math.Clamp(a, 0.05, 0.24));
+    }
   }
 }
