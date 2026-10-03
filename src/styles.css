@@ -303,6 +303,49 @@ body::before {
   height: 24%;
 }
 
+/* Myst slice 2: the chapel. */
+.hot-chdice {
+  left: 12%;
+  top: 38%;
+  width: 48%;
+  height: 32%;
+}
+
+.hot-chfire {
+  left: 62%;
+  top: 12%;
+  width: 33%;
+  height: 65%;
+}
+
+.hot-chbook {
+  left: 30%;
+  top: 72%;
+  width: 24%;
+  height: 20%;
+}
+
+.hot-chpews {
+  left: 4%;
+  top: 52%;
+  width: 42%;
+  height: 40%;
+}
+
+.hot-chbowl {
+  left: 36%;
+  top: 74%;
+  width: 28%;
+  height: 20%;
+}
+
+.hot-chniche {
+  left: 38%;
+  top: 22%;
+  width: 26%;
+  height: 28%;
+}
+
 /* From the Dealer's seat, the room is wrong. */
 .scene.seated .scene-img {
   filter: saturate(0.65) brightness(0.82);
