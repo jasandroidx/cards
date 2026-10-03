@@ -184,42 +184,44 @@ export function Blackjack({ onEarn }: { onEarn: (n: number) => void }) {
   const dv = handValue(dealer);
 
   return (
-    <div className="felt">
-      <p className="table-rule">
+    <div className="felt bj-table">
+      <p className="table-rule bj-rule">
         Blackjack against the house. Hit or stand. The house draws to seventeen and stands on all seventeens.
         First to three hands takes a mark.
       </p>
-      <p className="table-end">
+      <p className="table-end bj-score">
         You {youHands} — the house {houseHands}
       </p>
-      <div className="table-row" style={{ alignItems: "flex-start" }}>
-        <div>
-          <div className="table-row">
+      <div className="table-row bj-dealer-zone" style={{ alignItems: "flex-start" }}>
+        <div style={{ width: "100%" }}>
+          <div className="dice-pit-label bj-kicker">HOUSE</div>
+          <div className="table-row bj-cards">
             {dealer.map((c, i) => (
               <CardFace key={`${i}-${i === 1 && !revealed ? "down" : "up"}`} card={c} down={i === 1 && !revealed} index={i} />
             ))}
           </div>
-          <span>The house{revealed ? ` · ${dv}` : ""}</span>
+          <span className="bj-label">The house{revealed ? ` · ${dv}` : ""}</span>
         </div>
       </div>
-      <div className="table-row" style={{ alignItems: "flex-start" }}>
-        <div>
-          <div className="table-row">
+      <div className="table-row bj-player-zone" style={{ alignItems: "flex-start" }}>
+        <div style={{ width: "100%" }}>
+          <div className="dice-pit-label bj-kicker bj-player-kicker">YOU</div>
+          <div className="table-row bj-cards">
             {player.map((c, i) => (
               <CardFace key={i} card={c} index={i} />
             ))}
           </div>
-          <span>You · {pv}</span>
+          <span className="bj-label">You · {pv}</span>
         </div>
       </div>
-      {note && <p className="table-end">{note}</p>}
+      {note && <p className="table-end bj-note">{note}</p>}
       {over && (
-        <p className="table-end">
+        <p className="table-end bj-over">
           {over === "you" ? "You take the match. One mark." : "The house takes the match. Nothing for the purse."}
         </p>
       )}
       {phase === "player" && !over && (
-        <div className="table-row">
+        <div className="table-row bj-actions">
           <button type="button" className="close-book go" onClick={hit}>
             Hit
           </button>

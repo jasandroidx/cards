@@ -2530,3 +2530,137 @@ body::before {
 .dice-pit .dice3d-scene {
   filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.55));
 }
+
+/* ============ Blackjack Table Dressing ============ */
+
+.felt.bj-table {
+  position: relative;
+  padding: 18px 20px 22px;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 100% at 50% 10%, #12281f 0%, var(--pit-felt) 60%, #08120e 100%);
+  border: 1px solid rgba(216, 178, 92, 0.4);
+  box-shadow:
+    inset 0 3px 14px rgba(0, 0, 0, 0.75),
+    inset 0 0 46px rgba(0, 0, 0, 0.6),
+    0 12px 28px rgba(0, 0, 0, 0.5);
+  gap: 16px;
+}
+
+/* Gold inlay framing inside the felt bed */
+.felt.bj-table::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(216, 178, 92, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.bj-rule {
+  margin-bottom: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.bj-score {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pit-gold);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  margin-bottom: 6px;
+}
+
+.bj-dealer-zone,
+.bj-player-zone {
+  position: relative;
+  padding: 14px 16px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Dealer zone (the house): slightly darker felt, thin gold rule separating top from bottom */
+.bj-dealer-zone {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.45) 100%),
+    rgba(6, 14, 10, 0.5);
+  border: 1px solid rgba(216, 178, 92, 0.25);
+  border-bottom: 2px solid rgba(216, 178, 92, 0.45);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Player zone: warmer felt bed */
+.bj-player-zone {
+  background:
+    radial-gradient(ellipse 80% 80% at 50% 50%, rgba(216, 178, 92, 0.06) 0%, transparent 80%),
+    rgba(16, 36, 28, 0.35);
+  border: 1px solid rgba(216, 178, 92, 0.18);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.3);
+}
+
+.bj-kicker {
+  text-align: left;
+  margin-bottom: 8px;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  opacity: 0.85;
+}
+
+.bj-player-kicker {
+  color: rgba(243, 234, 220, 0.8);
+}
+
+.bj-cards {
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* Soft felt contact shadow under cards landing on felt */
+.bj-cards .card {
+  box-shadow:
+    0 12px 20px rgba(0, 0, 0, 0.55),
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.bj-cards .card.back {
+  box-shadow:
+    inset 0 0 0 3px #0d0a06,
+    inset 0 0 0 4px rgba(216, 178, 92, 0.55),
+    0 12px 20px rgba(0, 0, 0, 0.6),
+    0 2px 5px rgba(0, 0, 0, 0.32);
+}
+
+.bj-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #efe2c8;
+}
+
+/* Quiet typographic hierarchy for score/note readouts */
+.bj-note,
+.bj-over {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #f3eadc;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.bj-over {
+  color: var(--pit-gold);
+  font-size: 20px;
+}
+
+.bj-actions {
+  gap: 14px;
+}
