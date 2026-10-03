@@ -21,3 +21,6 @@ attachments/
 artifacts/
 screenshots/*
 !screenshots/.gitkeep
+
+# Working notes, never committed.
+hidden_notes/

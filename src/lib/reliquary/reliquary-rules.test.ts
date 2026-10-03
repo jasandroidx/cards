@@ -7,6 +7,8 @@ import { bumpHouse, houseReward, houseSettled, startHouse } from "./scaffold.ts"
 import { QUEEN_HAND, QUEEN_ROUNDS, QUEEN_THROW_ROUND, queenLead, queenLegal, queenOutcome, queenPlay, queenStalled, startQueen } from "./queen.ts";
 import { shuffleDeck, beats } from "./sitting.ts";
 import { deal, draw, isWon, moveToTableau, canBuild } from "./klondike.ts";
+import { MAW_ITEM, mawApproach } from "./death.ts";
+import { MAX_LIGHT, kindle, spendLight, isDark, isWood } from "./light.ts";
 
 describe("the border", () => {
   it("never walks a loss back past the Far Bank at 15", () => {
@@ -312,5 +314,54 @@ describe("the last chair (square 29)", () => {
     };
     assert.ok(isWon(won));
     assert.ok(!isWon({ ...won, foundations: won.foundations.map((p, i) => (i === 0 ? p.slice(0, 12) : p)) }));
+  });
+});
+
+describe("the Maw's tribute", () => {
+  it("names the poker chip as the tribute", () => {
+    assert.equal(MAW_ITEM, "Poker chip");
+  });
+
+  it("plays when the pocket holds the chip", () => {
+    assert.equal(mawApproach(["Poker chip"]), "plays");
+    assert.equal(mawApproach(["Blank card", "Poker chip", "Fishhook"]), "plays");
+  });
+
+  it("eats when the pocket has no chip", () => {
+    assert.equal(mawApproach([]), "eaten");
+    assert.equal(mawApproach(["Blank card", "Bent key"]), "eaten");
+  });
+
+  it("is case-sensitive about the tribute", () => {
+    assert.equal(mawApproach(["poker chip"]), "eaten");
+  });
+});
+
+describe("the candle", () => {
+  it("kindles to a full five wax", () => {
+    assert.equal(MAX_LIGHT, 5);
+    assert.equal(kindle(), 5);
+  });
+
+  it("spends light floored at dark", () => {
+    assert.equal(spendLight(5, 1), 4);
+    assert.equal(spendLight(1, 1), 0);
+    assert.equal(spendLight(0, 1), 0);
+    assert.equal(spendLight(2, 9), 0);
+  });
+
+  it("knows dark from lit", () => {
+    assert.ok(isDark(0));
+    assert.ok(!isDark(1));
+    assert.ok(!isDark(5));
+  });
+
+  it("the wood is squares 24 to 27", () => {
+    assert.ok(!isWood(23));
+    assert.ok(isWood(24));
+    assert.ok(isWood(25));
+    assert.ok(isWood(26));
+    assert.ok(isWood(27));
+    assert.ok(!isWood(28));
   });
 });
