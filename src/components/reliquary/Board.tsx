@@ -746,13 +746,14 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
    *  otherwise the single action that moves the game forward. */
   const primary: { label: string; onClick: () => void } | null = (() => {
     if (waylay !== null || kingOwed || pipOwed) return null;
-    if (mode && (mode !== "lamp" || sat < 3) && (position >= 0 || heard)) {
+    // Location games that ARE the story beat keep priority.
+    if (mode && mode !== "lamp" && (position >= 0 || heard)) {
       return {
-        label:
-          mode === "maw" ? "Play it" : mode === "bid" ? "The bid" : mode === "cut" ? "The cut" : "Play a hand",
+        label: mode === "maw" ? "Play it" : mode === "bid" ? "The bid" : "The cut",
         onClick: () => setTable(true),
       };
     }
+    // The affordable gate is always the next beat — never bury it under "Play a hand".
     const gate = nextGate(owned, mawBeaten);
     if (gate && marks >= gate.cost) {
       return {
@@ -763,17 +764,23 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         onClick: () => buy(gate),
       };
     }
-    if (position < 0 && !owned.includes("chapel") && marks < 1) {
-      return { label: "Play a hand", onClick: () => setTable(true) };
-    }
-    if (position >= 0 && age.key !== "hall") {
-      return { label: "Roll", onClick: roll };
-    }
+    // Chapel open: the road is the move.
     if (heard && (position < 0 || age.key === "hall")) {
       return {
         label: "Take the road",
         onClick: () => (position < 0 ? fall() : look(vistaIndex(position))),
       };
+    }
+    // Outside: roll.
+    if (position >= 0 && age.key !== "hall") {
+      return { label: "Roll", onClick: roll };
+    }
+    // The lamp only when marks are the need — never over a gate or the road.
+    if (mode === "lamp" && sat < 3 && heard) {
+      return { label: "Play a hand", onClick: () => setTable(true) };
+    }
+    if (position < 0 && !owned.includes("chapel") && marks < 1) {
+      return { label: "Play a hand", onClick: () => setTable(true) };
     }
     return null;
   })();  const height = ORIGIN_Y + (rows - 1) * GAP_Y + 78;
