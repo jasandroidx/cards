@@ -133,6 +133,30 @@ const JOKER = [
   "Spend the mark and the chapel opens. Then take the road. I'm leaving.",
 ];
 
+/** The current directive, in plain language. Answers "what do I do now." */
+function objective(
+  signed: boolean,
+  marks: number,
+  owned: string[],
+  mawBeaten: boolean,
+  position: number,
+  sat: number,
+): string | null {
+  if (!signed) return "Sign the paper.";
+  const gate = nextGate(owned, mawBeaten);
+  if (position < 0 && !owned.includes("chapel")) {
+    if (marks < 1) return "Win a mark at the lamp — sit at any table game.";
+    return "Open the chapel.";
+  }
+  if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
+  if (position >= 27 && position < 28 && !mawBeaten) return "Face the Maw. It loves poker chips.";
+  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need marks.";
+  if (!gate) return "Walk to the reliquary at square 29.";
+  if (marks < gate.cost)
+    return `Earn ${gate.cost} ${gate.cost === 1 ? "mark" : "marks"} to open ${gate.opens}. Play hands back in the hall.`;
+  return `Open ${gate.opens}. Then roll to walk.`;
+}
+
 function where(marks: number, owned: string[], mawBeaten: boolean, position: number, sat: number): string {
   const gate = nextGate(owned, mawBeaten);
   const purse = `${marks} ${marks === 1 ? "mark" : "marks"}.`;
@@ -835,6 +859,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
       {signed && (
       <div className="dock">
+        {(() => {
+          const goal = objective(signed, marks, owned, mawBeaten, position, sat);
+          return goal ? <p className="objective">◎ {goal}</p> : null;
+        })()}
         {(waylay !== null || kingOwed || pipOwed || primary) && (
           <div className="dock-primary">
             {waylay !== null && (

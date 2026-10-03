@@ -1796,3 +1796,17 @@ body::before {
   display: inline-block;
   animation: card-deal-in 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
+
+.objective {
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f4e9cf;
+  background: rgba(216, 178, 92, 0.12);
+  border: 1px solid rgba(216, 178, 92, 0.55);
+  border-radius: 6px;
+  text-align: left;
+}

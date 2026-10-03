@@ -9,6 +9,7 @@ import { shuffleDeck, beats } from "./sitting.ts";
 import { deal, draw, isWon, moveToTableau, canBuild } from "./klondike.ts";
 import { MAW_ITEM, mawApproach } from "./death.ts";
 import { MAX_LIGHT, kindle, spendLight, isDark, isWood } from "./light.ts";
+import { nextGate } from "./sitting.ts";
 
 describe("the border", () => {
   it("never walks a loss back past the Far Bank at 15", () => {
@@ -363,5 +364,24 @@ describe("the candle", () => {
     assert.ok(isWood(26));
     assert.ok(isWood(27));
     assert.ok(!isWood(28));
+  });
+});
+
+describe("the objective banner", () => {
+  // objective() lives in Board.tsx (component); this locks the gate
+  // progression its copy is built on.
+  it("nextGate starts at the chapel", () => {
+    const gate = nextGate([], false);
+    assert.equal(gate?.key, "chapel");
+  });
+
+  it("advances past owned gates", () => {
+    const gate = nextGate(["chapel"], false);
+    assert.notEqual(gate?.key, "chapel");
+  });
+
+  it("no gates remain once the Maw is beaten and reliquary owned", () => {
+    const gate = nextGate(["chapel", "bridge", "yard", "queen", "reliquary"], true);
+    assert.ok(!gate);
   });
 });
