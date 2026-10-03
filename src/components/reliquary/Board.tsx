@@ -330,11 +330,25 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const bannerClicks = useRef<number[]>([]);
   const [telemetryOpen, setTelemetryOpen] = useState(false);
   const [telemetryEvents, setTelemetryEvents] = useState<TelemetryEvent[]>([]);
+  /** Pause menu: Esc or the corner button. Works from every game state. */
+  const [paused, setPaused] = useState(false);
+  const [confirmWipe, setConfirmWipe] = useState(false);
   // First click anywhere in the game.
   useEffect(() => {
     const onFirst = () => logEvent("first_interaction");
     window.addEventListener("click", onFirst, { once: true });
     return () => window.removeEventListener("click", onFirst);
+  }, []);
+  // Esc toggles the pause menu.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setConfirmWipe(false);
+        setPaused((p) => !p);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);  /** The Joker watches what you do. Session counters only — he forgets when you die. */
   const jokerAt = useRef(0);
   const lossCount = useRef(0);
@@ -502,6 +516,17 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       clear();
     };
   }, []);
+
+  /** Start over: wipes the run and telemetry, keeps the grave (the road remembers), reloads fresh. */
+  function startOver() {
+    try {
+      localStorage.removeItem("reliquary-v3");
+      localStorage.removeItem("reliquary-telemetry");
+    } catch {
+      /* keep a new game */
+    }
+    window.location.reload();
+  }
 
   function fall() {    setPosition(0);
     logEvent("road_entered");
@@ -1139,6 +1164,14 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   return (
     <section className={`scene${litClass}${guttered ? " guttered" : ""}`} aria-label={age.name}>
+      <button
+        type="button"
+        className="pause-btn"
+        onClick={() => { setConfirmWipe(false); setPaused(true); }}
+        aria-label="Pause"
+      >
+        <span aria-hidden="true">&#10074;&#10074;</span>
+      </button>
       <img key={picture} className="scene-img" src={picture} alt={age.alt} />
       <div className="scene-vignette" />
       <div className="scene-fog" aria-hidden="true" />
@@ -1783,6 +1816,35 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 <button type="button" className="close-book go" onClick={() => setGateCeremony(null)}>
                   Step through
                 </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {paused && (
+        <div className="pause-back" role="dialog" aria-label="Paused">
+          <div className="pause-menu">
+            <p className="leaf-kicker">Held breath</p>
+            {!confirmWipe ? (
+              <>
+                <button type="button" className="close-book go" onClick={() => setPaused(false)}>
+                  Resume
+                </button>
+                <button type="button" className="close-book" onClick={() => setConfirmWipe(true)}>
+                  Start over
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="pause-warn">This wipes your run. The grave remembers.</p>
+                <div className="table-row">
+                  <button type="button" className="close-book go" onClick={startOver}>
+                    Yes, start over
+                  </button>
+                  <button type="button" className="close-book" onClick={() => setConfirmWipe(false)}>
+                    No
+                  </button>
+                </div>
               </>
             )}
           </div>
