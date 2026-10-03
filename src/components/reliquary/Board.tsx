@@ -17,6 +17,7 @@ import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/r
 import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
 import { signSound, lossSound, gateSound, winSting, resetSting, markTick } from "@/lib/reliquary/atmosphere";
+import { logEvent, getEvents, clearTelemetry, type TelemetryEvent } from "@/lib/reliquary/telemetry";
 
 const AGES = [
   {
@@ -296,6 +297,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const riteTimer = useRef<number>(0);
   /** Consecutive wins — drives the escalating win sting. Resets on any loss. */
   const streakRef = useRef(0);
+  /** Telemetry: first mark earned this session (write-only observation). */
+  const wonOnceRef = useRef(false);
+  /** Telemetry: triple-click times on the objective banner (debug overlay). */
+  const bannerClicks = useRef<number[]>([]);
+  const [telemetryOpen, setTelemetryOpen] = useState(false);
+  const [telemetryEvents, setTelemetryEvents] = useState<TelemetryEvent[]>([]);
+  // First click anywhere in the game.
+  useEffect(() => {
+    const onFirst = () => logEvent("first_interaction");
+    window.addEventListener("click", onFirst, { once: true });
+    return () => window.removeEventListener("click", onFirst);
+  }, []);
   /** Displayed purse — counts up toward `marks` with pitched ticks. Logic always reads `marks`. */
   const [shownMarks, setShownMarks] = useState(marks);
   const shownRef = useRef(marks);
@@ -432,6 +445,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   }, []);
 
   function fall() {    setPosition(0);
+    logEvent("road_entered");
     setPicked(0);
     setAgeIndex(vistaIndex(0));
     setNote(null);
@@ -669,7 +683,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
       setNote("The lamp pays. Open the chapel.");
     }
-    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    if (amount > 0) {
+      streakRef.current += 1;
+      winSting(streakRef.current);
+      if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
+    }
     else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
     if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
@@ -677,7 +695,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   /** Mark changes that bypass earn's first-mark note (road games). */
   function award(amount: number) {
-    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    if (amount > 0) {
+      streakRef.current += 1;
+      winSting(streakRef.current);
+      if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
+    }
     else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
     if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
@@ -689,6 +711,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setMarks((value) => value - gate.cost);
     setOwned((value) => [...value, gate.key]);
     gateSound();
+    logEvent(`gate_bought:${gate.key}`);
+    if (gate.key === "chapel") logEvent("chapel_opened");
     // The chain strains before it breaks — a held beat, not an instant.
     if (riteTimer.current) window.clearTimeout(riteTimer.current);
     setRiteStage("strain");
@@ -942,6 +966,24 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const rows = Math.ceil(SQUARES.length / COLS);
   const width = ORIGIN_X * 2 + (COLS - 1) * GAP_X;
 
+  // Telemetry: milestone faces. Write-only; never feeds back into rules.
+  useEffect(() => {
+    if (playing === "queen") logEvent("queen_faced");
+    if (playing === "finale") logEvent("run_ended");
+    if (mode === "maw") logEvent("maw_faced");
+  }, [playing, mode]);
+
+  /** Triple-click the objective banner: dev-only telemetry readout. */
+  function onBannerClick() {
+    const now = Date.now();
+    bannerClicks.current = [...bannerClicks.current.filter((t) => now - t < 600), now];
+    if (bannerClicks.current.length >= 3) {
+      bannerClicks.current = [];
+      setTelemetryEvents(getEvents());
+      setTelemetryOpen((v) => !v);
+    }
+  }
+
   /** The one visually dominant next action. Pending choices take the dock;
    *  otherwise the single action that moves the game forward. */
   const primary: { label: string; onClick: () => void } | null = (() => {
@@ -1166,8 +1208,22 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       <div className="dock">
         {(() => {
           const goal = objective(signed, marks, owned, mawBeaten, position, sat);
-          return goal ? <p className="objective">◎ {goal}</p> : null;
+          return goal ? <p className="objective" onClick={onBannerClick}>◎ {goal}</p> : null;
         })()}
+        {telemetryOpen && (
+          <div className="telemetry-overlay" role="dialog" aria-label="Progress telemetry">
+            <div className="telemetry-head">
+              <span>telemetry — {telemetryEvents.length} events</span>
+              <button type="button" className="telemetry-btn" onClick={() => { clearTelemetry(); setTelemetryEvents([]); }}>clear</button>
+              <button type="button" className="telemetry-btn" onClick={() => setTelemetryOpen(false)}>close</button>
+            </div>
+            <ul className="telemetry-list">
+              {telemetryEvents.map((e, i) => (
+                <li key={i}><code>{e.name}</code> <span>{new Date(e.at).toLocaleTimeString()}</span></li>
+              ))}
+            </ul>
+          </div>
+        )}
         {(waylay !== null || kingOwed || pipOwed || primary) && (
           <div className="dock-primary">
             {waylay !== null && (
@@ -1314,6 +1370,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           onSign={() => {
             setSigned(true);
             setHeard(true);
+            logEvent("signed");
           }}
         />
       )}
@@ -1699,6 +1756,7 @@ function Death({ marks, position }: { marks: number; position: number }) {
   }, []);
 
   function beginAgain() {
+    logEvent("run_ended");
     try {
       // The grave: what the last one carried, and how far it got.
       localStorage.setItem("reliquary-grave", JSON.stringify({ marks, position, when: Date.now() }));
