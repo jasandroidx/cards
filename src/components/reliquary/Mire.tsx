@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { canSetWord, nixRoute, setWord, TILE_ALPHABET } from "@/lib/reliquary/mire";
+import { War } from "@/components/reliquary/Quick";
 
 export function Tiles({
   onAddLetter,
@@ -141,6 +142,74 @@ export function Nix({
           {route === "lamp" && (
             <button type="button" className="close-book go" onClick={() => onLamp()}>
               Go into the lamp
+            </button>
+          )}
+          <button type="button" className="close-book" onClick={onClose}>
+            Stand up
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+export function NixLamp({
+  onPass,
+  onFleece,
+  onClose,
+}: {
+  onPass: () => void;
+  onFleece: () => void;
+  onClose: () => void;
+}) {
+  const [duels, setDuels] = useState<boolean[]>([]);
+  const [round, setRound] = useState(0);
+  const [resting, setResting] = useState(false);
+  const fired = useRef(false);
+  const you = duels.filter(Boolean).length;
+  const nix = duels.length - you;
+  const over = you >= 2 || nix >= 2;
+
+  function duelEnd(won: boolean) {
+    const next = [...duels, won];
+    setDuels(next);
+    setResting(true);
+    if (!fired.current && (next.filter(Boolean).length >= 2 || next.length - next.filter(Boolean).length >= 2)) {
+      fired.current = true;
+      if (next.filter(Boolean).length >= 2) onPass();
+      else onFleece();
+    }
+  }
+
+  function nextDuel() {
+    setResting(false);
+    setRound((r) => r + 1);
+  }
+
+  return (
+    <div className="journal-back" onClick={onClose}>
+      <div className="table one-col" role="dialog" aria-label="Nix's lamp" onClick={(event) => event.stopPropagation()}>
+        <div className="table-top">
+          <p className="leaf-kicker">The lamp</p>
+          <h2>Nix's lamp</h2>
+          <p className="table-rule">
+            Nix opens the lamp. Loose cards creep in at the edge of the light. Best of three duels of war.
+            Take two and he drops. Lose two and he takes two marks.
+          </p>
+          <p className="table-end">
+            You {you} — Nix {nix}
+          </p>
+          {!over && !resting && (
+            <War
+              key={round}
+              onEarn={() => {}}
+              onResult={duelEnd}
+              winNote="You take the duel."
+              loseNote="Nix takes the duel."
+            />
+          )}
+          {!over && resting && (
+            <button type="button" className="close-book go" onClick={nextDuel}>
+              Next duel
             </button>
           )}
           <button type="button" className="close-book" onClick={onClose}>

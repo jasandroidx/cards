@@ -1,4 +1,27 @@
 import { useRef, useState } from "react";
+import { bankTick } from "@/lib/reliquary/atmosphere";
+
+const CHK_CSS = `
+.chk-shake { animation: chk-shake 0.22s ease-out; }
+@keyframes chk-shake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3px, 2px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+.chk-caps { display: inline-block; animation: chk-pop 0.35s cubic-bezier(0.2, 0.8, 0.3, 1); }
+@keyframes chk-pop {
+  0% { transform: scale(1.7); color: #e0c27a; }
+  100% { transform: scale(1); }
+}
+.stone.chk-crowned i { animation: chk-crown-pulse 1.2s ease-in-out; }
+@keyframes chk-crown-pulse {
+  0% { filter: drop-shadow(0 0 2px rgba(224, 194, 122, 0.6)); }
+  50% { filter: drop-shadow(0 0 14px rgba(224, 194, 122, 1)); }
+  100% { filter: drop-shadow(0 0 2px rgba(224, 194, 122, 0.6)); }
+}
+`;
 
 type Board = number[][];
 type Sq = { r: number; c: number };
@@ -197,23 +220,30 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   const [tokens, setTokens] = useState<Token[]>(() => tokensFrom(startBoard()));
   const [selected, setSelected] = useState<Sq | null>(null);
   const [lock, setLock] = useState<Sq | null>(null);
-  const [note, setNote] = useState("You are red, at the bottom. Jump if you can. Reach the far side and you are crowned.");
+  const [note, setNote] = useState("You are red, at the bottom. First to three captures takes the mark.");
   const [over, setOver] = useState(false);
   const [air, setAir] = useState<{ r: number; c: number; jump: boolean } | null>(null);
   const [ghosts, setGhosts] = useState<{ id: number; r: number; c: number; you: boolean }[]>([]);
   const [clip, setClip] = useState<{ src: string; id: number } | null>(null);
+  const [shake, setShake] = useState(false);
+  const [crownedSq, setCrownedSq] = useState<Sq | null>(null);
+  const [capsShown, setCapsShown] = useState({ you: 0, cpu: 0 });
   const boardRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ id: number; x: number; y: number } | null>(null);
   const busy = useRef(false);
   const paid = useRef(false);
+  const done = useRef(false);
+  const caps = useRef({ you: 0, cpu: 0 });
   const clipId = useRef(0);
   const ghostId = useRef(0);
 
   function finish(won: boolean) {
+    if (done.current) return;
+    done.current = true;
     setOver(true);
     setSelected(null);
     setLock(null);
-    setNote(won ? "Their last piece is gone. One mark." : "You have no move. No mark.");
+    setNote(won ? "Three of theirs are gone. One mark." : "They took three of yours. No mark.");
     if (!paid.current) {
       paid.current = true;
       onEarn(won ? 1 : 0);
@@ -221,16 +251,25 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   }
 
   function land(before: Board, next: Board, step: Step, then: () => void) {
+    if (done.current) return;
     const piece = before[step.from.r]![step.from.c]!;
-    if (piece === 1 && step.to.r === 0) {
+    if (crowned(piece, step)) {
       clipId.current += 1;
       setClip({ src: "/checkers-king.mp4", id: clipId.current });
+      setCrownedSq({ r: step.to.r, c: step.to.c });
+      window.setTimeout(() => setCrownedSq(null), 1250);
     } else if (step.cap) {
       clipId.current += 1;
       setClip({ src: "/checkers-take.mp4", id: clipId.current });
     }
     if (step.cap) {
+      bankTick();
+      setShake(true);
+      window.setTimeout(() => setShake(false), 240);
       const taken = before[step.cap.r]![step.cap.c]!;
+      if (piece > 0) caps.current.you += 1;
+      else caps.current.cpu += 1;
+      setCapsShown({ you: caps.current.you, cpu: caps.current.cpu });
       ghostId.current += 1;
       const id = ghostId.current;
       setGhosts((list) => [...list, { id, r: step.cap!.r, c: step.cap!.c, you: taken > 0 }]);
@@ -239,6 +278,10 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
     setAir({ r: step.to.r, c: step.to.c, jump: Boolean(step.cap) });
     setBoard(next);
     setTokens((current) => moveToken(current, step, next));
+    if (caps.current.you >= 3 || caps.current.cpu >= 3) {
+      window.setTimeout(() => finish(caps.current.you >= 3), 320);
+      return;
+    }
     window.setTimeout(() => {
       setAir(null);
       then();
@@ -255,6 +298,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
     let cursor = from;
     const steps = turn.steps;
     const play = (index: number) => {
+      if (done.current) return;
       const step = steps[index];
       if (!step) {
         busy.current = false;
@@ -295,6 +339,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
     busy.current = true;
     const next = apply(board, step);
     land(board, next, step, () => {
+      if (done.current) return;
       const more = jumpsFrom(next, step.to.r, step.to.c);
       const pieceNow = next[step.to.r]![step.to.c]!;
       if (step.cap && more.length && Math.abs(pieceNow) === Math.abs(board[step.from.r]![step.from.c]!)) {
@@ -377,15 +422,27 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
 
   return (
     <div className="felt">
+      <style>{CHK_CSS}</style>
       {clip ? (
         <video key={clip.id} className="plate" src={clip.src} autoPlay muted playsInline onEnded={() => setClip(null)} />
       ) : (
         <img className="plate" src="/checkers.jpg" alt="" />
       )}
       <p className="table-rule">{note}</p>
+      <p className="table-end">
+        Captures —{" "}
+        <span key={`y${capsShown.you}`} className="chk-caps">
+          you {capsShown.you}
+        </span>{" "}
+        ·{" "}
+        <span key={`c${capsShown.cpu}`} className="chk-caps">
+          them {capsShown.cpu}
+        </span>{" "}
+        · first to 3
+      </p>
       <div
         ref={boardRef}
-        className={selected ? "checkers live" : "checkers"}
+        className={`${selected ? "checkers live" : "checkers"}${shake ? " chk-shake" : ""}`}
         onPointerMove={pull}
         onPointerUp={drop}
       >
@@ -406,7 +463,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
           <button
             key={token.id}
             type="button"
-            className={`stone ${token.side > 0 ? "you" : "them"}${drag?.id === token.id ? " drag" : ""}${air?.r === token.r && air.c === token.c ? (air.jump ? " jump" : " air") : ""}${selected?.r === token.r && selected?.c === token.c ? " on" : ""}`}
+            className={`stone ${token.side > 0 ? "you" : "them"}${drag?.id === token.id ? " drag" : ""}${air?.r === token.r && air.c === token.c ? (air.jump ? " jump" : " air") : ""}${selected?.r === token.r && selected?.c === token.c ? " on" : ""}${crownedSq?.r === token.r && crownedSq?.c === token.c ? " chk-crowned" : ""}`}
             style={
               drag?.id === token.id
                 ? { left: `${drag.x - 6.25}%`, top: `${drag.y - 6.25}%` }
