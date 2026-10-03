@@ -10,7 +10,7 @@ const QUEEN_STAGES = [
   "The final card turns. Light floods the suit.",
 ];
 
-export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: () => void; onClose: () => void }) {
+export function Queen({ onWon, onLost, onClose, onFirstRound }: { onWon: () => void; onLost: () => void; onClose: () => void; onFirstRound?: () => void }) {
   const [state, setState] = useState<QueenState>(() => startQueen());
   const [settled, setSettled] = useState(false);
   const [winShown, setWinShown] = useState(false);
@@ -33,6 +33,7 @@ export function Queen({ onWon, onLost, onClose }: { onWon: () => void; onLost: (
     if (!card) return;
     const next = queenPlay(state, card);
     setState(next);
+    if (state.round === 0 && next.round === 1) onFirstRound?.();
     if (queenOutcome(next) === "won") {
       setSettled(true);
       wonRef.current = true;

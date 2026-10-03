@@ -156,6 +156,20 @@ function jokerTaunt(owned: string[], mawBeaten: boolean, queenFaced: boolean): s
   return "Still at the lamp, little fool? The marks won't spend themselves.";
 }
 
+/** The Joker reacts to what you DO, not just where you are. Session-scoped — he forgets nothing, but he paces himself. */
+const JOKER_LOSS_FIRST = "First blood. The lamp keeps the mark; I keep the memory.";
+const JOKER_LOSS_AGAIN = [
+  "Again? The lamp is patient. I am not.",
+  "You lose the way the river flows. Naturally.",
+  "Shall I deal your hands for you? It would be kinder.",
+];
+const JOKER_IDLE = "The road does not wait, fool. Only I wait, and I am bored.";
+const JOKER_FEED3 = "Three wax for the flames. You burn your life to see by it. Apt.";
+const JOKER_QUEEN_ROUND = "One finger moves. She is waking, and it is your fault.";
+const JOKER_FIRST_BUY = "Paid. The chain breaks, the dark deepens. You bought a longer road.";
+const JOKER_RETURNING = "Back again. The dirt remembers you, even if you don't.";
+const JOKER_BROKE = "Empty. The lamp looks at your empty hands and laughs.";
+
 /** The rite spoken when a gate's chain breaks. Not a transaction — a ritual. */
 const GATE_RITE: Record<string, string> = {
   chapel: "One debt paid. A chain breaks. The rules loosen. Enter the chapel and find what is broken.",
@@ -308,8 +322,22 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     const onFirst = () => logEvent("first_interaction");
     window.addEventListener("click", onFirst, { once: true });
     return () => window.removeEventListener("click", onFirst);
-  }, []);
-  /** Displayed purse — counts up toward `marks` with pitched ticks. Logic always reads `marks`. */
+  }, []);  /** The Joker watches what you do. Session counters only — he forgets when you die. */
+  const jokerAt = useRef(0);
+  const lossCount = useRef(0);
+  const feedCount = useRef(0);
+  const lastRollAt = useRef(Date.now());
+  const idleNoted = useRef(false);
+  const jokerTimers = useRef<number[]>([]);
+  /** A behavior remark through the note channel. 3-minute cooldown; optional delay so game feedback lands first. */
+  function jokerSays(line: string, delayMs = 0) {
+    if (Date.now() - jokerAt.current < 180000) return;
+    jokerAt.current = Date.now();
+    if (delayMs <= 0) { setNote(line); return; }
+    const id = window.setTimeout(() => setNote(line), delayMs);
+    jokerTimers.current.push(id);
+  }
+  useEffect(() => () => { jokerTimers.current.forEach((t) => window.clearTimeout(t)); }, []);  /** Displayed purse — counts up toward `marks` with pitched ticks. Logic always reads `marks`. */
   const [shownMarks, setShownMarks] = useState(marks);
   const shownRef = useRef(marks);
   useEffect(() => {
@@ -407,6 +435,24 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     return () => window.clearInterval(id);
   }, [signed, met, jokerVisit]);
 
+  // The Joker notices when you stop walking. Ninety seconds of stillness on the road.
+  useEffect(() => {
+    if (!signed) return;
+    const id = window.setInterval(() => {
+      if (
+        position >= 0 &&
+        playing === null &&
+        !dead &&
+        !idleNoted.current &&
+        Date.now() - lastRollAt.current > 90000
+      ) {
+        idleNoted.current = true;
+        jokerSays(JOKER_IDLE);
+      }
+    }, 15000);
+    return () => window.clearInterval(id);
+  }, [signed, position, playing, dead]);
+
   // Card hover tilt: hand cards lean toward the cursor. Visual only — writes
   // CSS custom properties directly, no React state involved.
   useEffect(() => {
@@ -452,6 +498,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   }
 
   function roll() {
+    lastRollAt.current = Date.now();
+    idleNoted.current = false;
     if (waylay !== null) {
       setNote("The ash is waiting on your answer. Take the chance, or walk on.");
       return;
@@ -618,11 +666,13 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   }
 
   useEffect(() => {
+    let hadSave = false;
     try {
       const raw = localStorage.getItem("reliquary-v3");
       if (raw) {
         const data = JSON.parse(raw) as Save;
         if (typeof data.position === "number") {
+          hadSave = true;
           setMarks(data.marks ?? 0);
           setOwned(Array.isArray(data.owned) ? data.owned : []);
           setMawBeaten(Boolean(data.mawBeaten));
@@ -659,12 +709,14 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       /* keep a new game */
     }
     // The grave: the last one the Maw ate. It stays until the next death.
+    // A grave with no save means you died and came back. He notices.
     try {
       const graw = localStorage.getItem("reliquary-grave");
       if (graw) {
         const g = JSON.parse(graw) as { marks?: unknown; position?: unknown; when?: unknown };
         if (typeof g.marks === "number" && typeof g.position === "number" && typeof g.when === "number") {
           setGrave({ marks: g.marks, position: g.position, when: g.when });
+          if (!hadSave) jokerSays(JOKER_RETURNING);
         }
       }
     } catch {
@@ -688,8 +740,16 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       winSting(streakRef.current);
       if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
     }
-    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
-    if (amount > 0) setBurst((b) => b + 1);
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    else if (amount < 0) {
+      streakRef.current = 0; resetSting(); lossSound();
+      lossCount.current += 1;
+      const n = lossCount.current;
+      const broke = marks > 0 && marks + amount <= 0;
+      if (n === 1) jokerSays(JOKER_LOSS_FIRST, 1500);
+      else if (n % 3 === 0) jokerSays(JOKER_LOSS_AGAIN[(n / 3 - 1) % JOKER_LOSS_AGAIN.length], 1500);
+      else if (broke) jokerSays(JOKER_BROKE, 1500);
+    }    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
@@ -700,14 +760,23 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       winSting(streakRef.current);
       if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
     }
-    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
-    if (amount > 0) setBurst((b) => b + 1);
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
+    else if (amount < 0) {
+      streakRef.current = 0; resetSting(); lossSound();
+      lossCount.current += 1;
+      const n = lossCount.current;
+      const broke = marks > 0 && marks + amount <= 0;
+      if (n === 1) jokerSays(JOKER_LOSS_FIRST, 1500);
+      else if (n % 3 === 0) jokerSays(JOKER_LOSS_AGAIN[(n / 3 - 1) % JOKER_LOSS_AGAIN.length], 1500);
+      else if (broke) jokerSays(JOKER_BROKE, 1500);
+    }    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
   function buy(gate: Gate) {
     const upcoming = nextGate(owned, mawBeaten);
     if (!upcoming || upcoming.key !== gate.key || marks < gate.cost) return;
+    const firstBuy = owned.length === 0;
     setMarks((value) => value - gate.cost);
     setOwned((value) => [...value, gate.key]);
     gateSound();
@@ -719,6 +788,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setGateCeremony(gate);
     riteTimer.current = window.setTimeout(() => setRiteStage("broken"), 600);
     setNote(`${gate.opens} is open.`);
+    if (firstBuy) jokerSays(JOKER_FIRST_BUY, 2000);
   }
 
   function spendBlank(gate: Gate) {
@@ -880,6 +950,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
     const gate = nextGate(owned, mawBeaten);
     setLight((value) => spendLight(value, 1));
+    feedCount.current += 1;
+    if (feedCount.current === 3) { jokerSays(JOKER_FEED3); return; }
     if (!gate) {
       setNote("You feed the fire a wax. The flames lean toward the reliquary. It is waiting.");
     } else if (gate.key === "chapel") {
@@ -1622,6 +1694,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             setNote("Four rounds. The Queen has a face. The houses burn — and something in the dark is waiting for its Dealer.");
           }}
           onLost={() => setNote("Nothing left to answer. Her face is still gone, and you stay on the square.")}
+          onFirstRound={() => jokerSays(JOKER_QUEEN_ROUND)}
           onClose={() => setPlaying(null)}
         />
       )}
