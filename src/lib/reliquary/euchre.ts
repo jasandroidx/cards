@@ -104,8 +104,8 @@ function trickWinner(trick: Play[], trump: Suit): number {
 }
 
 export function payoutFor(yourTricks: number): number {
-  if (yourTricks >= 5) return 8;
-  if (yourTricks >= 3) return 4;
+  if (yourTricks >= 5) return 3;
+  if (yourTricks >= 3) return 2;
   return 0;
 }
 

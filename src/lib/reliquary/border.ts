@@ -22,3 +22,15 @@ export function borderSpreadsSilver(spadesLit: boolean, result: BorderResult): b
 export function borderPay(result: BorderResult): number {
   return result === "win" ? 1 : 0;
 }
+
+/** First to two throws takes the series. Ties throw again and score nothing. */
+export function borderSeriesDone(you: number, them: number): boolean {
+  return you >= 2 || them >= 2;
+}
+
+/** The series result once it is done, null while throws remain. */
+export function borderSeriesResult(you: number, them: number): BorderResult | null {
+  if (you >= 2) return "win";
+  if (them >= 2) return "lose";
+  return null;
+}

@@ -14,11 +14,13 @@ import {
   type Mode,
 } from "@/lib/reliquary/sitting";
 import { Box } from "@/components/reliquary/Box";
-import { GoFish, Memory, War } from "@/components/reliquary/Quick";
+import { Farkle, GoFish, LiarsDice } from "@/components/reliquary/Quick";
 import { Darts, Four } from "@/components/reliquary/Sides";
+import { Blackjack } from "@/components/reliquary/Blackjack";
+import { Dominoes } from "@/components/reliquary/Dominoes";
 import { Checkers } from "@/components/reliquary/Checkers";
 import { drawSurprise, type Surprise } from "@/lib/reliquary/surprise";
-import { wrongSound } from "@/lib/reliquary/atmosphere";
+import { cardSnap, wrongSound } from "@/lib/reliquary/atmosphere";
 
 const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   lamp: {
@@ -129,7 +131,7 @@ export function Table({
 
 function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSat?: () => void; onKeep?: (kind: string) => void }) {
   const [surprise] = useState<Surprise>(() => drawSurprise());
-  const [game, setGame] = useState<"pick" | "hand" | "box" | "war" | "fish" | "memory" | "darts" | "four" | "checkers">("pick");
+  const [game, setGame] = useState<"pick" | "hand" | "box" | "fish" | "darts" | "four" | "checkers" | "liars" | "farkle" | "blackjack" | "dominoes">("pick");
   const [out, setOut] = useState(false);
   const died = useRef(false);
   const counted = useRef(false);
@@ -140,7 +142,7 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
       onSat?.();
     }
     onEarn(surprise.kind === "gift" && n > 0 ? n + 1 : n);
-    if (n > 0 && (game === "war" || game === "fish" || game === "memory" || game === "darts" || game === "four" || game === "checkers")) onKeep?.(game);
+    if (n > 0 && (game === "fish" || game === "darts" || game === "four" || game === "checkers" || game === "liars" || game === "farkle" || game === "blackjack" || game === "dominoes")) onKeep?.(game);
   }
 
   function snuff() {
@@ -171,14 +173,8 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
             <button type="button" className="close-book go" onClick={() => setGame("box")}>
               The box
             </button>
-            <button type="button" className="close-book go" onClick={() => setGame("war")}>
-              War
-            </button>
             <button type="button" className="close-book go" onClick={() => setGame("fish")}>
               Go Fish
-            </button>
-            <button type="button" className="close-book go" onClick={() => setGame("memory")}>
-              Concentration
             </button>
             <button type="button" className="close-book go" onClick={() => setGame("darts")}>
               Darts
@@ -189,17 +185,31 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
             <button type="button" className="close-book go" onClick={() => setGame("checkers")}>
               Checkers
             </button>
+            <button type="button" className="close-book go" onClick={() => setGame("liars")}>
+              Liar's dice
+            </button>
+            <button type="button" className="close-book go" onClick={() => setGame("farkle")}>
+              Farkle
+            </button>
+            <button type="button" className="close-book go" onClick={() => setGame("blackjack")}>
+              Blackjack
+            </button>
+            <button type="button" className="close-book go" onClick={() => setGame("dominoes")}>
+              Dominoes
+            </button>
           </div>
         </>
       )}
       {game === "hand" && <Sequence mode="lamp" onEarn={pay} />}
       {game === "box" && <Box onEarn={pay} />}
-      {game === "war" && <War onEarn={pay} />}
       {game === "fish" && <GoFish onEarn={pay} />}
-      {game === "memory" && <Memory onEarn={pay} />}
       {game === "darts" && <Darts onEarn={pay} />}
       {game === "four" && <Four onEarn={pay} />}
       {game === "checkers" && <Checkers onEarn={pay} />}
+      {game === "liars" && <LiarsDice onEarn={pay} />}
+      {game === "farkle" && <Farkle onEarn={pay} />}
+      {game === "blackjack" && <Blackjack onEarn={pay} />}
+      {game === "dominoes" && <Dominoes onEarn={pay} />}
     </>
   );
 }
@@ -251,6 +261,7 @@ function Sequence({ mode, onEarn }: { mode: "lamp" | "cut"; onEarn: (n: number) 
 
   function play(card: Card) {
     if (sitting.done || !legal(card, sitting.top)) return;
+    cardSnap();
     const hand = sitting.hand.filter((item) => item.id !== card.id);
     const deck = sitting.deck.slice();
     if (deck.length > 0 && hand.length < 3) hand.push(deck.shift()!);
@@ -272,7 +283,13 @@ function Sequence({ mode, onEarn }: { mode: "lamp" | "cut"; onEarn: (n: number) 
       <div className="felt">
         <img className="plate" src="/hand.jpg" alt="" />
         <div className="lamp">
-          {sitting.top ? <CardFace card={sitting.top} /> : <div className="card empty">Lamp</div>}
+          {sitting.top ? (
+            <div key={sitting.top.id} className="deal-wrap">
+              <CardFace card={sitting.top} />
+            </div>
+          ) : (
+            <div className="card empty">Lamp</div>
+          )}
           <span>
             {sitting.played} played · {sitting.deck.length} left
           </span>
@@ -309,10 +326,11 @@ function Bid({ onEarn, onBid }: { onEarn: (n: number) => void; onBid?: (made: bo
 
   function play(card: Card) {
     if (done || bid === null || !canCut(card, top)) return;
+    cardSnap();
     const hand = left.filter((item) => item.id !== card.id);
     const count = played + 1;
     const finished = hand.length === 0 || hand.every((item) => !canCut(item, card));
-    const earned = finished ? (count >= bid ? bid * 2 : 0) : 0;
+    const earned = finished ? (count >= bid ? bid : 0) : 0;
     if (finished) {
       onEarn(earned);
       onBid?.(count >= bid);
@@ -385,7 +403,7 @@ function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: bool
     const won = state.won + (took ? 1 : 0);
     if (state.trick >= 5) {
       const passed = won >= 3;
-      onEarn(passed ? 6 : 0);
+      onEarn(passed ? 3 : 0);
       onMaw(passed);
       setState({ ...state, hand: state.hand.filter((c) => c.id !== (took ? shown?.id : "")), threat: state.threat, won, done: true, passed });
       return;
@@ -413,7 +431,7 @@ function Maw({ onEarn, onMaw }: { onEarn: (n: number) => void; onMaw: (won: bool
       </div>
       {state.done && (
         <p className="table-end">
-          {state.passed ? "It moves. Six marks, and the road past it can be bought." : "It does not move."}
+          {state.passed ? "It moves. Three marks, and the road past it can be bought." : "It does not move."}
         </p>
       )}
     </>
@@ -444,10 +462,17 @@ function End({ payout, again, sour = false }: { payout: number; again: () => voi
 function Hand({ cards, legal, onPlay }: { cards: Card[]; legal: (card: Card) => boolean; onPlay: (card: Card) => void }) {
   return (
     <div className="hand">
-      {cards.map((card) => {
+      {cards.map((card, index) => {
         const ok = legal(card);
         return (
-          <button key={card.id} type="button" className="card-btn" disabled={!ok} onClick={() => onPlay(card)}>
+          <button
+            key={card.id}
+            type="button"
+            className="card-btn deal-wrap"
+            style={{ animationDelay: `${index * 80}ms` }}
+            disabled={!ok}
+            onClick={() => onPlay(card)}
+          >
             <CardFace card={card} />
           </button>
         );
