@@ -63,8 +63,8 @@ export function deal(): Game {
   return { tableau, foundations: [[], [], [], []], stock: deck, waste: [] };
 }
 
-export function canBuild(card: Card, onto: Card | undefined): boolean {
-  if (!onto) return card.rank === 13;
+export function canBuild(card: Card, onto: Card | undefined, queenOpens = false): boolean {
+  if (!onto) return card.rank === 13 || (queenOpens && card.rank === 12);
   return isRed(card.suit) !== isRed(onto.suit) && card.rank === onto.rank - 1;
 }
 
@@ -88,21 +88,36 @@ function sequenceOk(pile: Card[], index: number): boolean {
   return true;
 }
 
-export function draw(game: Game): Game {
+export function draw(game: Game, count = 1): Game {
+  // Clicking an empty stock only recycles the waste; it never also draws.
   if (game.stock.length === 0) {
-    return { ...game, stock: [...game.waste].reverse().map((card) => ({ ...card, up: false })), waste: [] };
+    if (game.waste.length === 0) return game;
+    return {
+      ...game,
+      stock: [...game.waste].reverse().map((card) => ({ ...card, up: false })),
+      waste: [],
+    };
   }
-  const stock = game.stock.slice();
-  const card = stock.pop()!;
-  return { ...game, stock, waste: [...game.waste, { ...card, up: true }] };
+  // Draw up to `count`, but only what is left — no mid-click recycle.
+  const take = Math.min(count, game.stock.length);
+  const stock = game.stock.slice(0, game.stock.length - take);
+  const drawn = game.stock
+    .slice(game.stock.length - take)
+    .reverse()
+    .map((card) => ({ ...card, up: true }));
+  return { ...game, stock, waste: [...game.waste, ...drawn] };
 }
 
-export function moveToTableau(game: Game, from: From, col: number): Game | null {
+export function isWon(game: Game): boolean {
+  return game.foundations.every((pile) => pile.length === 13);
+}
+
+export function moveToTableau(game: Game, from: From, col: number, queenOpens = false): Game | null {
   const moving = take(game, from);
   if (!moving) return null;
   const pile = game.tableau[col] ?? [];
   const onto = [...pile].reverse().find((card) => card.up);
-  if (!canBuild(moving.cards[0]!, onto)) return null;
+  if (!canBuild(moving.cards[0]!, onto, queenOpens)) return null;
   const next = moving.game;
   next.tableau = next.tableau.slice();
   next.tableau[col] = [...pile, ...moving.cards.map((card) => ({ ...card, up: true }))];

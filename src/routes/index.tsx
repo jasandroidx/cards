@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Board } from "@/components/reliquary/Board";
+import { Chair } from "@/components/reliquary/Chair";
 import { Solitaire } from "@/components/reliquary/Solitaire";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  const [mode, setMode] = useState<"wait" | "cards" | "road">("wait");
+  const [mode, setMode] = useState<"wait" | "cards" | "road" | "chair">("wait");
+  const [epitaph, setEpitaph] = useState<{ marks: number; boons: string[] }>({ marks: 0, boons: [] });
 
   useEffect(() => {
     try {
@@ -38,9 +40,32 @@ function Home() {
     setMode("road");
   }
 
+  function again() {
+    try {
+      localStorage.removeItem("reliquary-v3");
+    } catch {
+      // a fresh run needs no save
+    }
+    setEpitaph({ marks: 0, boons: [] });
+    setMode("cards");
+  }
+
   return (
     <main className="page">
-      {mode === "road" ? <Board /> : mode === "cards" ? <Solitaire onFall={fall} /> : <div className="win-sol" />}
+      {mode === "road" ? (
+        <Board
+          onReturn={(marks, boons) => {
+            setEpitaph({ marks, boons });
+            setMode("chair");
+          }}
+        />
+      ) : mode === "cards" ? (
+        <Solitaire onFall={fall} />
+      ) : mode === "chair" ? (
+        <Chair marks={epitaph.marks} boons={epitaph.boons} onAgain={again} />
+      ) : (
+        <div className="win-sol" />
+      )}
     </main>
   );
 }

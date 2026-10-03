@@ -6,6 +6,7 @@ import { addTile, nixRoute, nixSpend, setWord, startWell, wellCatch, wellCatchOk
 import { bumpHouse, houseReward, houseSettled, startHouse } from "./scaffold.ts";
 import { QUEEN_HAND, QUEEN_ROUNDS, QUEEN_THROW_ROUND, queenLead, queenLegal, queenOutcome, queenPlay, queenStalled, startQueen } from "./queen.ts";
 import { shuffleDeck, beats } from "./sitting.ts";
+import { deal, draw, isWon, moveToTableau, canBuild } from "./klondike.ts";
 
 describe("the border", () => {
   it("never walks a loss back past the Far Bank at 15", () => {
@@ -230,5 +231,86 @@ describe("the Queen at square 28", () => {
     // See HANDOFF: this is a KNOWN problem, tuned to just above half.
     const rate = (wins / 2000) * 100;
     assert.ok(rate > 50, `win rate collapsed to ${rate.toFixed(1)}%`);
+  });
+});
+describe("the last chair (square 29)", () => {
+  const mk = (suit: "spades" | "hearts" | "diamonds" | "clubs", rank: number) => ({
+    id: `${rank}${suit[0]}`,
+    suit,
+    rank,
+    up: true,
+  });
+
+  it("deals seven columns, 28 tableau cards, 24 in the stock", () => {
+    const game = deal();
+    assert.equal(game.tableau.length, 7);
+    const tableauCards = game.tableau.reduce((n, pile) => n + pile.length, 0);
+    assert.equal(tableauCards, 28);
+    assert.equal(game.stock.length, 24);
+    assert.equal(game.waste.length, 0);
+    assert.deepEqual(game.foundations.map((p) => p.length), [0, 0, 0, 0]);
+  });
+
+  it("draw-three recycles the waste onto the stock on the next click, drawing nothing", () => {
+    let game = deal();
+    // Exhaust the stock: 24 cards / 3 = 8 draws.
+    for (let i = 0; i < 8; i++) game = draw(game, 3);
+    assert.equal(game.stock.length, 0);
+    assert.equal(game.waste.length, 24);
+    // The recycle click flips the waste back and draws nothing.
+    game = draw(game, 3);
+    assert.equal(game.stock.length, 24);
+    assert.equal(game.waste.length, 0);
+    assert.ok(game.stock.every((card) => !card.up));
+    // And the next click draws three from the recycled stock.
+    game = draw(game, 3);
+    assert.equal(game.stock.length, 21);
+    assert.equal(game.waste.length, 3);
+  });
+
+  it("draw-one takes exactly one card", () => {
+    let game = deal();
+    game = draw(game, 1);
+    assert.equal(game.waste.length, 1);
+    assert.equal(game.stock.length, 23);
+  });
+
+  it("only kings open an empty column without the boon", () => {
+    assert.ok(canBuild(mk("spades", 13), undefined, false));
+    assert.ok(!canBuild(mk("hearts", 12), undefined, false));
+  });
+
+  it("a queen opens an empty column with the column boon", () => {
+    assert.ok(canBuild(mk("hearts", 12), undefined, true));
+    assert.ok(!canBuild(mk("spades", 11), undefined, true));
+    // Ordinary builds still alternate color descending.
+    assert.ok(canBuild(mk("hearts", 12), mk("spades", 13), true));
+    assert.ok(!canBuild(mk("hearts", 12), mk("hearts", 13), true));
+  });
+
+  it("moveToTableau lets a queen take an empty column only with the boon", () => {
+    const queen = mk("hearts", 12);
+    const base = deal();
+    const withQueen = {
+      ...base,
+      waste: [...base.waste, queen],
+      tableau: base.tableau.map((pile, i) => (i === 0 ? [] : pile)),
+    };
+    assert.ok(!moveToTableau(withQueen, { kind: "waste" }, 0, false));
+    const placed = moveToTableau(withQueen, { kind: "waste" }, 0, true);
+    assert.ok(placed);
+    assert.equal(placed!.tableau[0]!.length, 1);
+  });
+
+  it("isWon only when all four foundations are full", () => {
+    const game = deal();
+    assert.ok(!isWon(game));
+    const suits = ["spades", "hearts", "diamonds", "clubs"] as const;
+    const won = {
+      ...game,
+      foundations: suits.map((suit) => Array.from({ length: 13 }, (_, i) => mk(suit, i + 1))),
+    };
+    assert.ok(isWon(won));
+    assert.ok(!isWon({ ...won, foundations: won.foundations.map((p, i) => (i === 0 ? p.slice(0, 12) : p)) }));
   });
 });
