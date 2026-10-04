@@ -2165,31 +2165,49 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   );
 }
 
+/** The landing: three beats of silence after the fall, before the Jester arrives. */
+const LANDED = [
+  "The fall was a silence. Then cold stone under your hands where a table should be.",
+  "A lamp burns where no lamp should be. Above you, the cards are still falling. They never land.",
+  "Something with bells is laughing, somewhere in the dark. It is coming closer.",
+];
+
 function JesterMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
-  const lines = short ? JOKER_SHORT : JOKER;
+  const lines = short ? JOKER_SHORT : [...LANDED, ...JOKER];
   const [line, setLine] = useState(0);
   const last = line >= lines.length - 1;
+  const inFall = !short && line < LANDED.length;
 
   return (
     <div className="journal-back">
       <button
-        className="joker-meet"
+        className={inFall ? "fall-meet" : "joker-meet"}
         type="button"
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
-        <b>The Jester</b>
-        <video
-          className="plate joker-face"
-          src="/plates/joker-deals.mp4"
-          poster="/plates/joker.jpg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-label="The Jester dealing"
-        />
-        <p>{lines[line]}</p>
-        <i>{last ? "He leaves" : "Click"}</i>
+        {inFall ? (
+          <>
+            <b>Under the Table</b>
+            <p>{lines[line]}</p>
+            <i>Click</i>
+          </>
+        ) : (
+          <>
+            <b>The Jester</b>
+            <video
+              className="plate joker-face"
+              src="/plates/joker-deals.mp4"
+              poster="/plates/joker.jpg"
+              autoPlay
+              muted
+              loop
+              playsInline
+              aria-label="The Jester dealing"
+            />
+            <p>{lines[line]}</p>
+            <i>{last ? "He leaves" : "Click"}</i>
+          </>
+        )}
       </button>
     </div>
   );
