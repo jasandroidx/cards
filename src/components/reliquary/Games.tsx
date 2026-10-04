@@ -295,7 +295,8 @@ export function Border({
             </span>
           </div>
           {last && (
-            <div className={`border-dice${throwing ? " dim" : ""}`}>
+            <div className={`border-dice dice-pit${throwing ? " dim" : ""}`}>
+              <p className="dice-pit-label">The throw</p>
               <div className="border-side">
                 <div style={{ display: "flex", gap: 10 }}>
                   {last.yours.map((d, i) => (

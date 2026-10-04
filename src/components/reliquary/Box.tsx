@@ -167,9 +167,10 @@ export function Box({ onEarn }: { onEarn: (n: number) => void }) {
   const busy = closing.length > 0;
 
   return (
-    <div className="felt">
+    <div className="felt bx">
       <style>{BOX_CSS}</style>
       <img className="plate" src="/box.jpg" alt="" />
+      <p className="bx-kicker">Shut the box</p>
       <p className="table-rule">
         Roll. Shut numbers that add up to it. Five shut pays a mark. All nine pays three. If you cannot shut any, the box closes.
       </p>

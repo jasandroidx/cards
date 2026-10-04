@@ -39,13 +39,13 @@ export function Scaffold({ onStand, onFall, onClose }: { onStand: () => void; on
 
   return (
     <div className="journal-back" onClick={onClose}>
-      <div className="table one-col" role="dialog" aria-label="The scaffold" onClick={(event) => event.stopPropagation()}>
+      <div className="table one-col scaffold" role="dialog" aria-label="The scaffold" onClick={(event) => event.stopPropagation()}>
         <div className="table-top">
           <p className="leaf-kicker">The scaffold</p>
           <h2>A house of cards</h2>
           <p className="table-rule">The table bumps. Keep it standing until the lamp settles.</p>
-          <div style={{ height: 8, background: "#222", borderRadius: 4, margin: "8px 0" }}>
-            <div style={{ height: 8, background: "#8c9", borderRadius: 4, width: `${Math.min(100, (state.elapsed / state.time) * 100)}%` }} />
+          <div className="scaffold-meter">
+            <div className="scaffold-fill" style={{ width: `${Math.min(100, (state.elapsed / state.time) * 100)}%` }} />
           </div>
           {!done && (
             <button type="button" className="close-book go" onClick={bump}>

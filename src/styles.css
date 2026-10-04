@@ -3356,3 +3356,676 @@ body::before {
     linear-gradient(to right, transparent 42%, #4a3d28 42%, #4a3d28 58%, transparent 58%),
     linear-gradient(to bottom, transparent 42%, #4a3d28 42%, #4a3d28 58%, transparent 58%);
 }
+
+/* ============ Visual dressing batch: issues #11, #12, #13, #14, #22, #23, #24, #25 ============ */
+/* Dark-fantasy language: black lacquer + gold filigree, parchment, candle-flicker,
+   film grain, obsidian + gold. Visual-only: no rules, hooks, timers, or sounds touched. */
+
+/* ---------- #14 · Typography pass across game dialogs ---------- */
+
+.table h2 {
+  text-wrap: balance;
+  letter-spacing: 0.01em;
+  text-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.65),
+    0 0 28px rgba(216, 178, 92, 0.12);
+}
+
+.leaf-kicker,
+.table .leaf-kicker {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #d4b36a;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.table-rule {
+  line-height: 1.55;
+  color: #ded2ba;
+  max-width: 62ch;
+}
+
+/* The outcome line reads as an outcome: gold, italic, set off by a hairline. */
+.table-end {
+  color: #e8d5a8;
+  font-style: italic;
+  border-top: 1px solid rgba(216, 178, 92, 0.28);
+  padding-top: 10px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.close-book,
+.book-btn {
+  transition: color 0.2s ease, text-shadow 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table .close-book:hover:not(:disabled),
+.table .close-book:focus-visible:not(:disabled) {
+  color: #ffe9b8;
+  text-shadow: 0 0 12px rgba(216, 178, 92, 0.55);
+}
+
+.book-btn:hover:not(:disabled),
+.book-btn:focus-visible:not(:disabled) {
+  box-shadow: 0 0 18px rgba(216, 178, 92, 0.35);
+}
+
+/* ---------- #11 · Go Fish: the pond ---------- */
+
+.felt.fish {
+  background:
+    radial-gradient(ellipse 90% 42% at 50% 0%, rgba(190, 214, 235, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 108%, #060d12 0%, #0a141b 45%, #04090d 100%);
+  border: 1px solid rgba(150, 180, 205, 0.16);
+  border-radius: 12px;
+  padding: 18px 18px 20px;
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.75),
+    inset 0 2px 0 rgba(190, 214, 235, 0.06),
+    0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.fish .plate {
+  border: 1px solid rgba(216, 178, 92, 0.4);
+  outline: 1px solid rgba(0, 0, 0, 0.7);
+  outline-offset: 3px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 24px rgba(150, 180, 205, 0.08);
+}
+
+/* Black water the stock is drawn from. Pure decoration: ripples + moon. */
+.fish-pond {
+  position: relative;
+  height: 84px;
+  margin: 2px 0 4px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 34% 52% at 50% 34%, rgba(214, 228, 240, 0.16) 0%, rgba(214, 228, 240, 0.04) 46%, transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 60%, #0b1520 0%, #060c13 62%, #03070b 100%);
+  box-shadow:
+    inset 0 6px 22px rgba(0, 0, 0, 0.85),
+    inset 0 -1px 0 rgba(190, 214, 235, 0.08),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.fish-pond i {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 120px;
+  height: 34px;
+  border: 1px solid rgba(190, 214, 235, 0.35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.25);
+  opacity: 0;
+  animation: fish-ripple 5.2s ease-out infinite;
+}
+
+.fish-pond i:nth-child(2) { animation-delay: 1.7s; }
+.fish-pond i:nth-child(3) { animation-delay: 3.4s; }
+
+@keyframes fish-ripple {
+  0% { transform: translate(-50%, -50%) scale(0.25); opacity: 0; }
+  18% { opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+}
+
+.fish-moon {
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 38% 34%, #f4f7fa 0%, #c9d6e2 55%, #8fa3b5 100%);
+  box-shadow: 0 0 18px rgba(214, 228, 240, 0.55), 0 0 46px rgba(214, 228, 240, 0.18);
+  animation: candle-flicker 6s ease-in-out infinite;
+}
+
+.fish-stock {
+  border-top-color: rgba(150, 180, 205, 0.25);
+  color: #cfe0ee;
+}
+
+/* The hand drifts on the water: cards rise to meet the finger. */
+.fish .table-row .deal-wrap {
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* ---------- #12 · Checkers: board and stones ---------- */
+
+.chk-kicker {
+  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(216, 178, 92, 0.85);
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* The lamplight over the board breathes with the candle. */
+.checkers::after {
+  animation: candle-flicker 4.6s ease-in-out infinite;
+}
+
+/* Worn wooden frame: an engraved gold inlay inside the lip. */
+.checkers {
+  box-shadow:
+    inset 0 0 0 3px #2a2118,
+    inset 0 0 0 4px rgba(216, 178, 92, 0.28),
+    inset -10px -8px 18px rgba(255, 186, 90, 0.08),
+    inset 12px 16px 22px rgba(0, 0, 0, 0.45),
+    -6px 10px 12px rgba(0, 0, 0, 0.4),
+    -16px 28px 40px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(216, 178, 92, 0.06);
+}
+
+.sq.dark {
+  background:
+    repeating-linear-gradient(48deg, rgba(0, 0, 0, 0.14) 0 3px, transparent 3px 7px),
+    linear-gradient(214deg, #5c5146, #2a241e 52%, #1a1613);
+}
+
+.sq.light {
+  background:
+    repeating-linear-gradient(48deg, rgba(120, 90, 50, 0.08) 0 3px, transparent 3px 7px),
+    linear-gradient(214deg, #f6ecdc, #cbb89a 42%, #7d6852);
+}
+
+/* Candlelit stones: the player's red stones catch a gold rim. */
+.stone.you i {
+  box-shadow:
+    0 0 14px rgba(216, 178, 92, 0.28),
+    inset -3px -2px 5px rgba(255, 226, 170, 0.45),
+    inset 5px 6px 7px rgba(0, 0, 0, 0.62);
+}
+
+.stone.them i {
+  box-shadow:
+    0 0 10px rgba(0, 0, 0, 0.5),
+    inset -3px -2px 5px rgba(255, 255, 255, 0.35),
+    inset 5px 6px 7px rgba(0, 0, 0, 0.62);
+}
+
+.stone.on i {
+  box-shadow:
+    0 0 0 3px #e0c27a,
+    0 0 18px rgba(224, 194, 122, 0.5),
+    inset -2px -2px 3px rgba(255, 226, 170, 0.45);
+}
+
+/* ---------- #13 · The Box: an artifact, not a dialog ---------- */
+/* Scoped under .bx so these beat the component's inline <style> on ties. */
+
+.bx-kicker {
+  margin: 0 0 10px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(216, 178, 92, 0.85);
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.bx .plate {
+  border: 6px solid #1c130b;
+  outline: 1px solid rgba(216, 178, 92, 0.5);
+  outline-offset: -1px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 10px 28px rgba(0, 0, 0, 0.65),
+    0 0 26px rgba(216, 178, 92, 0.08);
+}
+
+/* The box itself: aged dark wood, brass-bound corners. */
+.bx .bx-box {
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.65));
+}
+
+.bx .bx-stage {
+  padding: 18px 14px 22px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 196, 118, 0.07) 0%, transparent 60%),
+    linear-gradient(180deg, #17100a 0%, #0d0805 100%);
+  border: 1px solid rgba(216, 178, 92, 0.22);
+  border-radius: 10px;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.7);
+}
+
+/* Velvet-lined cavity: oxblood dark, gold inner trim. */
+.bx .bx-cavity {
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 20%, #2b1216 0%, #160709 52%, #080304 100%);
+  border: 3px solid #2a1e12;
+  outline: 1px solid rgba(216, 178, 92, 0.35);
+  outline-offset: -7px;
+  box-shadow:
+    inset 0 0 46px rgba(0, 0, 0, 0.92),
+    inset 0 2px 10px rgba(120, 20, 26, 0.25),
+    0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* The lid: carved wood with brass studs and a gold-filigree seam. */
+.bx .bx-lid {
+  background:
+    radial-gradient(circle at 12% 50%, #8a6f3e 0 6px, #3a2c16 7px, transparent 8px),
+    radial-gradient(circle at 88% 50%, #8a6f3e 0 6px, #3a2c16 7px, transparent 8px),
+    repeating-linear-gradient(90deg, rgba(216, 178, 92, 0.05) 0 2px, transparent 2px 46px),
+    linear-gradient(180deg, #4a3620 0%, #33241a 45%, #20160e 100%);
+  border: 3px solid #100a06;
+  outline: 1px solid rgba(216, 178, 92, 0.3);
+  outline-offset: -5px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Bone tiles, engraved numerals, gold edge when picked. */
+.bx .bx-tile {
+  background:
+    radial-gradient(circle at 32% 26%, #f2e8d2 0%, #e8dcc0 40%, #c9b78f 100%);
+  border: 2px solid #241c12;
+  outline: 1px solid rgba(216, 178, 92, 0.35);
+  outline-offset: -4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 6px rgba(90, 70, 40, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-display);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.bx .bx-tile.picked {
+  box-shadow:
+    0 0 0 2px #d8b25c,
+    0 0 16px rgba(216, 178, 92, 0.45),
+    0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.bx .bx-box.won {
+  filter: drop-shadow(0 0 22px rgba(216, 178, 92, 0.6)) drop-shadow(0 18px 26px rgba(0, 0, 0, 0.65));
+}
+
+/* ---------- #22 · Border + Scaffold dressing ---------- */
+/* Higher specificity than the component-inline BORDER_CSS on purpose. */
+
+.border-dice.dice-pit {
+  margin: 14px 0 6px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-pit.border-dice .dice-pit-label {
+  margin-bottom: 14px;
+}
+
+.dice-pit.border-dice .border-sum {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(216, 178, 92, 0.9);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.dice-pit.border-dice .border-vs {
+  color: rgba(216, 178, 92, 0.45);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+}
+
+.dice-pit.border-dice .border-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.border-score .border-tick {
+  font-family: var(--font-display);
+  color: #f0dfb8;
+  text-shadow: 0 0 14px rgba(216, 178, 92, 0.35), 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.border-thrownum {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(216, 178, 92, 0.7);
+}
+
+/* The scaffold: a house of cards under lamplight. */
+.table.scaffold {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.09) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 70% 46% at 50% 8%, rgba(255, 196, 118, 0.10) 0%, transparent 62%),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #17352a 0%, #10241c 55%, #0a1812 100%);
+}
+
+/* A faint diamond lattice behind the card house — wallpaper of the room. */
+.table.scaffold .table-top {
+  position: relative;
+}
+
+.table.scaffold .table-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    repeating-linear-gradient(45deg, rgba(216, 178, 92, 0.045) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(216, 178, 92, 0.045) 0 1px, transparent 1px 26px);
+}
+
+.scaffold-meter {
+  height: 10px;
+  margin: 10px 0 4px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #150e07 0%, #241708 100%);
+  border: 1px solid rgba(216, 178, 92, 0.35);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(216, 178, 92, 0.12);
+  overflow: hidden;
+}
+
+.scaffold-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffe1a1 0%, #d8b25c 55%, #9a742f 100%);
+  box-shadow: 0 0 12px rgba(216, 178, 92, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: width 0.4s linear;
+  animation: candle-flicker 4.6s ease-in-out infinite;
+}
+
+/* ---------- #23 · The Shout: cards on black water ---------- */
+
+.table.shout {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 90% 40% at 50% 0%, rgba(150, 180, 215, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #0d1620 0%, #080e15 55%, #04070b 100%);
+  border-color: rgba(150, 180, 215, 0.28);
+}
+
+/* Black water: moon-streak, drifting ripple lines. */
+.shout-lane {
+  background:
+    radial-gradient(ellipse 30% 90% at 68% 0%, rgba(200, 218, 236, 0.14) 0%, transparent 65%),
+    repeating-linear-gradient(0deg, rgba(160, 190, 220, 0.05) 0 1px, transparent 1px 7px),
+    linear-gradient(180deg, #0a1219 0%, #060b11 70%, #030609 100%);
+  border: 1px solid rgba(150, 180, 215, 0.14);
+  border-bottom: 1px solid rgba(212, 179, 106, 0.30);
+  border-radius: 6px;
+  box-shadow: inset 0 8px 24px rgba(0, 0, 0, 0.8), inset 0 -1px 0 rgba(200, 218, 236, 0.08);
+  overflow: hidden;
+}
+
+.shout-lane::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 46px, rgba(200, 218, 236, 0.035) 46px 48px);
+  animation: shout-drift 9s linear infinite;
+}
+
+@keyframes shout-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-48px); }
+}
+
+.shout-gate {
+  background: linear-gradient(180deg, rgba(232, 220, 190, 0.85), rgba(232, 184, 120, 0.35));
+  box-shadow: 0 0 10px rgba(232, 200, 140, 0.5);
+  z-index: 2;
+}
+
+/* Cards ride the water: parchment darkened by spray, soft reflection below. */
+.shout-card {
+  background: linear-gradient(180deg, #e6d7b6 0%, #d9c69e 100%);
+  border: 1px solid rgba(20, 14, 10, 0.6);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.5),
+    0 16px 16px -8px rgba(0, 0, 0, 0.65);
+}
+
+.shout-card::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 100%;
+  height: 22px;
+  background: linear-gradient(180deg, rgba(230, 215, 182, 0.20), transparent 80%);
+  filter: blur(3px);
+  transform: scaleY(-0.6);
+  transform-origin: top;
+  pointer-events: none;
+}
+
+/* The tide: a shimmering bar of black water. */
+.shout-tide {
+  background: rgba(160, 190, 220, 0.10);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.shout-tide span {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 6px, transparent 6px 12px),
+    linear-gradient(90deg, rgba(150, 180, 215, 0.55), rgba(141, 58, 42, 0.95));
+  animation: shout-drift 2.4s linear infinite;
+}
+
+.shout-hand {
+  background: linear-gradient(180deg, #efe2c8 0%, #ddcba4 100%);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.shout-hand.legal {
+  box-shadow:
+    0 0 0 1px rgba(232, 184, 120, 0.8),
+    0 0 16px rgba(232, 184, 120, 0.35),
+    0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.shout-hand.legal:hover {
+  transform: translateY(-4px);
+}
+
+/* ---------- #24 · Road map: the 30-square board ---------- */
+/* Scoped under .map-leaf; CSS beats the SVG presentation attributes. */
+
+.map-leaf {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 20%, rgba(255, 240, 210, 0.5) 0%, transparent 70%),
+    #e7d7b8;
+}
+
+.map-leaf .leaf-kicker {
+  color: #8a6a34;
+}
+
+.map-roadbed {
+  stroke: #8d6b45;
+  opacity: 0.9;
+}
+
+/* The red thread walks toward the Reliquary on its own. */
+.map-thread {
+  stroke: #7a2e28;
+  stroke-dasharray: 7 5;
+  animation: map-thread-flow 2.6s linear infinite;
+}
+
+@keyframes map-thread-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+.map-leaf .map-sq {
+  cursor: pointer;
+}
+
+.map-leaf .map-sq circle {
+  fill: #f2e8d2;
+  stroke: #6b5340;
+  stroke-width: 1;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.map-leaf .map-sq:hover circle {
+  stroke: #d8b25c;
+  stroke-width: 1.6;
+}
+
+/* Reached squares burn ember-gold; kinds tint the flame. */
+.map-leaf .map-reached circle {
+  fill: #6b3a32;
+  stroke: #d8b25c;
+}
+
+.map-leaf .map-kind-start.map-reached circle { fill: #4a4438; }
+.map-leaf .map-kind-gate.map-reached circle { fill: #8a6a24; }
+.map-leaf .map-kind-trap.map-reached circle { fill: #5c1a16; stroke: #a03a30; }
+.map-leaf .map-kind-shortcut.map-reached circle { fill: #3f5c34; stroke: #9ab87a; }
+.map-leaf .map-kind-end.map-reached circle {
+  fill: #d8b25c;
+  stroke: #ffe9b8;
+  filter: drop-shadow(0 0 6px rgba(216, 178, 92, 0.8));
+}
+
+.map-leaf .map-active circle {
+  stroke: #d8b25c;
+  stroke-width: 2.4;
+  filter: drop-shadow(0 0 5px rgba(216, 178, 92, 0.7));
+}
+
+.map-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.03em;
+  fill: #6b4a22;
+}
+
+.map-leaf .map-reached .map-name {
+  fill: #8a6a24;
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* The player: a lit pawn on the road. */
+.map-you {
+  fill: #f7f1e4;
+  stroke: #d8b25c;
+  filter: drop-shadow(0 0 5px rgba(216, 178, 92, 0.8));
+  animation: candle-flicker 4.6s ease-in-out infinite;
+}
+
+/* ---------- #25 · Death + Ending ---------- */
+
+/* Eaten by the Maw: the dark closes in and breathes. */
+.table.death {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(122, 30, 26, 0.22) 0%, transparent 62%),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #160b0b 0%, #0a0606 55%, #030202 100%);
+  border-color: rgba(160, 58, 48, 0.4);
+  animation: maw-breathe 5s ease-in-out infinite;
+}
+
+@keyframes maw-breathe {
+  0%, 100% { box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.75), 0 40px 100px rgba(0, 0, 0, 0.62), 0 0 30px rgba(122, 30, 26, 0.12); }
+  50% { box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.9), 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 54px rgba(122, 30, 26, 0.28); }
+}
+
+.table.death h2 {
+  color: #c85548;
+  font-size: 56px;
+  text-shadow: 0 0 30px rgba(160, 58, 48, 0.5), 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.table.death .leaf-kicker {
+  color: #a03a30;
+}
+
+.table.death .leaf-body {
+  color: #b9a894;
+}
+
+.table.death .table-end {
+  border-top-color: rgba(160, 58, 48, 0.35);
+  color: #d8b8a8;
+}
+
+/* The Reliquary opens: golden dawn through the dark. */
+.table.ending {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 214, 140, 0.22) 0%, transparent 62%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.09) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #2a2113 0%, #141009 55%, #0a0805 100%);
+  border-color: rgba(255, 214, 140, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.65),
+    inset 0 0 90px rgba(0, 0, 0, 0.6),
+    0 40px 100px rgba(0, 0, 0, 0.62),
+    0 0 70px rgba(255, 200, 120, 0.16);
+}
+
+.table.ending h2 {
+  color: #ffe9b8;
+  text-shadow: 0 0 34px rgba(255, 200, 120, 0.45), 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.table.ending .leaf-kicker {
+  color: #ffe1a1;
+}
+
+.table.ending .plate {
+  border: 1px solid rgba(255, 214, 140, 0.45);
+  outline: 1px solid rgba(0, 0, 0, 0.7);
+  outline-offset: 3px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 0 40px rgba(255, 200, 120, 0.14);
+}
+
+/* The last chair: gold thread on the final Klondike. */
+.table.finale {
+  border-color: rgba(216, 178, 92, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.65),
+    inset 0 0 90px rgba(0, 0, 0, 0.6),
+    0 40px 100px rgba(0, 0, 0, 0.62),
+    0 0 44px rgba(216, 178, 92, 0.10);
+}
+
+/* Calm the dressing for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .fish-pond i,
+  .fish-moon,
+  .shout-lane::after,
+  .shout-tide span,
+  .map-thread,
+  .map-you,
+  .table.death,
+  .checkers::after,
+  .scaffold-fill {
+    animation: none;
+  }
+}
