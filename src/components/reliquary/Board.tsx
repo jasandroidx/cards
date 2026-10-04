@@ -111,9 +111,10 @@ function vistaIndex(id: number): number {
   return index;
 }
 
-const ROLL = ["", "one", "two", "three", "four", "five", "six"];
+/** Words for the king's throw. He is the only die left on the road. */
+const DIE = ["", "one", "two", "three", "four", "five", "six"];
 
-/** The empty squares are not empty. sift = gamble a card against a roll;
+/** The empty squares are not empty. sift = gamble for a card;
  *  glimpse = look ahead at the next named square for free. */
 const WAYLAY: Record<number, "sift" | "glimpse"> = {
   1: "sift",
@@ -199,13 +200,13 @@ function objective(
     if (marks < 1) return "Win a poker chip at the lamp — the flame is all that says you are here. Sit at any table game.";
     return "Open the chapel.";
   }
-  if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
+  if (position < 0) return "Take the road. That's outside — open the map and walk it.";
   if (position >= 27 && position < 28 && !mawBeaten) return "Face the Maw. It loves poker chips.";
-  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need poker chips.";
+  if (sat >= 3 && position < 10) return "Walk the map. The lamp won't deal again — come back when you need poker chips.";
   if (!gate) return "Walk to the reliquary at square 29.";
   if (marks < gate.cost)
     return `Earn ${gate.cost} ${gate.cost === 1 ? "poker chip" : "poker chips"} to open ${gate.opens}. Play hands back in the hall.`;
-  return `Open ${gate.opens}. Then roll to walk.`;
+  return `Open ${gate.opens}. Then walk the map.`;
 }
 
 function where(marks: number, owned: string[], mawBeaten: boolean, position: number, sat: number): string {
@@ -221,15 +222,15 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
     if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
     return `${purse} Open the chapel. Then take the road.`;
   }
-  if (position < 0) return `${purse} The chapel is open. Take the road and roll.`;
+  if (position < 0) return `${purse} The chapel is open. Take the road — the map walks you.`;
   if (sat >= 3 && position < 10) {
-    return `${purse} The lamp will not deal a fourth hand. Roll. Then you can come back.`;
+    return `${purse} The lamp will not deal a fourth hand. Walk the map. Then you can come back.`;
   }
   if (!gate) return `${purse} The way back is open.`;
   if (marks < gate.cost) {
     return `${purse} ${gate.opens} costs ${gate.cost}. Go back to the hall and play a hand.`;
   }
-  return `${purse} Roll to walk. ${gate.opens} costs ${gate.cost}, and you can pay.`;
+  return `${purse} Walk the map. ${gate.opens} costs ${gate.cost}, and you can pay.`;
 }
 
 function linesFor(
@@ -293,6 +294,7 @@ type Save = {
   stoneRighted?: boolean;
   wallSolved?: boolean;
   skipRoll?: boolean;
+  maxReached?: number;
   pipOwed?: boolean;
   kingOwed?: boolean;
 };
@@ -319,7 +321,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [word, setWord] = useState<string | null>(null);
   const [boons, setBoons] = useState<string[]>([]);
   const [position, setPosition] = useState(-1);
-  const [lastRoll, setLastRoll] = useState(0);
+  const [maxReached, setMaxReached] = useState(0);
   const [loaded, setLoaded] = useState(false);
   // Returning player: a signed save exists, so the Joker skips his speech.
   const [returning] = useState(() => {
@@ -366,7 +368,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const jokerAt = useRef(0);
   const lossCount = useRef(0);
   const feedCount = useRef(0);
-  const lastRollAt = useRef(Date.now());
+  const lastMoveAt = useRef(Date.now());
   const idleNoted = useRef(false);
   const jokerTimers = useRef<number[]>([]);
   /** A behavior remark through the note channel. 3-minute cooldown; optional delay so game feedback lands first. */
@@ -425,9 +427,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [chairKnown, setChairKnown] = useState(false); // session only
   const [scratchDone, setScratchDone] = useState(false); // saved — the count was finished
   const [stoneOut, setStoneOut] = useState(false); // saved — the stone stays out
-  const [skipRoll, setSkipRoll] = useState(false);
   const [pipOwed, setPipOwed] = useState(false);
-  const [kingOwed, setKingOwed] = useState(false);
   const [waylay, setWaylay] = useState<number | null>(null);
   const [pad, setPad] = useState(false);
   const [code, setCode] = useState("");
@@ -504,7 +504,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         playing === null &&
         !dead &&
         !idleNoted.current &&
-        Date.now() - lastRollAt.current > 90000
+        Date.now() - lastMoveAt.current > 90000
       ) {
         idleNoted.current = true;
         jokerSays(JOKER_IDLE);
@@ -568,117 +568,100 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote(null);
   }
 
-  function roll() {
-    lastRollAt.current = Date.now();
+  /** Click-to-travel: the map is the walk. A square is reachable when it is
+   *  no further than one past the furthest you have walked, and no gate
+   *  stands in the way. Landing runs the square, same as a roll used to. */
+  function travelTo(id: number) {
+    lastMoveAt.current = Date.now();
     idleNoted.current = false;
     if (waylay !== null) {
       setNote("The ash is waiting on your answer. Take the chance, or walk on.");
-      return;
-    }
-    if (kingOwed) {
-      setNote("The king is waiting. Give him a card from your hand, or give him your next roll.");
       return;
     }
     if (pipOwed) {
       setNote("Pip is waiting. Cut the deck.");
       return;
     }
-    if (skipRoll) {
-      setSkipRoll(false);
-      setNote("This roll is taken. You stay where you are.");
+    if (id === position) {
+      setNote("You are already here.");
       return;
     }
-    // Later: roll two dice. Doubles should pay something. One die for now.
-    const n = 1 + Math.floor(Math.random() * 6);
-    let next = Math.max(0, position);
-    let stopped = false;
+    if (id < 0 || id > 29 || !canEnter(id) || id > maxReached + 1) return;
+    let dest = id;
     let jumped = "";
-    for (let step = 0; step < n; step++) {
-      const dest = next + 1;
-      if (dest > 29 || !canEnter(dest)) {
-        stopped = true;
-        break;
-      }
-      next = dest;
-      if (next === 4 && canEnter(9)) {
-        next = 9;
-        jumped = "The low stair takes you up.";
-        break;
-      }
-      if (next === 18 && canEnter(22)) {
-        next = 22;
-        jumped = "The high ledge takes you across.";
-        break;
-      }
+    if (dest === 4 && canEnter(9)) {
+      dest = 9;
+      jumped = "The low stair takes you up.";
+    } else if (dest === 18 && canEnter(22)) {
+      dest = 22;
+      jumped = "The high ledge takes you across.";
     }
-    setLastRoll(n);
-    setPosition(next);
-    setPicked(next);
-    setAgeIndex(vistaIndex(next));
+    const fresh = dest > maxReached;
+    setPosition(dest);
+    setMaxReached((m) => Math.max(m, dest));
+    setPicked(dest);
+    setAgeIndex(vistaIndex(dest));
     setSat(0);
-    const place = SQUARES[next];
-    if (next === 3 && !jumped) {
+    setOpen(false);
+    const place = SQUARES[dest];
+    if (dest === 3) {
       setPipOwed(true);
-      setNote(`A ${ROLL[n]}. Pip calls a rank. Cut the deck.`);
+      setNote("Pip calls a rank. Cut the deck.");
       return;
     }
-    if (next === 6) {
-      setSkipRoll(true);
-      setNote(`A ${ROLL[n]}. The cracked cup takes your next roll.`);
+    if (dest === 6) {
+      setNote("A cracked cup on the road. It rattles, tasting the air, and finds nothing to take.");
       return;
     }
-    if (next === 8) {
+    if (dest === 8) {
       const lost = carried[0];
       if (lost) {
         setCarried(carried.slice(1));
-        setNote(`A ${ROLL[n]}. The row takes the ${rankLabel(lost.rank)} from your hand.`);
+        setNote(`The row takes the ${rankLabel(lost.rank)} from your hand.`);
       } else {
-        setSkipRoll(true);
-        setNote(`A ${ROLL[n]}. The row finds no card, so it takes your next roll.`);
+        setNote("The row finds no card in your hand. It lets you pass, hungry.");
       }
       return;
     }
-    if (next === 10) {
-      setNote(`A ${ROLL[n]}. Mabel has five dice. Beat her.`);
+    if (dest === 10) {
+      setNote("Mabel has five dice. Beat her.");
       return;
     }
-    if (next === 26) {
-      // The King moves once, in the note. No second walk: he never calls
-      // setPosition, so the player stays on 26 either way.
+    if (dest === 26) {
+      // The King moves once, in the note. He never moves you.
       const k = 1 + Math.floor(Math.random() * 6);
       const call = kingCalls(k, carried.length > 0);
       if (call === "passed") {
-        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Even. You stepped past him.`);
+        setNote(`The king throws ${DIE[k]}. Even. You stepped past him.`);
         return;
       }
-      if (call === "card") {
-        if (light > 0) {
-          setLight((value) => spendLight(value, 1));
-          setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd. He takes your light instead of a card.`);
-          return;
-        }
-        setKingOwed(true);
-        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and your candle is out. A card from your hand, or your next roll — choose.`);
+      if (light > 0) {
+        setLight((value) => spendLight(value, 1));
+        setNote(`The king throws ${DIE[k]}. Odd. He takes your light instead of a card.`);
         return;
       }
-      setSkipRoll(true);
-      setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and your hand is empty, so he takes your next roll.`);
+      const lost = carried[0];
+      if (lost) {
+        setCarried(carried.slice(1));
+        setNote(`The king throws ${DIE[k]}. Odd. He takes the ${rankLabel(lost.rank)} from your hand.`);
+        return;
+      }
+      setNote(`The king throws ${DIE[k]}. Odd. Your hands are empty and your candle is out. He laughs and waves you on.`);
       return;
     }
-    // The empty squares are not empty. Each offers one small gamble.
-    const way = WAYLAY[next];
-    if (way) {
-      setWaylay(next);
+    // The empty squares are not empty — the first time. Each offers one small gamble.
+    const way = WAYLAY[dest];
+    if (way && fresh) {
+      setWaylay(dest);
       setNote(
         way === "sift"
-          ? `A ${ROLL[n]}. Ash and bone underfoot. Sift it, or walk on.`
-          : `A ${ROLL[n]}. ${place?.name ?? "Still road"}. Look ahead, or walk on.`,
+          ? "Ash and bone underfoot. Sift it, or walk on."
+          : `${place?.name ?? "Still road"}. Look ahead, or walk on.`,
       );
       return;
     }
     if (jumped) setNote(`${jumped} ${place?.name ?? ""}.`.trim());
-    else if (stopped) setNote(`A ${ROLL[n]}. The way ahead is shut.`);
-    else setNote(place?.labeled ? `A ${ROLL[n]}. ${place.name}.` : `A ${ROLL[n]}.`);
+    else setNote(place?.labeled ? `${place.name}.` : "The road goes on.");
   }
 
   function cutPip() {
@@ -693,21 +676,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setPicked(2);
     setAgeIndex(vistaIndex(2));
     setNote(`Pip called ${rankLabel(his)}. You cut ${rankLabel(yours)}. You do not pass.`);
-  }
-
-  function payKingCard() {
-    const lost = carried[0];
-    if (!lost || !kingOwed) return;
-    setCarried(carried.slice(1));
-    setKingOwed(false);
-    setNote(`You give the king the ${rankLabel(lost.rank)}. He does not move.`);
-  }
-
-  function payKingRoll() {
-    if (!kingOwed) return;
-    setKingOwed(false);
-    setSkipRoll(true);
-    setNote("You give the king your next roll. He does not move.");
   }
 
   function waylayTake() {
@@ -726,8 +694,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       setNote(`You sift the ash and find the ${rankLabel(rank)}. It goes in your hand.`);
       return;
     }
-    setSkipRoll(true);
-    setNote("You sift the ash and the ash takes your next roll.");
+    setNote("You sift the ash and find nothing.");
   }
 
   function waylayWalk() {
@@ -772,9 +739,12 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setHearthFed(Boolean(data.hearthFed));
           setStoneRighted(Boolean(data.stoneRighted));
           setWallSolved(Boolean(data.wallSolved));
-          setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
-          setKingOwed(Boolean(data.kingOwed));
+          setMaxReached(
+            typeof data.maxReached === "number"
+              ? Math.max(0, data.maxReached)
+              : Math.max(0, typeof data.position === "number" ? data.position : 0),
+          );
           if (data.position >= 0) {
             setAgeIndex(vistaIndex(data.position));
             setPicked(data.position);
@@ -803,9 +773,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -1321,7 +1291,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   /** The one visually dominant next action. Pending choices take the dock;
    *  otherwise the single action that moves the game forward. */
   const primary: { label: string; onClick: () => void } | null = (() => {
-    if (waylay !== null || kingOwed || pipOwed) return null;
+    if (waylay !== null || pipOwed) return null;
     // Location games that ARE the story beat keep priority.
     if (mode && mode !== "lamp" && (position >= 0 || heard)) {
       return {
@@ -1348,9 +1318,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         onClick: () => (position < 0 ? fall() : look(vistaIndex(position))),
       };
     }
-    // Outside: roll.
+    // Outside: the map is the walk.
     if (position >= 0 && age.key !== "hall") {
-      return { label: "Roll", onClick: roll };
+      return { label: "Open the map", onClick: () => setOpen(true) };
     }
     // The lamp only when marks are the need — never over a gate or the road.
     if (mode === "lamp" && sat < 3 && heard) {
@@ -1621,7 +1591,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             </ul>
           </div>
         )}
-        {(waylay !== null || kingOwed || pipOwed || primary) && (
+        {(waylay !== null || pipOwed || primary) && (
           <div className="dock-primary">
             {waylay !== null && (
               <>
@@ -1633,22 +1603,12 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 </button>
               </>
             )}
-            {kingOwed && (
-              <>
-                <button className="book-btn primary" type="button" onClick={payKingCard}>
-                  Give the king a card
-                </button>
-                <button className="book-btn primary" type="button" onClick={payKingRoll}>
-                  Give the king your next roll
-                </button>
-              </>
-            )}
             {pipOwed && (
               <button className="book-btn primary" type="button" onClick={cutPip}>
                 Cut for Pip
               </button>
             )}
-            {primary && waylay === null && !kingOwed && !pipOwed && (
+            {primary && waylay === null && !pipOwed && (
               <button
                 className={`book-btn primary${primary.label === "Play a hand" && marks === 0 ? " beckon" : ""}`}
                 type="button"
@@ -1866,6 +1826,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           >
             <div className="page-leaf map-leaf">
               <p className="leaf-kicker">Your map</p>
+              <p className="map-hint">Bright squares are in reach — click one to walk there. The dashed ring is the next step.</p>
               <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="The road of games">
                 <path d={d} fill="none" stroke="#8d6b45" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
                 <path d={d} fill="none" stroke="#5c2a26" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
@@ -1884,18 +1845,26 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 {SQUARES.map((s) => {
                   const p = xy(s.id);
                   const r = s.labeled ? 16 : 4;
-                  const reached = here >= s.id;
+                  const walked = s.id <= maxReached;
+                  const canGo = canEnter(s.id) && s.id <= maxReached + 1;
+                  const isNext = s.id === maxReached + 1 && canEnter(s.id);
                   const active = picked === s.id;
                   return (
-                    <g key={s.id} className="sq" onClick={() => setPicked(s.id)}>
+                    <g
+                      key={s.id}
+                      className={canGo ? "sq sq-go" : "sq sq-shut"}
+                      onClick={() => (canGo ? travelTo(s.id) : setPicked(s.id))}
+                    >
                       <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
                       <circle
                         cx={p.x}
                         cy={p.y}
                         r={r}
-                        fill={reached && s.labeled ? "#6b3a32" : "#efe2c8"}
-                        stroke={active ? "#2c241c" : "#6b5340"}
-                        strokeWidth={active ? 2.4 : 1}
+                        fill={walked && s.labeled ? "#6b3a32" : canGo ? "#efe2c8" : "#a08b70"}
+                        opacity={canGo ? 1 : 0.45}
+                        stroke={active ? "#2c241c" : isNext ? "#7a2e28" : "#6b5340"}
+                        strokeWidth={active || isNext ? 2.4 : 1}
+                        strokeDasharray={isNext && !active ? "4 3" : undefined}
                       />
                       {s.labeled && (
                         <text
@@ -1903,6 +1872,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                           y={p.y + r + 14}
                           textAnchor="middle"
                           className="map-name"
+                          opacity={canGo ? 1 : 0.45}
                         >
                           {s.short}
                         </text>
@@ -1944,6 +1914,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               )}
               {vista !== null && !roadOpen(AGES[vista]?.key ?? "", owned, mawBeaten) && (
                 <p className="leaf-body">This stretch is still shut. Sit at the hall and buy the way.</p>
+              )}
+              {square && square.id > maxReached + 1 && canEnter(square.id) && (
+                <p className="leaf-body">You haven't walked that far yet. The road ahead is dark.</p>
               )}
               <button className="close-book" type="button" onClick={() => setOpen(false)}>
                 Close the map

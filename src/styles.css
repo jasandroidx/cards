@@ -1024,6 +1024,21 @@ body::before {
   cursor: pointer;
 }
 
+.sq-go {
+  cursor: pointer;
+}
+
+.sq-shut {
+  cursor: default;
+}
+
+.map-hint {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.75;
+  margin: 4px 0 8px;
+}
+
 .close-book.go {
   display: block;
   margin-top: 22px;
