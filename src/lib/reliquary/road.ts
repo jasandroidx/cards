@@ -31,7 +31,7 @@ export const SQUARES: Square[] = [
     house: "breach",
     game: "Arrival",
     blurb:
-      "Where you landed. The hall is behind you; the road ahead is every game that broke. Click a square, then step in. When it stops, go back and play a hand.",
+      "Where you landed. The hall is behind you; the road ahead is every game that broke. Click a bright square to walk. When you need poker chips, go back and play a hand.",
     labeled: true,
   },
   {
@@ -92,8 +92,8 @@ export const SQUARES: Square[] = [
     short: "Cup",
     kind: "trap",
     house: "breach",
-    game: "Lose a roll",
-    blurb: "A split dice cup in the ash. Land here and you lose your next roll. The stair exists so you can refuse this.",
+    game: "An empty cup",
+    blurb: "A split dice cup in the ash. It rattles when you land, tasting the air — and finds nothing to take. The stair exists so you can refuse even this.",
     labeled: true,
   },
   {
@@ -115,7 +115,7 @@ export const SQUARES: Square[] = [
     game: "Rent",
     relic: "A street of deeds. Only the rent survived.",
     blurb:
-      "A street of burnt deeds. Land here and the row charges one card from your hand. Pay, or lose your next roll.",
+      "A street of burnt deeds. Land here and the row charges one card from your hand. Pay, or go hungry.",
     labeled: true,
   },
   {
@@ -312,7 +312,7 @@ export const SQUARES: Square[] = [
     game: "One square",
     relic: "A whole board, and one piece left on it.",
     blurb:
-      "A lone king on a burnt square. It moves once, toward you. Roll even and you step past. Roll odd and it takes a card from your hand. Beyond him the dark has teeth.",
+      "A lone king on a burnt square. It moves once, toward you. He throws even and you step past. He throws odd and he takes your light — or a card from your hand. Beyond him the dark has teeth.",
     labeled: true,
   },
   {
