@@ -308,20 +308,14 @@ export function resolveOgTitle(
   appName = DEFAULT_APP_NAME,
   host = "",
   documentTitle = "",
-  siteFromCtx = false,
 ) {
-  const fromDoc = String(documentTitle ?? "").trim();
-  if (fromDoc) return fromDoc;
-  if (siteFromCtx) {
-    const fromSite = String(site.title ?? "").trim();
-    if (fromSite) return fromSite;
-  }
-  const fromArg = String(appName ?? "").trim();
-  if (fromArg && fromArg !== DEFAULT_APP_NAME) return fromArg;
-  const fromHost = appNameFromHost(host);
-  if (fromHost && fromHost !== DEFAULT_APP_NAME) return fromHost;
   const fromSite = String(site.title ?? "").trim();
   if (fromSite) return fromSite;
+  const fromDoc = String(documentTitle ?? "").trim();
+  if (fromDoc) return fromDoc;
+  const fromHost = appNameFromHost(host);
+  if (fromHost && fromHost !== DEFAULT_APP_NAME) return fromHost;
+  const fromArg = String(appName ?? "").trim();
   return fromArg || DEFAULT_APP_NAME;
 }
 
@@ -421,20 +415,15 @@ function insertBeforeHeadClose(html, snippet) {
 
 export function normalizeHeadContext(ctx = {}) {
   const cwd = ctx.cwd ?? process.cwd();
-  const siteFromCtx = ctx.site !== undefined;
-  let site;
-  if (siteFromCtx) {
-    site = ctx.cwd !== undefined ? applyCustomCardFromFs(ctx.site, cwd) : ctx.site;
-  } else {
-    site = snapshotOgIdentity(cwd).site;
-  }
-  const appName = resolveOgTitle(
-    site,
-    ctx.appName ?? DEFAULT_APP_NAME,
-    ctx.host ?? "",
-    "",
-    siteFromCtx,
+  // Middleware passes a baked `site`. Still consult the workspace so a
+  // public/og.jpg generated after that snapshot (or missed by a wrong cwd)
+  // wins over the og.grok.me placeholder. Vercel has no public/ to read, so
+  // a correct bake is unchanged.
+  const site = applyCustomCardFromFs(
+    ctx.site !== undefined ? ctx.site : snapshotOgIdentity(cwd).site,
+    cwd,
   );
+  const appName = resolveOgTitle(site, ctx.appName ?? DEFAULT_APP_NAME, ctx.host ?? "");
   return {
     appName,
     projectId: ctx.projectId ?? readGrokProjectId(),
@@ -443,20 +432,18 @@ export function normalizeHeadContext(ctx = {}) {
     host: ctx.host ?? "",
     cwd,
     site,
-    siteFromCtx,
   };
 }
 
 export function injectGrokPwaHead(html, ctx = {}) {
   if (typeof html !== "string") return html;
-  const { site, projectId, creator, creatorId, host, cwd, siteFromCtx } = normalizeHeadContext(ctx);
+  const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
   const documentTitle = titleFromDocument(html);
   const appName = resolveOgTitle(
     site,
     ctx.appName ?? DEFAULT_APP_NAME,
     host,
     documentTitle,
-    siteFromCtx,
   );
   let next = stripShareMetaTags(html);
   if (!readGrokExtensionsEnabled()) next = stripGrokExtensionsScript(next);
