@@ -4015,6 +4015,137 @@ body::before {
     0 0 44px rgba(216, 178, 92, 0.10);
 }
 
+/* ============ Queen's Court Dressing (Square 28) ============ */
+
+/* Her side of the table: throne treatment — dark velvet, old gold, candlelight favoring her. */
+.table.queen-throne {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 15%, rgba(120, 20, 35, 0.28) 0%, rgba(20, 10, 15, 0.85) 60%, #080406 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #1c0e12 0%, #10080a 55%, #080405 100%);
+  border: 1px solid rgba(216, 178, 92, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(60, 8, 16, 0.45),
+    0 40px 100px rgba(0, 0, 0, 0.8),
+    0 0 50px rgba(216, 178, 92, 0.12);
+}
+
+.table.queen-throne::before {
+  /* Candlelight favoring her side */
+  background: radial-gradient(ellipse 80% 60% at 50% 18%, rgba(255, 180, 90, 0.18) 0%, transparent 68%);
+}
+
+/* Glass won: colder greeting, pale silver blue light acknowledging hnefatafl victory */
+.table.queen-throne.queen-cold {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 15%, rgba(40, 60, 80, 0.25) 0%, rgba(12, 18, 26, 0.9) 60%, #04070a 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #0d1620 0%, #070e16 55%, #04070b 100%);
+  border-color: rgba(180, 210, 230, 0.45);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(20, 45, 65, 0.4),
+    0 40px 100px rgba(0, 0, 0, 0.85),
+    0 0 50px rgba(180, 210, 230, 0.1);
+}
+
+.table.queen-throne.queen-cold::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 18%, rgba(180, 215, 240, 0.14) 0%, transparent 68%);
+}
+
+/* The .plate (queen.jpg) sits like a portrait above a throne, framed in gold & dark velvet overlay */
+.table.queen-throne .plate {
+  border: 3px solid rgba(216, 178, 92, 0.7);
+  outline: 1px solid rgba(18, 10, 12, 0.9);
+  outline-offset: -5px;
+  border-radius: 4px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.75),
+    0 0 24px rgba(216, 178, 92, 0.25),
+    inset 0 0 20px rgba(0, 0, 0, 0.6);
+  filter: contrast(1.08) brightness(0.92);
+}
+
+.table.queen-throne.queen-cold .plate {
+  border-color: rgba(180, 210, 230, 0.65);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.8),
+    0 0 24px rgba(180, 210, 230, 0.2),
+    inset 0 0 20px rgba(0, 0, 0, 0.7);
+  filter: contrast(1.1) brightness(0.88) hue-rotate(-10deg);
+}
+
+/* Ritual round pips / markers */
+.queen-rounds {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.queen-pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0d080a;
+  border: 1px solid rgba(216, 178, 92, 0.35);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
+  transition: all 0.3s ease;
+}
+
+.queen-pip.filled {
+  background: radial-gradient(circle at 35% 30%, #ffe099 0%, #d8b25c 60%, #8c6224 100%);
+  border-color: #ffe9b8;
+  box-shadow:
+    0 0 10px rgba(216, 178, 92, 0.75),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.queen-pip.active {
+  border-color: rgba(216, 178, 92, 0.85);
+  animation: queen-pip-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes queen-pip-pulse {
+  0%, 100% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 4px rgba(216, 178, 92, 0.25); }
+  50% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 12px rgba(216, 178, 92, 0.7); }
+}
+
+/* Her reach: visual dread beat for the threatened card */
+.card-btn.queen-reach {
+  position: relative;
+}
+
+.card.queen-reach-card {
+  box-shadow:
+    0 0 0 2px #7a1e28,
+    0 0 18px rgba(180, 30, 40, 0.65),
+    inset 0 0 12px rgba(120, 10, 20, 0.5);
+  animation: queen-dread-touch 2s ease-in-out infinite alternate;
+}
+
+.card.queen-reach-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 30%, rgba(120, 20, 30, 0.35) 0%, rgba(20, 5, 10, 0.65) 100%);
+}
+
+@keyframes queen-dread-touch {
+  0% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 4px rgba(160, 20, 30, 0.4)); }
+  100% { transform: translateY(-3px) scale(1.02); filter: drop-shadow(0 0 14px rgba(200, 30, 40, 0.8)); }
+}
+
+.queen-reach-thrown {
+  opacity: 0.65;
+  filter: grayscale(0.4) contrast(0.9);
+  border-color: #5c2026;
+  background: linear-gradient(160deg, #d9cdbd 0%, #b8ab8d 100%);
+}
+
 /* Calm the dressing for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   .fish-pond i,

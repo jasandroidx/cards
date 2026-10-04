@@ -54,12 +54,21 @@ export function Queen({ onWon, onLost, onClose, onFirstRound, glassWon }: { onWo
 
   return (
     <div className="journal-back" onClick={onClose}>
-      <div className="table" role="dialog" aria-label="The Queen" onClick={(event) => event.stopPropagation()}>
+      <div className={`table queen-throne${glassWon ? " queen-cold" : ""}`} role="dialog" aria-label="The Queen" onClick={(event) => event.stopPropagation()}>
         <div className="table-top">
           <p className="leaf-kicker">Square 28</p>
           <h2>Her coat</h2>
           <img className="plate" src="/queen.jpg" alt="The queen, face in shadow" />
           <p className="table-rule">{glassWon ? "She lays a card down. She has played you before." : "She lays a card down. Beat it. Four times, and she will try to take one out of your hand."}</p>
+
+          <div className="queen-rounds">
+            {Array.from({ length: QUEEN_ROUNDS }).map((_, idx) => (
+              <span
+                key={idx}
+                className={`queen-pip${idx < state.round ? " filled" : ""}${idx === state.round && !settled ? " active" : ""}`}
+              />
+            ))}
+          </div>
 
           {state.top && !settled && (
             <div className="lamp">
@@ -73,7 +82,19 @@ export function Queen({ onWon, onLost, onClose, onFirstRound, glassWon }: { onWo
             </div>
           )}
 
-          {state.thrown.length > 0 && <p className="table-rule">She has cast off {state.thrown.length}.</p>}
+          {state.thrown.length > 0 && (
+            <div className="queen-thrown-section">
+              <p className="table-rule">She has cast off {state.thrown.length}:</p>
+              <div className="table-row" style={{ flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
+                {state.thrown.map((card) => (
+                  <span key={card.id} className={`card ${isRed(card.suit) ? "red " : ""}queen-reach-thrown`}>
+                    <b>{rankLabel(card.rank)}</b>
+                    <i>{suitMark(card.suit)}</i>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!settled && state.round > 0 && (
             <p className="table-rule"><em>{QUEEN_STAGES[state.round - 1]}</em></p>
@@ -81,11 +102,12 @@ export function Queen({ onWon, onLost, onClose, onFirstRound, glassWon }: { onWo
 
           {!settled && (
             <div className="table-row" style={{ flexWrap: "wrap", gap: 4 }}>
-              {state.mine.map((card) => {
+              {state.mine.map((card, idx) => {
                 const legal = queenLegal(state).some((held) => held.id === card.id);
+                const isThreatened = state.round + 1 === QUEEN_THROW_ROUND && !state.tried && idx === 0;
                 return (
-                  <button key={card.id} type="button" className="card-btn" disabled={!legal} onClick={() => play(card.id)}>
-                    <span className={`card ${isRed(card.suit) ? "red " : ""}${card.rank === 1 ? "ace" : ""}`.trimEnd()}>
+                  <button key={card.id} type="button" className={`card-btn${isThreatened ? " queen-reach" : ""}`} disabled={!legal} onClick={() => play(card.id)}>
+                    <span className={`card ${isRed(card.suit) ? "red " : ""}${card.rank === 1 ? "ace " : ""}${isThreatened ? "queen-reach-card" : ""}`.trimEnd()}>
                       <b>{rankLabel(card.rank)}</b>
                       <i>{suitMark(card.suit)}</i>
                     </span>
