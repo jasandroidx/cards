@@ -1477,48 +1477,6 @@ body::before {
   color: #7a5a32;
 }
 
-/* The landing: three beats in the dark before the Jester. No parchment — no one is talking to you yet. */
-.fall-meet {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
-  width: min(520px, calc(100vw - 36px));
-  padding: 28px 28px 22px;
-  border: 0;
-  background: #0d0a07;
-  color: #cfc3ab;
-  text-align: left;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(0, 0, 0, 0.6);
-}
-
-.fall-meet b {
-  display: block;
-  margin-bottom: 12px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 12px;
-  font-weight: 500;
-  color: #6b5a3e;
-}
-
-.fall-meet p {
-  margin: 0 0 18px;
-  font-family: var(--font-display);
-  font-size: 30px;
-  line-height: 1.2;
-  color: #e8dcc2;
-  text-shadow: 0 0 24px rgba(232, 220, 194, 0.12);
-}
-
-.fall-meet i {
-  font-style: normal;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-size: 12px;
-  color: #5a4c34;
-}
-
 /* Gate rite: the chain-breaking ceremony. Dark, not parchment — this is not a transaction. */
 .gate-rite {
   position: absolute;
@@ -1988,7 +1946,7 @@ body::before {
 .win-sol {
   min-height: 100svh;
   color: #e8dcc0;
-  font-family: var(--font-sans);
+  font-family: Tahoma, "Segoe UI", sans-serif;
   background:
     radial-gradient(ellipse 70% 42% at 50% 0%, rgba(255, 176, 84, 0.10), transparent 70%),
     radial-gradient(ellipse 120% 90% at 50% 40%, #14201a 0%, #0b120e 55%, #060a08 100%);
@@ -2052,66 +2010,38 @@ body::before {
 }
 
 .win-bar {
-  height: 36px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 18px;
-  background: linear-gradient(180deg, var(--pit-wood-hi) 0%, var(--pit-wood) 60%, var(--pit-wood-lo) 100%);
+  padding: 0 14px;
+  background: linear-gradient(180deg, #171310 0%, #0d0a07 100%);
   border-bottom: 1px solid rgba(216, 178, 92, 0.35);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  color: rgba(216, 178, 92, 0.9);
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
+  color: #d8b25c;
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .win-bar .win-menu {
-  font-family: var(--font-sans);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(216, 178, 92, 0.6);
-  transition: color 0.18s ease;
-  cursor: pointer;
-}
-
-.win-bar .win-menu:hover,
-.win-bar .win-menu:focus-visible {
-  color: rgba(216, 178, 92, 0.95);
-  text-shadow: 0 0 8px rgba(216, 178, 92, 0.4);
+  letter-spacing: 0.22em;
+  color: rgba(216, 178, 92, 0.55);
 }
 
 .win-table {
   position: relative;
-  padding: 24px 20px 36px;
-  margin: 12px auto;
-  max-width: 880px;
-  border-radius: 12px;
-  background:
-    radial-gradient(ellipse 65% 45% at 50% 25%, rgba(255, 196, 118, 0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 75% 35% at 50% 85%, rgba(255, 255, 255, 0.035) 0%, transparent 65%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 90% at 50% 30%, #15241d 0%, #0d1a14 50%, #070e0a 100%);
-  border: 1px solid rgba(216, 178, 92, 0.25);
-  box-shadow:
-    inset 0 0 70px rgba(0, 0, 0, 0.82),
-    inset 0 2px 10px rgba(0, 0, 0, 0.6),
-    0 20px 50px rgba(0, 0, 0, 0.7);
+  padding: 18px 16px 32px;
 }
 
-/* Candlelight breathing over the table. */
+/* Candlelight breathing over the felt. */
 .win-table::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   pointer-events: none;
-  background: radial-gradient(ellipse 55% 35% at 50% 20%, rgba(255, 190, 100, 0.12), transparent 70%);
+  background: radial-gradient(ellipse 55% 30% at 50% 0%, rgba(255, 190, 100, 0.10), transparent 70%);
   animation: candle-flicker 4.5s ease-in-out infinite;
 }
 
@@ -2127,11 +2057,10 @@ body::before {
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  justify-content: center;
 }
 
 .win-columns {
-  margin-top: 22px;
+  margin-top: 18px;
 }
 
 .win-gap {
@@ -2153,31 +2082,6 @@ body::before {
   border: 0;
   background: transparent;
   cursor: pointer;
-}
-
-.win-pile {
-  position: relative;
-  border-radius: 7px;
-  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
-}
-
-/* Stock and waste physical stack effect: subtle stacked card edge offsets. */
-.win-pile:has(.card.back) {
-  box-shadow:
-    -1px 1px 0 #2a1e12,
-    -2px 2px 0 #18110a,
-    -3px 3px 0 #0f0a05,
-    0 12px 20px rgba(0, 0, 0, 0.6);
-}
-
-.win-pile:has(.win-face) {
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2),
-    0 10px 18px rgba(0, 0, 0, 0.5);
-}
-
-.win-pile:not(:disabled):hover {
-  transform: translateY(-4px);
 }
 
 .win-card {
@@ -2255,16 +2159,14 @@ body::before {
 }
 
 .win-face b {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .win-face i {
-  align-self: flex-end;
+  align-self: center;
   font-style: normal;
-  font-size: 28px;
+  font-size: 32px;
   line-height: 1;
 }
 
@@ -2283,21 +2185,13 @@ body::before {
   width: 86px;
   height: 120px;
   box-sizing: border-box;
+  border: 1px dashed rgba(216, 178, 92, 0.4);
   border-radius: 6px;
-  background:
-    linear-gradient(160deg, rgba(6, 12, 9, 0.85) 0%, rgba(14, 24, 18, 0.65) 100%);
-  border: 1px solid rgba(0, 0, 0, 0.9);
-  outline: 1px solid rgba(216, 178, 92, 0.22);
-  outline-offset: -3px;
-  box-shadow:
-    inset 0 4px 12px rgba(0, 0, 0, 0.85),
-    inset 0 0 16px rgba(0, 0, 0, 0.7),
-    0 1px 1px rgba(255, 255, 255, 0.04);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.6);
 }
 
-.chosen .win-face,
-.chosen.win-pile .win-face,
-.win-card.chosen .win-face {
+.chosen .win-face {
   outline: 2px solid #d8b25c;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.65),
@@ -2310,50 +2204,23 @@ body::before {
   left: 6%;
   right: 6%;
   top: 46%;
-  height: 2px;
-  background: #020508;
+  height: 0;
+  background: #000;
   pointer-events: none;
-  box-shadow:
-    0 0 10px rgba(120, 180, 220, 0.35),
-    0 0 2px rgba(160, 210, 240, 0.6),
-    inset 0 0 4px #000;
-  border-radius: 1px;
-  animation: crack-faint-glow 6s ease-in-out infinite;
-}
-
-@keyframes crack-faint-glow {
-  0%, 100% {
-    opacity: 0.65;
-    box-shadow:
-      0 0 8px rgba(120, 180, 220, 0.25),
-      0 0 2px rgba(160, 210, 240, 0.5);
-  }
-  50% {
-    opacity: 0.95;
-    box-shadow:
-      0 0 16px rgba(140, 200, 240, 0.5),
-      0 0 4px rgba(180, 230, 255, 0.8);
-  }
 }
 
 .phase-2 .win-crack,
 .phase-3 .win-crack,
 .falling .win-crack {
   height: 18px;
-  background: #000;
-  box-shadow:
-    0 0 40px #000,
-    0 0 20px rgba(100, 160, 220, 0.45),
-    0 -1px 6px rgba(140, 200, 250, 0.3);
-  animation: none;
+  box-shadow: 0 0 40px #000;
 }
 
 .phase-3 .win-crack,
 .falling .win-crack {
   box-shadow:
     0 0 40px #000,
-    0 0 28px rgba(180, 50, 20, 0.65),
-    0 0 14px rgba(120, 180, 220, 0.5),
+    0 0 24px rgba(200, 60, 20, 0.55),
     0 -2px 8px rgba(200, 60, 20, 0.35);
 }
 
@@ -4148,137 +4015,6 @@ body::before {
     0 0 44px rgba(216, 178, 92, 0.10);
 }
 
-/* ============ Queen's Court Dressing (Square 28) ============ */
-
-/* Her side of the table: throne treatment — dark velvet, old gold, candlelight favoring her. */
-.table.queen-throne {
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 15%, rgba(120, 20, 35, 0.28) 0%, rgba(20, 10, 15, 0.85) 60%, #080406 100%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 90% at 50% 0%, #1c0e12 0%, #10080a 55%, #080405 100%);
-  border: 1px solid rgba(216, 178, 92, 0.55);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
-    inset 0 0 80px rgba(60, 8, 16, 0.45),
-    0 40px 100px rgba(0, 0, 0, 0.8),
-    0 0 50px rgba(216, 178, 92, 0.12);
-}
-
-.table.queen-throne::before {
-  /* Candlelight favoring her side */
-  background: radial-gradient(ellipse 80% 60% at 50% 18%, rgba(255, 180, 90, 0.18) 0%, transparent 68%);
-}
-
-/* Glass won: colder greeting, pale silver blue light acknowledging hnefatafl victory */
-.table.queen-throne.queen-cold {
-  background:
-    radial-gradient(ellipse 90% 70% at 50% 15%, rgba(40, 60, 80, 0.25) 0%, rgba(12, 18, 26, 0.9) 60%, #04070a 100%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 90% at 50% 0%, #0d1620 0%, #070e16 55%, #04070b 100%);
-  border-color: rgba(180, 210, 230, 0.45);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
-    inset 0 0 80px rgba(20, 45, 65, 0.4),
-    0 40px 100px rgba(0, 0, 0, 0.85),
-    0 0 50px rgba(180, 210, 230, 0.1);
-}
-
-.table.queen-throne.queen-cold::before {
-  background: radial-gradient(ellipse 80% 60% at 50% 18%, rgba(180, 215, 240, 0.14) 0%, transparent 68%);
-}
-
-/* The .plate (queen.jpg) sits like a portrait above a throne, framed in gold & dark velvet overlay */
-.table.queen-throne .plate {
-  border: 3px solid rgba(216, 178, 92, 0.7);
-  outline: 1px solid rgba(18, 10, 12, 0.9);
-  outline-offset: -5px;
-  border-radius: 4px;
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.75),
-    0 0 24px rgba(216, 178, 92, 0.25),
-    inset 0 0 20px rgba(0, 0, 0, 0.6);
-  filter: contrast(1.08) brightness(0.92);
-}
-
-.table.queen-throne.queen-cold .plate {
-  border-color: rgba(180, 210, 230, 0.65);
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.8),
-    0 0 24px rgba(180, 210, 230, 0.2),
-    inset 0 0 20px rgba(0, 0, 0, 0.7);
-  filter: contrast(1.1) brightness(0.88) hue-rotate(-10deg);
-}
-
-/* Ritual round pips / markers */
-.queen-rounds {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 12px 0 16px;
-}
-
-.queen-pip {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #0d080a;
-  border: 1px solid rgba(216, 178, 92, 0.35);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
-  transition: all 0.3s ease;
-}
-
-.queen-pip.filled {
-  background: radial-gradient(circle at 35% 30%, #ffe099 0%, #d8b25c 60%, #8c6224 100%);
-  border-color: #ffe9b8;
-  box-shadow:
-    0 0 10px rgba(216, 178, 92, 0.75),
-    inset 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.queen-pip.active {
-  border-color: rgba(216, 178, 92, 0.85);
-  animation: queen-pip-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes queen-pip-pulse {
-  0%, 100% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 4px rgba(216, 178, 92, 0.25); }
-  50% { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 12px rgba(216, 178, 92, 0.7); }
-}
-
-/* Her reach: visual dread beat for the threatened card */
-.card-btn.queen-reach {
-  position: relative;
-}
-
-.card.queen-reach-card {
-  box-shadow:
-    0 0 0 2px #7a1e28,
-    0 0 18px rgba(180, 30, 40, 0.65),
-    inset 0 0 12px rgba(120, 10, 20, 0.5);
-  animation: queen-dread-touch 2s ease-in-out infinite alternate;
-}
-
-.card.queen-reach-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 30%, rgba(120, 20, 30, 0.35) 0%, rgba(20, 5, 10, 0.65) 100%);
-}
-
-@keyframes queen-dread-touch {
-  0% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 4px rgba(160, 20, 30, 0.4)); }
-  100% { transform: translateY(-3px) scale(1.02); filter: drop-shadow(0 0 14px rgba(200, 30, 40, 0.8)); }
-}
-
-.queen-reach-thrown {
-  opacity: 0.65;
-  filter: grayscale(0.4) contrast(0.9);
-  border-color: #5c2026;
-  background: linear-gradient(160deg, #d9cdbd 0%, #b8ab8d 100%);
-}
-
 /* Calm the dressing for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   .fish-pond i,
@@ -4289,7 +4025,184 @@ body::before {
   .map-you,
   .table.death,
   .checkers::after,
-  .scaffold-fill {
+  .scaffold-fill,
+  .noughts-mark path,
+  .noughts-win-line line {
     animation: none;
   }
+}
+
+/* ============ Noughts: Prisoner's game ============ */
+
+.table.noughts-dialog {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse 120% 90% at 50% 0%, #1a1713 0%, #100e0b 55%, #080706 100%);
+  border-color: rgba(180, 168, 142, 0.28);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 0 100px rgba(0, 0, 0, 0.8),
+    0 40px 100px rgba(0, 0, 0, 0.82);
+}
+
+.noughts-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 92px);
+  grid-template-rows: repeat(3, 92px);
+  margin: 20px auto;
+  width: max-content;
+  padding: 8px;
+  border-radius: 6px;
+  background:
+    /* worn center smooth spot */
+    radial-gradient(circle at 50% 50%, rgba(18, 15, 13, 0.95) 0%, rgba(26, 22, 18, 0.85) 45%, rgba(14, 12, 10, 0.98) 100%),
+    /* packed ash / rough stone texture */
+    repeating-linear-gradient(42deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-48deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 4px),
+    #120f0d;
+  border: 2px solid rgba(160, 148, 125, 0.32);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.75),
+    0 12px 36px rgba(0, 0, 0, 0.85);
+}
+
+/* Scratched 3x3 grid line illusion inside the board */
+.noughts-board::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    /* horizontal grid scratches */
+    linear-gradient(0deg, transparent 90px, rgba(190, 178, 150, 0.35) 91px, rgba(190, 178, 150, 0.2) 93px, transparent 94px, transparent 182px, rgba(190, 178, 150, 0.35) 183px, rgba(190, 178, 150, 0.2) 185px, transparent 186px),
+    /* vertical grid scratches */
+    linear-gradient(90deg, transparent 90px, rgba(190, 178, 150, 0.35) 91px, rgba(190, 178, 150, 0.2) 93px, transparent 94px, transparent 182px, rgba(190, 178, 150, 0.35) 183px, rgba(190, 178, 150, 0.2) 185px, transparent 186px);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
+
+.noughts-cell {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  border: 1px solid rgba(160, 148, 125, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.noughts-cell:disabled {
+  cursor: default;
+}
+
+.noughts-cell:not(:disabled):hover {
+  background: rgba(255, 235, 200, 0.04);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.noughts-mark {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Player's X: Chalk white mark — pale, powdery, freshly scratched onto stone */
+.noughts-mark.x path {
+  fill: none;
+  stroke: #ece6d8;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 280;
+  stroke-dashoffset: 280;
+  animation: ngt-draw 0.45s ease-out forwards;
+  filter:
+    drop-shadow(0 0 2px rgba(240, 235, 220, 0.8))
+    drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+}
+
+.noughts-mark.x path.noughts-scratch {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 2;
+  animation-delay: 0.05s;
+}
+
+/* Prisoner's O: Charcoal black / deep gouge — dark, smudged, deeply carved into stone */
+.noughts-mark.o path {
+  fill: none;
+  stroke: #181412;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 280;
+  stroke-dashoffset: 280;
+  animation: ngt-draw 0.55s ease-out forwards;
+  filter:
+    drop-shadow(0 1px 1px rgba(255, 240, 210, 0.15))
+    drop-shadow(0 -1px 2px rgba(0, 0, 0, 0.95));
+}
+
+.noughts-mark.o path.noughts-gouge {
+  stroke: #0a0807;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 1));
+}
+
+@keyframes ngt-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Winning Line: Restrained slow burn or deepening cut */
+.noughts-win-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.noughts-win-line line {
+  stroke-linecap: round;
+  stroke-dasharray: 380;
+  stroke-dashoffset: 380;
+  animation: ngt-win-cut 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.noughts-win-line.win-x line {
+  stroke: #f2e2be;
+  stroke-width: 6;
+  filter:
+    drop-shadow(0 0 8px rgba(216, 178, 92, 0.85))
+    drop-shadow(0 0 16px rgba(255, 220, 140, 0.5));
+}
+
+.noughts-win-line.win-o line {
+  stroke: #0d0b09;
+  stroke-width: 8;
+  filter:
+    drop-shadow(0 1px 1px rgba(216, 178, 92, 0.25))
+    drop-shadow(0 0 6px rgba(0, 0, 0, 0.95));
+}
+
+@keyframes ngt-win-cut {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.noughts-status {
+  min-height: 2.2em;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.4;
+  color: #dcd2bf;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
