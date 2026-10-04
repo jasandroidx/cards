@@ -308,14 +308,25 @@ export function resolveOgTitle(
   appName = DEFAULT_APP_NAME,
   host = "",
   documentTitle = "",
+  siteExplicit = true,
 ) {
-  const fromSite = String(site.title ?? "").trim();
-  if (fromSite) return fromSite;
   const fromDoc = String(documentTitle ?? "").trim();
   if (fromDoc) return fromDoc;
+
+  if (siteExplicit) {
+    const fromSite = String(site.title ?? "").trim();
+    if (fromSite) return fromSite;
+  }
+
+  const fromArg = String(appName ?? "").trim();
+  if (fromArg && fromArg !== DEFAULT_APP_NAME) return fromArg;
+
   const fromHost = appNameFromHost(host);
   if (fromHost && fromHost !== DEFAULT_APP_NAME) return fromHost;
-  const fromArg = String(appName ?? "").trim();
+
+  const fromSiteFallback = String(site.title ?? "").trim();
+  if (fromSiteFallback) return fromSiteFallback;
+
   return fromArg || DEFAULT_APP_NAME;
 }
 
@@ -345,8 +356,9 @@ export function grokOgHeadTags({
   site = {},
   documentTitle = "",
   cwd = process.cwd(),
+  siteExplicit = true,
 } = {}) {
-  const title = resolveOgTitle(site, appName, host, documentTitle);
+  const title = resolveOgTitle(site, appName, host, documentTitle, siteExplicit);
   const publicHost = resolvePublicHost(host);
   const tags = [
     `<meta name="twitter:card" content="summary_large_image">`,
@@ -415,15 +427,23 @@ function insertBeforeHeadClose(html, snippet) {
 
 export function normalizeHeadContext(ctx = {}) {
   const cwd = ctx.cwd ?? process.cwd();
-  // Middleware passes a baked `site`. Still consult the workspace so a
-  // public/og.jpg generated after that snapshot (or missed by a wrong cwd)
-  // wins over the og.grok.me placeholder. Vercel has no public/ to read, so
-  // a correct bake is unchanged.
-  const site = applyCustomCardFromFs(
-    ctx.site !== undefined ? ctx.site : snapshotOgIdentity(cwd).site,
-    cwd,
+  const siteExplicit = ctx.site !== undefined;
+  let site;
+  if (siteExplicit) {
+    site = ctx.site;
+    if (siteHasCustomCard(site) && !site.image) {
+      site = { ...site, image: ogCardPublicPath(cwd) || "/og.jpg" };
+    }
+  } else {
+    site = applyCustomCardFromFs(snapshotOgIdentity(cwd).site, cwd);
+  }
+  const appName = resolveOgTitle(
+    site,
+    ctx.appName ?? DEFAULT_APP_NAME,
+    ctx.host ?? "",
+    "",
+    siteExplicit,
   );
-  const appName = resolveOgTitle(site, ctx.appName ?? DEFAULT_APP_NAME, ctx.host ?? "");
   return {
     appName,
     projectId: ctx.projectId ?? readGrokProjectId(),
@@ -432,18 +452,20 @@ export function normalizeHeadContext(ctx = {}) {
     host: ctx.host ?? "",
     cwd,
     site,
+    siteExplicit,
   };
 }
 
 export function injectGrokPwaHead(html, ctx = {}) {
   if (typeof html !== "string") return html;
-  const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
+  const { site, projectId, creator, creatorId, host, cwd, siteExplicit } = normalizeHeadContext(ctx);
   const documentTitle = titleFromDocument(html);
   const appName = resolveOgTitle(
     site,
     ctx.appName ?? DEFAULT_APP_NAME,
     host,
     documentTitle,
+    siteExplicit,
   );
   let next = stripShareMetaTags(html);
   if (!readGrokExtensionsEnabled()) next = stripGrokExtensionsScript(next);
@@ -458,7 +480,7 @@ export function injectGrokPwaHead(html, ctx = {}) {
 
   next = insertAfterHeadOpen(
     next,
-    grokOgHeadTags({ host, appName, site, documentTitle, cwd }).join(""),
+    grokOgHeadTags({ host, appName, site, documentTitle, cwd, siteExplicit }).join(""),
   );
 
   if (readGrokExtensionsEnabled() && !next.includes("/grok-app-builder/extensions.js")) {
