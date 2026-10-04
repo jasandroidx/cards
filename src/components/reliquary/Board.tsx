@@ -12,8 +12,8 @@ import { Scaffold } from "@/components/reliquary/Scaffold";
 import { Finale } from "@/components/reliquary/Finale";
 import { Queen } from "@/components/reliquary/Queen";
 import { Well } from "@/components/reliquary/Well";
+import { Tafl } from "@/components/reliquary/Tafl";
 import { Nix, NixLamp, Tiles, Yard } from "@/components/reliquary/Mire";
-import { Noughts } from "@/components/reliquary/Noughts";
 import { addTile, nixSpend, NIX_SQUARE, WELL_SQUARE, YARD_SQUARE } from "@/lib/reliquary/mire";
 import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
@@ -111,10 +111,9 @@ function vistaIndex(id: number): number {
   return index;
 }
 
-/** Words for the king's throw. He is the only die left on the road. */
-const DIE = ["", "one", "two", "three", "four", "five", "six"];
+const ROLL = ["", "one", "two", "three", "four", "five", "six"];
 
-/** The empty squares are not empty. sift = gamble for a card;
+/** The empty squares are not empty. sift = gamble a card against a roll;
  *  glimpse = look ahead at the next named square for free. */
 const WAYLAY: Record<number, "sift" | "glimpse"> = {
   1: "sift",
@@ -130,15 +129,14 @@ const WAYLAY: Record<number, "sift" | "glimpse"> = {
 };
 
 const JOKER = [
-  "Up, fool. The fall didn't kill you, it filed you. Under the Table. Where lost games go.",
-  "I am the Jester — bells and motley. I serve the Table, and I laugh at everyone down here.",
-  "That lamp is your life, still burning. Win a hand beneath it, and it pays a poker chip.",
-  "One chip opens the chapel. Then the road. Then — if you're still funny — the Queen.",
-  "Sign the paper. Play. And do try to amuse me. The last fool didn't.",
+  "The air of light is gone. The fall was a silence. You are nothing now. A face without a suit.",
+  "We are Under the Table. I'm the Joker. I wasn't in that deck.",
+  "A new fool. Win one hand at the lamp. It pays a poker chip.",
+  "Spend the poker chip and the chapel opens. Then take the road. I'm leaving.",
 ];
 
 /** One line for the player who has signed before. The table remembers. */
-const JOKER_SHORT = ["Back again, fool. The table remembers you. I remember you funnier."];
+const JOKER_SHORT = ["Back again. The table remembers you."];
 
 /** Things the dark says when you are not looking at it. */
 const WHISPERS = [
@@ -200,13 +198,13 @@ function objective(
     if (marks < 1) return "Win a poker chip at the lamp — the flame is all that says you are here. Sit at any table game.";
     return "Open the chapel.";
   }
-  if (position < 0) return "Take the road. That's outside — open the map and walk it.";
+  if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
   if (position >= 27 && position < 28 && !mawBeaten) return "Face the Maw. It loves poker chips.";
-  if (sat >= 3 && position < 10) return "Walk the map. The lamp won't deal again — come back when you need poker chips.";
+  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need poker chips.";
   if (!gate) return "Walk to the reliquary at square 29.";
   if (marks < gate.cost)
     return `Earn ${gate.cost} ${gate.cost === 1 ? "poker chip" : "poker chips"} to open ${gate.opens}. Play hands back in the hall.`;
-  return `Open ${gate.opens}. Then walk the map.`;
+  return `Open ${gate.opens}. Then roll to walk.`;
 }
 
 function where(marks: number, owned: string[], mawBeaten: boolean, position: number, sat: number): string {
@@ -222,15 +220,15 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
     if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
     return `${purse} Open the chapel. Then take the road.`;
   }
-  if (position < 0) return `${purse} The chapel is open. Take the road — the map walks you.`;
+  if (position < 0) return `${purse} The chapel is open. Take the road and roll.`;
   if (sat >= 3 && position < 10) {
-    return `${purse} The lamp will not deal a fourth hand. Walk the map. Then you can come back.`;
+    return `${purse} The lamp will not deal a fourth hand. Roll. Then you can come back.`;
   }
   if (!gate) return `${purse} The way back is open.`;
   if (marks < gate.cost) {
     return `${purse} ${gate.opens} costs ${gate.cost}. Go back to the hall and play a hand.`;
   }
-  return `${purse} Walk the map. ${gate.opens} costs ${gate.cost}, and you can pay.`;
+  return `${purse} Roll to walk. ${gate.opens} costs ${gate.cost}, and you can pay.`;
 }
 
 function linesFor(
@@ -254,7 +252,6 @@ function linesFor(
   if (pocket.includes("Torn half")) lines.push("Half a two of spades. The other half is somewhere.");
   if (pocket.includes("Mended two")) lines.push("A mended two of spades. Across the tear: he deals last.");
   if (pocket.includes("Folded scrap")) lines.push("A folded scrap. 'Don't let him deal.'");
-  if (pocket.includes("Drowned card")) lines.push("A drowned card. On its back, in pencil: NIX.");
   if (hearthFed) lines.push("You fed the chapel hearth. It showed you her hands.");
   if (pocket.some((item) => item !== "Blank card" && item !== "Bent key" && item !== "Cracked cup")) lines.push("The games you win leave a piece behind.");
   if (owned.includes("chapel")) lines.push("The houses walked off. A room can only keep one rule.");
@@ -273,6 +270,7 @@ type Save = {
   spadesLit?: boolean;
   silver?: boolean;
   queenFaced?: boolean;
+  taflWon?: boolean;
   letters?: string[];
   word?: string | null;
   boons?: string[];
@@ -291,10 +289,7 @@ type Save = {
   scratchDone?: boolean;
   stoneOut?: boolean;
   hearthFed?: boolean;
-  stoneRighted?: boolean;
-  wallSolved?: boolean;
   skipRoll?: boolean;
-  maxReached?: number;
   pipOwed?: boolean;
   kingOwed?: boolean;
 };
@@ -306,7 +301,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [dead, setDead] = useState(false);
   const [light, setLight] = useState(0);
   const [euchreOpen, setEuchreOpen] = useState(false);
-  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | "noughts" | null>(null);
+  const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | "tafl" | null>(null);
   const [shouting, setShouting] = useState(false);
   const [picked, setPicked] = useState(0);
   const [marks, setMarks] = useState(0);
@@ -317,11 +312,12 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [spadesLit, setSpadesLit] = useState(false);
   const [silver, setSilver] = useState(false);
   const [queenFaced, setQueenFaced] = useState(false);
+  const [taflWon, setTaflWon] = useState(false);
   const [letters, setLetters] = useState<string[]>([]);
   const [word, setWord] = useState<string | null>(null);
   const [boons, setBoons] = useState<string[]>([]);
   const [position, setPosition] = useState(-1);
-  const [maxReached, setMaxReached] = useState(0);
+  const [lastRoll, setLastRoll] = useState(0);
   const [loaded, setLoaded] = useState(false);
   // Returning player: a signed save exists, so the Joker skips his speech.
   const [returning] = useState(() => {
@@ -368,7 +364,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const jokerAt = useRef(0);
   const lossCount = useRef(0);
   const feedCount = useRef(0);
-  const lastMoveAt = useRef(Date.now());
+  const lastRollAt = useRef(Date.now());
   const idleNoted = useRef(false);
   const jokerTimers = useRef<number[]>([]);
   /** A behavior remark through the note channel. 3-minute cooldown; optional delay so game feedback lands first. */
@@ -415,11 +411,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [chapelView, setChapelView] = useState<"hearth" | "pews" | "altar">("hearth");
   const [hearthFed, setHearthFed] = useState(false);
   const bowlCount = useRef(0);
-  // Myst slice 4: the yard has its own views — stones, mire edge, word wall.
-  const [yardView, setYardView] = useState<"stones" | "mire" | "wall">("stones");
-  const [stoneRighted, setStoneRighted] = useState(false); // saved — the fallen stone stands
-  const [wallSolved, setWallSolved] = useState(false); // saved — the wall reads NIX
-  const [wallTiles, setWallTiles] = useState<string[]>(["·", "·", "·"]); // session only — the tiles turn
   const [cupboard, setCupboard] = useState(false);
   const [door, setDoor] = useState(false);
   // Myst slice: the world remembers being touched.
@@ -427,7 +418,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [chairKnown, setChairKnown] = useState(false); // session only
   const [scratchDone, setScratchDone] = useState(false); // saved — the count was finished
   const [stoneOut, setStoneOut] = useState(false); // saved — the stone stays out
+  const [skipRoll, setSkipRoll] = useState(false);
   const [pipOwed, setPipOwed] = useState(false);
+  const [kingOwed, setKingOwed] = useState(false);
   const [waylay, setWaylay] = useState<number | null>(null);
   const [pad, setPad] = useState(false);
   const [code, setCode] = useState("");
@@ -456,7 +449,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (!nextAge) return;
     setView("table");
     setChapelView("hearth");
-    setYardView("stones");
     if (nextAge.key === "hall") {
       setAgeIndex(0);
       setNote(null);
@@ -504,7 +496,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         playing === null &&
         !dead &&
         !idleNoted.current &&
-        Date.now() - lastMoveAt.current > 90000
+        Date.now() - lastRollAt.current > 90000
       ) {
         idleNoted.current = true;
         jokerSays(JOKER_IDLE);
@@ -568,100 +560,117 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote(null);
   }
 
-  /** Click-to-travel: the map is the walk. A square is reachable when it is
-   *  no further than one past the furthest you have walked, and no gate
-   *  stands in the way. Landing runs the square, same as a roll used to. */
-  function travelTo(id: number) {
-    lastMoveAt.current = Date.now();
+  function roll() {
+    lastRollAt.current = Date.now();
     idleNoted.current = false;
     if (waylay !== null) {
       setNote("The ash is waiting on your answer. Take the chance, or walk on.");
+      return;
+    }
+    if (kingOwed) {
+      setNote("The king is waiting. Give him a card from your hand, or give him your next roll.");
       return;
     }
     if (pipOwed) {
       setNote("Pip is waiting. Cut the deck.");
       return;
     }
-    if (id === position) {
-      setNote("You are already here.");
+    if (skipRoll) {
+      setSkipRoll(false);
+      setNote("This roll is taken. You stay where you are.");
       return;
     }
-    if (id < 0 || id > 29 || !canEnter(id) || id > maxReached + 1) return;
-    let dest = id;
+    // Later: roll two dice. Doubles should pay something. One die for now.
+    const n = 1 + Math.floor(Math.random() * 6);
+    let next = Math.max(0, position);
+    let stopped = false;
     let jumped = "";
-    if (dest === 4 && canEnter(9)) {
-      dest = 9;
-      jumped = "The low stair takes you up.";
-    } else if (dest === 18 && canEnter(22)) {
-      dest = 22;
-      jumped = "The high ledge takes you across.";
+    for (let step = 0; step < n; step++) {
+      const dest = next + 1;
+      if (dest > 29 || !canEnter(dest)) {
+        stopped = true;
+        break;
+      }
+      next = dest;
+      if (next === 4 && canEnter(9)) {
+        next = 9;
+        jumped = "The low stair takes you up.";
+        break;
+      }
+      if (next === 18 && canEnter(22)) {
+        next = 22;
+        jumped = "The high ledge takes you across.";
+        break;
+      }
     }
-    const fresh = dest > maxReached;
-    setPosition(dest);
-    setMaxReached((m) => Math.max(m, dest));
-    setPicked(dest);
-    setAgeIndex(vistaIndex(dest));
+    setLastRoll(n);
+    setPosition(next);
+    setPicked(next);
+    setAgeIndex(vistaIndex(next));
     setSat(0);
-    setOpen(false);
-    const place = SQUARES[dest];
-    if (dest === 3) {
+    const place = SQUARES[next];
+    if (next === 3 && !jumped) {
       setPipOwed(true);
-      setNote("Pip calls a rank. Cut the deck.");
+      setNote(`A ${ROLL[n]}. Pip calls a rank. Cut the deck.`);
       return;
     }
-    if (dest === 6) {
-      setNote("A cracked cup on the road. It rattles, tasting the air, and finds nothing to take.");
+    if (next === 6) {
+      setSkipRoll(true);
+      setNote(`A ${ROLL[n]}. The cracked cup takes your next roll.`);
       return;
     }
-    if (dest === 8) {
+    if (next === 8) {
       const lost = carried[0];
       if (lost) {
         setCarried(carried.slice(1));
-        setNote(`The row takes the ${rankLabel(lost.rank)} from your hand.`);
+        setNote(`A ${ROLL[n]}. The row takes the ${rankLabel(lost.rank)} from your hand.`);
       } else {
-        setNote("The row finds no card in your hand. It lets you pass, hungry.");
+        setSkipRoll(true);
+        setNote(`A ${ROLL[n]}. The row finds no card, so it takes your next roll.`);
       }
       return;
     }
-    if (dest === 10) {
-      setNote("Mabel has five dice. Beat her.");
+    if (next === 10) {
+      setNote(`A ${ROLL[n]}. Mabel has five dice. Beat her.`);
       return;
     }
-    if (dest === 26) {
-      // The King moves once, in the note. He never moves you.
+    if (next === 26) {
+      // The King moves once, in the note. No second walk: he never calls
+      // setPosition, so the player stays on 26 either way.
       const k = 1 + Math.floor(Math.random() * 6);
       const call = kingCalls(k, carried.length > 0);
       if (call === "passed") {
-        setNote(`The king throws ${DIE[k]}. Even. You stepped past him.`);
+        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Even. You stepped past him.`);
         return;
       }
-      if (light > 0) {
-        setLight((value) => spendLight(value, 1));
-        setNote(`The king throws ${DIE[k]}. Odd. He takes your light instead of a card.`);
+      if (call === "card") {
+        if (light > 0) {
+          setLight((value) => spendLight(value, 1));
+          setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd. He takes your light instead of a card.`);
+          return;
+        }
+        setKingOwed(true);
+        setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and your candle is out. A card from your hand, or your next roll — choose.`);
         return;
       }
-      const lost = carried[0];
-      if (lost) {
-        setCarried(carried.slice(1));
-        setNote(`The king throws ${DIE[k]}. Odd. He takes the ${rankLabel(lost.rank)} from your hand.`);
-        return;
-      }
-      setNote(`The king throws ${DIE[k]}. Odd. Your hands are empty and your candle is out. He laughs and waves you on.`);
+      setSkipRoll(true);
+      setNote(`A ${ROLL[n]}. The king throws ${ROLL[k]}. Odd, and your hand is empty, so he takes your next roll.`);
       return;
     }
-    // The empty squares are not empty — the first time. Each offers one small gamble.
-    const way = WAYLAY[dest];
-    if (way && fresh) {
-      setWaylay(dest);
+    // The empty squares are not empty. Each offers one small gamble.
+    const way = WAYLAY[next];
+    if (way) {
+      setWaylay(next);
       setNote(
         way === "sift"
-          ? "Ash and bone underfoot. Sift it, or walk on."
-          : `${place?.name ?? "Still road"}. Look ahead, or walk on.`,
+          ? `A ${ROLL[n]}. Ash and bone underfoot. Sift it, or walk on.`
+          : `A ${ROLL[n]}. ${place?.name ?? "Still road"}. Look ahead, or walk on.`,
       );
       return;
     }
     if (jumped) setNote(`${jumped} ${place?.name ?? ""}.`.trim());
-    else setNote(place?.labeled ? `${place.name}.` : "The road goes on.");
+    else if (stopped) setNote(`A ${ROLL[n]}. The way ahead is shut.`);
+    else setNote(place?.labeled ? `A ${ROLL[n]}. ${place.name}.` : `A ${ROLL[n]}.`);
   }
 
   function cutPip() {
@@ -676,6 +685,21 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setPicked(2);
     setAgeIndex(vistaIndex(2));
     setNote(`Pip called ${rankLabel(his)}. You cut ${rankLabel(yours)}. You do not pass.`);
+  }
+
+  function payKingCard() {
+    const lost = carried[0];
+    if (!lost || !kingOwed) return;
+    setCarried(carried.slice(1));
+    setKingOwed(false);
+    setNote(`You give the king the ${rankLabel(lost.rank)}. He does not move.`);
+  }
+
+  function payKingRoll() {
+    if (!kingOwed) return;
+    setKingOwed(false);
+    setSkipRoll(true);
+    setNote("You give the king your next roll. He does not move.");
   }
 
   function waylayTake() {
@@ -694,7 +718,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       setNote(`You sift the ash and find the ${rankLabel(rank)}. It goes in your hand.`);
       return;
     }
-    setNote("You sift the ash and find nothing.");
+    setSkipRoll(true);
+    setNote("You sift the ash and the ash takes your next roll.");
   }
 
   function waylayWalk() {
@@ -718,6 +743,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setSpadesLit(Boolean(data.spadesLit));
           setSilver(Boolean(data.silver));
           setQueenFaced(Boolean(data.queenFaced));
+          setTaflWon(Boolean(data.taflWon));
           setLetters(Array.isArray(data.letters) ? data.letters : []);
           setWord(typeof data.word === "string" ? data.word : null);
           setBoons(Array.isArray(data.boons) ? data.boons : []);
@@ -737,14 +763,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           setScratchDone(Boolean(data.scratchDone));
           setStoneOut(Boolean(data.stoneOut));
           setHearthFed(Boolean(data.hearthFed));
-          setStoneRighted(Boolean(data.stoneRighted));
-          setWallSolved(Boolean(data.wallSolved));
+          setSkipRoll(Boolean(data.skipRoll));
           setPipOwed(Boolean(data.pipOwed));
-          setMaxReached(
-            typeof data.maxReached === "number"
-              ? Math.max(0, data.maxReached)
-              : Math.max(0, typeof data.position === "number" ? data.position : 0),
-          );
+          setKingOwed(Boolean(data.kingOwed));
           if (data.position >= 0) {
             setAgeIndex(vistaIndex(data.position));
             setPicked(data.position);
@@ -773,9 +794,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   useEffect(() => {
     if (!loaded) return;
-    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
+    const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, taflWon, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, taflWon, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, skipRoll, pipOwed, kingOwed, scratchDone, stoneOut, hearthFed]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -978,6 +999,16 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     setNote("You sit in the Dealer's chair. The wood is warm. It knows the shape of you.");
   }
 
+  function examineWindow() {
+    if (position >= 0) {
+      setNote("The window shows the road you are standing on. From inside, it looked further away.");
+    } else if (owned.includes("chapel")) {
+      setNote("Rain on the glass. The road is out there, waiting. You can see your own footprints — but you have not left yet.");
+    } else {
+      setNote("A window, black with rain. Nothing beyond it. Not yet.");
+    }
+  }
+
   /** The torn two of spades: one half under the floorboards, the other in the ash.
    *  Either half taken alone is "Torn half"; holding one and taking the other
    *  mends it — and the rejoined card carries something across the tear. */
@@ -1010,6 +1041,14 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     }
     setPocket((value) => [...value, "Torn half"]);
     setNote("In the ash at the fire's edge, half a playing card. The two of spades, singed black at the edges. The fire would not take it. You take the singed half.");
+  }
+
+  function rattleChains() {
+    if (scratchDone) {
+      setNote("The chains are still now. They are listening.");
+      return;
+    }
+    setNote("Chains bolted to the cell wall. They are empty. They were not always empty — the links are worn smooth where wrists were.");
   }
 
   const [scratchCount, setScratchCount] = useState(0);
@@ -1048,6 +1087,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   function peerGlass() {
     if (queenFaced) {
       setNote("Through the glass: the Queen's hall. She is sitting upright now. She is looking back.");
+    } else if (taflWon) {
+      setNote("Through the glass: the Queen's hall. She is sitting upright now. She is looking back. She remembers the glass.");
     } else {
       setNote("Through the glass: a vast hall, and a throne. Something sits on it, faceless. It does not move. Yet.");
     }
@@ -1134,66 +1175,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
 
   function behindAltar() {
     setNote("Behind the altar, a niche in the stone. It is empty — and exactly the size of five dice. They are not in it. Someone took them out. Someone was playing.");
-  }
-
-  // --- Myst slice 4: the yard. ---
-
-  function examineStones() {
-    if (mawBeaten) {
-      setNote("The standing stones. The letters are gone from them now — weathered past reading. Whatever they spelled, the house has forgotten it.");
-    } else if (queenFaced) {
-      setNote("The standing stones, half-sunk and leaning. Three letters would be enough. You know that now.");
-    } else {
-      setNote("Standing stones, set in a row like tiles. Letters cut deep in the rock, half-erased by weather. Three letters would be enough.");
-    }
-  }
-
-  function rightStone() {
-    if (stoneRighted) {
-      setNote("The stone stands straight now. The hollow beneath it is empty.");
-      return;
-    }
-    setStoneRighted(true);
-    setNote("You right the fallen stone. Beneath it, a hollow — and in the hollow, scratch marks. A tally, kept in fives. And stopped.");
-  }
-
-  function examineMireEdge() {
-    setNote("The yard sinks here. The mud has taken stones, tiles, and — by the look of the ruts — someone's footing.");
-  }
-
-  function pullFromMud() {
-    if (pocket.includes("Drowned card")) {
-      setNote("The mud gives nothing else. It is keeping the rest.");
-      return;
-    }
-    setPocket((value) => [...value, "Drowned card"]);
-    setNote("You pull a playing card from the mud. Drowned, swollen — and on its back, in pencil: NIX.");
-  }
-
-  function examineWall() {
-    if (wallSolved) {
-      setNote("The wall reads NIX. The middle tile sits a finger's width deeper than the others.");
-      return;
-    }
-    setNote(`Three stone tiles, set in the wall. Worn nearly smooth. They turn under your hand. They read ${wallTiles.join("")}.`);
-  }
-
-  function turnTile(index: number) {
-    if (wallSolved) {
-      setNote("The tiles do not turn anymore. NIX is set.");
-      return;
-    }
-    const next = [...wallTiles];
-    const cur = next[index] ?? "·";
-    next[index] = cur === "·" ? "A" : cur === "Z" ? "A" : String.fromCharCode(cur.charCodeAt(0) + 1);
-    setWallTiles(next);
-    if (next.join("") === "NIX") {
-      setWallSolved(true);
-      setLetters((held) => addTile(held));
-      setNote("The stones shudder — once — and settle. Behind the middle tile, a hollow: a letter tile, dry as bone.");
-      return;
-    }
-    setNote(`The tiles read ${next.join("")}.`);
   }
 
   function riverTakes() {
@@ -1291,7 +1272,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   /** The one visually dominant next action. Pending choices take the dock;
    *  otherwise the single action that moves the game forward. */
   const primary: { label: string; onClick: () => void } | null = (() => {
-    if (waylay !== null || pipOwed) return null;
+    if (waylay !== null || kingOwed || pipOwed) return null;
     // Location games that ARE the story beat keep priority.
     if (mode && mode !== "lamp" && (position >= 0 || heard)) {
       return {
@@ -1318,9 +1299,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         onClick: () => (position < 0 ? fall() : look(vistaIndex(position))),
       };
     }
-    // Outside: the map is the walk.
+    // Outside: roll.
     if (position >= 0 && age.key !== "hall") {
-      return { label: "Open the map", onClick: () => setOpen(true) };
+      return { label: "Roll", onClick: roll };
     }
     // The lamp only when marks are the need — never over a gate or the road.
     if (mode === "lamp" && sat < 3 && heard) {
@@ -1354,15 +1335,10 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               ? "/chapel.jpg"
               : age.key === "chapel" && chapelView === "altar"
                 ? "/plates/chapel-altar.jpg"
-                : // Myst slice 4: the yard's inner views — only at the yard itself.
-                  age.key === "yard" && position < 21 && yardView === "mire"
-                  ? "/plates/mire.jpg"
-                  : age.key === "yard" && position < 21 && yardView === "wall"
-                    ? "/plates/rune-cards.jpg"
-                    : // The climb past the yard to the Maw: mist over the hill road.
-                      age.key === "yard" && position >= 21 && position < 27
-                      ? "/plates/hill-road.jpg"
-                      : age.src;
+                : // The climb past the yard to the Maw: mist over the hill road.
+                  age.key === "yard" && position >= 21 && position < 27
+                  ? "/plates/hill-road.jpg"
+                  : age.src;
 
   const warm = heartsLit && age.key === "chapel";
   const cool = spadesLit && age.key === "bridge";
@@ -1449,6 +1425,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             onClick={() => (door ? setView("cell") : setPad(true))}
             aria-label="The door"
           />
+          <button type="button" className="hot hot-window" onClick={examineWindow} aria-label="The window" />
           <button type="button" className="hot hot-floor" onClick={floorHalf} aria-label="The floorboards" />
         </>
       )}
@@ -1456,9 +1433,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <>
           <button type="button" className="hot hot-shelf" onClick={takeCup} aria-label="The shelf" />
           <button type="button" className="hot hot-wall" onClick={farWall} aria-label="The far wall" />
+          <button type="button" className="hot hot-chains" onClick={rattleChains} aria-label="The chains" />
           <button type="button" className="hot hot-scratches" onClick={readScratches} aria-label="Scratch marks" />
           <button type="button" className="hot hot-stone" onClick={workStone} aria-label="A loose stone" />
-          <button type="button" className="hot hot-noughts" onClick={() => setPlaying("noughts")} aria-label="A scratched grid" />
         </>
       )}
       {signed && met && age.key === "hall" && view === "glass" && (
@@ -1486,26 +1463,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         <>
           <button type="button" className="hot hot-chbowl" onClick={offerBowl} aria-label="The offering bowl" />
           <button type="button" className="hot hot-chniche" onClick={behindAltar} aria-label="Behind the altar" />
-        </>
-      )}
-      {signed && met && age.key === "yard" && position < 21 && yardView === "stones" && (
-        <>
-          <button type="button" className="hot hot-ystones" onClick={examineStones} aria-label="The standing stones" />
-          <button type="button" className="hot hot-yfallen" onClick={rightStone} aria-label="A fallen stone" />
-        </>
-      )}
-      {signed && met && age.key === "yard" && position < 21 && yardView === "mire" && (
-        <>
-          <button type="button" className="hot hot-ymud" onClick={examineMireEdge} aria-label="The sinking mud" />
-          <button type="button" className="hot hot-ypull" onClick={pullFromMud} aria-label="Something in the mud" />
-        </>
-      )}
-      {signed && met && age.key === "yard" && position < 21 && yardView === "wall" && (
-        <>
-          <button type="button" className="hot hot-ywall" onClick={examineWall} aria-label="The word wall" />
-          <button type="button" className="hot hot-ytile0" onClick={() => turnTile(0)} aria-label="First tile" />
-          <button type="button" className="hot hot-ytile1" onClick={() => turnTile(1)} aria-label="Second tile" />
-          <button type="button" className="hot hot-ytile2" onClick={() => turnTile(2)} aria-label="Third tile" />
         </>
       )}
       {grave && age.key === "hole" && (
@@ -1591,7 +1548,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             </ul>
           </div>
         )}
-        {(waylay !== null || pipOwed || primary) && (
+        {(waylay !== null || kingOwed || pipOwed || primary) && (
           <div className="dock-primary">
             {waylay !== null && (
               <>
@@ -1603,12 +1560,22 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 </button>
               </>
             )}
+            {kingOwed && (
+              <>
+                <button className="book-btn primary" type="button" onClick={payKingCard}>
+                  Give the king a card
+                </button>
+                <button className="book-btn primary" type="button" onClick={payKingRoll}>
+                  Give the king your next roll
+                </button>
+              </>
+            )}
             {pipOwed && (
               <button className="book-btn primary" type="button" onClick={cutPip}>
                 Cut for Pip
               </button>
             )}
-            {primary && waylay === null && !pipOwed && (
+            {primary && waylay === null && !kingOwed && !pipOwed && (
               <button
                 className={`book-btn primary${primary.label === "Play a hand" && marks === 0 ? " beckon" : ""}`}
                 type="button"
@@ -1632,6 +1599,11 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             setView(view === "glass" || view === "burn" ? "cell" : view === "cell" ? "room" : "table");
           }}>
             {view === "cell" ? "Back to the room" : view === "glass" || view === "burn" ? "Back to the cell" : "Back to the table"}
+          </button>
+        )}
+        {signed && met && age.key === "hall" && view === "glass" && (
+          <button className="book-btn" type="button" onClick={() => setPlaying("tafl")}>
+            Play her
           </button>
         )}
         {!(position < 0 && !owned.includes("chapel")) && (
@@ -1726,21 +1698,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             Back to the hearth
           </button>
         )}
-        {age.key === "yard" && position < 21 && yardView === "stones" && (
-          <>
-            <button className="book-btn" type="button" onClick={() => setYardView("mire")}>
-              The mire edge
-            </button>
-            <button className="book-btn" type="button" onClick={() => setYardView("wall")}>
-              The word wall
-            </button>
-          </>
-        )}
-        {age.key === "yard" && position < 21 && yardView !== "stones" && (
-          <button className="book-btn" type="button" onClick={() => setYardView("stones")}>
-            Back to the stones
-          </button>
-        )}
           <>
             <button className="book-btn" type="button" onClick={() => setDeckOpen(true)}>
               Deck
@@ -1755,7 +1712,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       </div>
       )}
 
-      {!met && <JesterMeet short={returning} onLeave={() => setMet(true)} />}
+      {!met && <JokerMeet short={returning} onLeave={() => setMet(true)} />}
 
       {met && !signed && (
         <Paper
@@ -1826,7 +1783,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           >
             <div className="page-leaf map-leaf">
               <p className="leaf-kicker">Your map</p>
-              <p className="map-hint">Bright squares are in reach — click one to walk there. The dashed ring is the next step.</p>
               <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="The road of games">
                 <path d={d} fill="none" stroke="#8d6b45" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
                 <path d={d} fill="none" stroke="#5c2a26" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
@@ -1845,26 +1801,18 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 {SQUARES.map((s) => {
                   const p = xy(s.id);
                   const r = s.labeled ? 16 : 4;
-                  const walked = s.id <= maxReached;
-                  const canGo = canEnter(s.id) && s.id <= maxReached + 1;
-                  const isNext = s.id === maxReached + 1 && canEnter(s.id);
+                  const reached = here >= s.id;
                   const active = picked === s.id;
                   return (
-                    <g
-                      key={s.id}
-                      className={canGo ? "sq sq-go" : "sq sq-shut"}
-                      onClick={() => (canGo ? travelTo(s.id) : setPicked(s.id))}
-                    >
+                    <g key={s.id} className="sq" onClick={() => setPicked(s.id)}>
                       <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
                       <circle
                         cx={p.x}
                         cy={p.y}
                         r={r}
-                        fill={walked && s.labeled ? "#6b3a32" : canGo ? "#efe2c8" : "#a08b70"}
-                        opacity={canGo ? 1 : 0.45}
-                        stroke={active ? "#2c241c" : isNext ? "#7a2e28" : "#6b5340"}
-                        strokeWidth={active || isNext ? 2.4 : 1}
-                        strokeDasharray={isNext && !active ? "4 3" : undefined}
+                        fill={reached && s.labeled ? "#6b3a32" : "#efe2c8"}
+                        stroke={active ? "#2c241c" : "#6b5340"}
+                        strokeWidth={active ? 2.4 : 1}
                       />
                       {s.labeled && (
                         <text
@@ -1872,7 +1820,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                           y={p.y + r + 14}
                           textAnchor="middle"
                           className="map-name"
-                          opacity={canGo ? 1 : 0.45}
                         >
                           {s.short}
                         </text>
@@ -1915,9 +1862,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
               {vista !== null && !roadOpen(AGES[vista]?.key ?? "", owned, mawBeaten) && (
                 <p className="leaf-body">This stretch is still shut. Sit at the hall and buy the way.</p>
               )}
-              {square && square.id > maxReached + 1 && canEnter(square.id) && (
-                <p className="leaf-body">You haven't walked that far yet. The road ahead is dark.</p>
-              )}
               <button className="close-book" type="button" onClick={() => setOpen(false)}>
                 Close the map
               </button>
@@ -1929,7 +1873,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       {playing === "yacht" && (
         <Yacht onEarn={award} onWin={(won) => won && setHeartsLit(true)} onClose={() => setPlaying(null)} />
       )}
-      {playing === "noughts" && <Noughts onEarn={award} onClose={() => setPlaying(null)} />}
       {playing === "border" && <Border onResult={borderEnd} onClose={() => setPlaying(null)} />}
 
       {playing === "scaffold" && (
@@ -2021,8 +1964,19 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         />
       )}
 
+      {playing === "tafl" && (
+        <Tafl
+          onEarn={(n) => {
+            award(n);
+            if (n > 0) setTaflWon(true);
+          }}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+
       {playing === "queen" && (
         <Queen
+          glassWon={taflWon}
           onWon={() => {
             setQueenFaced(true);
             setNote("Four rounds. The Queen has a face. The houses burn — and something in the dark is waiting for its Dealer.");
@@ -2138,7 +2092,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   );
 }
 
-function JesterMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
+function JokerMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }) {
   const lines = short ? JOKER_SHORT : JOKER;
   const [line, setLine] = useState(0);
   const last = line >= lines.length - 1;
@@ -2150,7 +2104,7 @@ function JesterMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }
         type="button"
         onClick={() => (last ? onLeave() : setLine(line + 1))}
       >
-        <b>The Jester</b>
+        <b>Joker</b>
         <video
           className="plate joker-face"
           src="/plates/joker-deals.mp4"
@@ -2159,7 +2113,7 @@ function JesterMeet({ short, onLeave }: { short?: boolean; onLeave: () => void }
           muted
           loop
           playsInline
-          aria-label="The Jester dealing"
+          aria-label="The Joker dealing"
         />
         <p>{lines[line]}</p>
         <i>{last ? "He leaves" : "Click"}</i>

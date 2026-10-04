@@ -198,82 +198,88 @@ body::before {
   outline: 1px solid rgba(212, 179, 106, 0.45);
 }
 
-/* Table view (hall.jpg): the lamp burns top-right; the stock pile sits top-center. */
 .hot-lamp {
-  left: 67%;
-  top: 3%;
-  width: 17%;
-  height: 30%;
+  left: 8%;
+  top: 6%;
+  width: 22%;
+  height: 24%;
 }
 
 .hot-cupboard {
-  left: 2%;
-  top: 46%;
-  width: 32%;
-  height: 42%;
+  left: 0;
+  top: 28%;
+  width: 24%;
+  height: 48%;
 }
 
 .hot-door {
-  right: 2%;
-  top: 8%;
-  width: 26%;
-  height: 77%;
-}
-
-/* Cell view (cell.jpg): the shelf and cup are on the right wall. */
-.hot-shelf {
-  left: 60%;
-  top: 40%;
-  width: 38%;
-  height: 32%;
-}
-
-/* Cell view: the back wall, center — hold the cup up here. */
-.hot-wall {
-  left: 36%;
+  right: 0;
   top: 18%;
-  width: 20%;
-  height: 32%;
+  width: 28%;
+  height: 62%;
 }
 
-/* Table view: the stock pile, top of the table. */
-.hot-deck {
-  left: 23%;
+.hot-shelf {
+  left: 28%;
   top: 22%;
-  width: 15%;
-  height: 12%;
+  width: 44%;
+  height: 40%;
 }
 
-/* Table view: the player's own chair at the near edge (implied, below frame). */
+.hot-wall {
+  right: 0;
+  top: 20%;
+  width: 22%;
+  height: 50%;
+}
+
+.hot-deck {
+  left: 35%;
+  top: 42%;
+  width: 30%;
+  height: 26%;
+}
+
 .hot-chair {
+  left: 40%;
+  top: 74%;
+  width: 20%;
+  height: 22%;
+}
+
+.hot-window {
   left: 38%;
-  top: 82%;
+  top: 6%;
   width: 24%;
+  height: 20%;
+}
+
+.hot-floor {
+  left: 5%;
+  top: 78%;
+  width: 30%;
   height: 18%;
 }
 
-/* Room view (room.jpg): the loose board is under the table. */
-.hot-floor {
-  left: 35%;
-  top: 88%;
-  width: 30%;
-  height: 12%;
+.hot-chains {
+  left: 4%;
+  top: 8%;
+  width: 20%;
+  height: 26%;
 }
 
-/* Cell view: scratch marks, low on the back wall where a prisoner would reach. */
 .hot-scratches {
-  left: 38%;
-  top: 62%;
-  width: 14%;
-  height: 12%;
+  left: 30%;
+  top: 68%;
+  width: 40%;
+  height: 24%;
 }
 
-/* Glass view (glass.jpg): peer by the lamp-light. */
 .hot-glass {
-  left: 25%;
-  top: 13%;
-  width: 12%;
-  height: 40%;
+  left: 20%;
+  top: 15%;
+  width: 60%;
+  height: 70%;
 }
 
 .hot-fire {
@@ -290,20 +296,11 @@ body::before {
   height: 18%;
 }
 
-/* Cell view: a loose stone, low in the back wall where it meets the floor. */
 .hot-stone {
-  left: 48%;
-  top: 70%;
-  width: 14%;
-  height: 16%;
-}
-
-/* The prisoner's game: noughts scratched low on the cell's back wall. */
-.hot-noughts {
-  left: 20%;
-  top: 74%;
-  width: 16%;
-  height: 14%;
+  left: 2%;
+  top: 40%;
+  width: 20%;
+  height: 24%;
 }
 
 /* Myst slice 2: the chapel. */
@@ -347,63 +344,6 @@ body::before {
   top: 22%;
   width: 26%;
   height: 28%;
-}
-
-/* Myst slice 4: the yard. */
-.hot-ystones {
-  left: 8%;
-  top: 30%;
-  width: 50%;
-  height: 40%;
-}
-
-.hot-yfallen {
-  left: 64%;
-  top: 38%;
-  width: 20%;
-  height: 15%;
-}
-
-.hot-ymud {
-  left: 5%;
-  top: 42%;
-  width: 55%;
-  height: 30%;
-}
-
-.hot-ypull {
-  left: 66%;
-  top: 34%;
-  width: 24%;
-  height: 26%;
-}
-
-.hot-ywall {
-  left: 5%;
-  top: 18%;
-  width: 90%;
-  height: 24%;
-}
-
-.hot-ytile0 {
-  left: 18%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
-}
-
-.hot-ytile1 {
-  left: 42.5%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
-}
-
-.hot-ytile2 {
-  left: 67%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
 }
 
 /* From the Dealer's seat, the room is wrong. */
@@ -1022,21 +962,6 @@ body::before {
 
 .sq {
   cursor: pointer;
-}
-
-.sq-go {
-  cursor: pointer;
-}
-
-.sq-shut {
-  cursor: default;
-}
-
-.map-hint {
-  font-size: 12px;
-  font-style: italic;
-  opacity: 0.75;
-  margin: 4px 0 8px;
 }
 
 .close-book.go {
@@ -3284,171 +3209,150 @@ body::before {
   width: auto;
 }
 
-/* ============ Dominoes obsidian bone tiles design ============ */
-
-.dom-chain {
-  position: relative;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 12px 14px;
-  align-items: center;
-  min-height: 88px;
-  border-radius: 12px;
+/* Hnefatafl — the glass game. Dark, lamplit, Norse. */
+.tafl-table {
   background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 100% at 50% 0%, #17352a 0%, #10241c 55%, #0a1812 100%);
-  border: 1px solid rgba(216, 178, 92, 0.4);
-  box-shadow:
-    inset 0 3px 12px rgba(0, 0, 0, 0.75),
-    inset 0 0 46px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(216, 178, 92, 0.14),
-    0 10px 24px rgba(0, 0, 0, 0.45);
+    radial-gradient(ellipse 120% 90% at 70% 20%, rgba(255, 170, 60, 0.10), transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, rgba(0, 0, 0, 0.55), transparent 75%),
+    #14100b;
+  border: 1px solid #3a2c1a;
 }
 
-.dom-chain::before {
+.tafl-rules {
+  position: relative;
+  margin: 12px auto;
+  width: min(460px, calc(100vw - 80px));
+  background: #0d0a07 url("/plates/hnefatafl-setup.jpg") center / cover;
+  border: 2px solid #2c2114;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(255, 150, 50, 0.06);
+}
+
+.tafl-rules::before {
   content: "";
   position: absolute;
-  inset: 4px;
-  border-radius: 8px;
+  inset: 0;
+  background: rgba(8, 5, 2, 0.78);
   pointer-events: none;
-  border: 1px solid rgba(216, 178, 92, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-.dom-tile {
-  display: inline-flex;
-  align-items: stretch;
-  background: linear-gradient(145deg, #261b10 0%, #120c07 100%);
-  border: 1.5px solid #4a3a24;
-  border-radius: 8px;
-  padding: 0;
-  cursor: pointer;
-  flex: 0 0 auto;
-  box-shadow:
-    inset 0 1px 0 rgba(216, 178, 92, 0.22),
-    0 4px 10px rgba(0, 0, 0, 0.5);
-  transition:
-    transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
-    box-shadow 0.18s ease;
+.tafl-rules-text {
+  position: relative;
+  z-index: 1;
+  padding: 28px 24px;
 }
 
-.dom-tile:disabled {
-  cursor: default;
+.tafl-rules-text .table-rule {
+  color: #e8dcc0;
+  text-shadow: 0 1px 3px #000;
 }
 
-.dom-tile.doubles {
-  flex-direction: column;
-  border-color: #d8b25c;
-  box-shadow:
-    inset 0 0 0 1px rgba(216, 178, 92, 0.4),
-    inset 0 1px 0 rgba(216, 178, 92, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
-.dom-hand {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.dom-hand .dom-tile {
-  width: 78px;
-  height: 42px;
-}
-
-.dom-chain .dom-tile {
-  width: 62px;
-  height: 34px;
-}
-
-.dom-hand .dom-tile.doubles {
-  width: 42px;
-  height: 78px;
-}
-
-.dom-chain .dom-tile.doubles {
-  width: 34px;
-  height: 62px;
-}
-
-.dom-half {
-  flex: 1;
+.tafl-board {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  padding: 5px;
-  min-width: 0;
-  min-height: 0;
+  gap: 2px;
+  width: min(420px, calc(100vw - 80px));
+  margin: 12px auto;
+  padding: 10px;
+  background: #0d0a07 url("/plates/hnefatafl.jpg") center / cover;
+  border: 2px solid #2c2114;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(255, 150, 50, 0.06);
 }
 
-.dom-div {
-  flex: 0 0 1px;
-  background: linear-gradient(180deg, rgba(216, 178, 92, 0.2) 0%, #d8b25c 50%, rgba(216, 178, 92, 0.2) 100%);
+/* Dimming veil over the plate so the pieces read. */
+.tafl-board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 5, 2, 0.74);
+  pointer-events: none;
 }
 
-.dom-tile.doubles .dom-div {
-  flex: 0 0 1px;
-  background: linear-gradient(90deg, rgba(216, 178, 92, 0.2) 0%, #d8b25c 50%, rgba(216, 178, 92, 0.2) 100%);
+.tafl-sq {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  background: rgba(27, 20, 13, 0.55);
+  cursor: pointer;
 }
 
-.dom-pip {
-  width: 6px;
-  height: 6px;
+.tafl-sq:nth-child(odd) {
+  background: rgba(23, 16, 9, 0.55);
+}
+
+.tafl-sq.throne {
+  background: radial-gradient(circle, rgba(58, 42, 18, 0.8) 0%, rgba(27, 20, 13, 0.55) 70%);
+  box-shadow: inset 0 0 0 1px #6b5322;
+}
+
+.tafl-sq.edge {
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.25);
+}
+
+.tafl-sq.sel {
+  box-shadow: inset 0 0 0 2px #d4af37;
+}
+
+.tafl-sq.target {
+  cursor: pointer;
+}
+
+.tafl-sq.last {
+  box-shadow: inset 0 0 12px rgba(255, 150, 50, 0.25);
+}
+
+.tafl-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22%;
+  height: 22%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f4dc9a 0%, #d8b25c 60%, #a8823c 100%);
-  place-self: center;
-  box-shadow:
-    0 0 5px rgba(216, 178, 92, 0.75),
-    inset 0 1px 1px rgba(0, 0, 0, 0.5);
+  background: rgba(212, 175, 55, 0.5);
 }
 
-.dom-tile.playable {
-  border-color: #d8b25c;
-  box-shadow:
-    0 0 0 1px #d8b25c,
-    0 0 12px rgba(216, 178, 92, 0.45),
-    0 6px 14px rgba(0, 0, 0, 0.6);
-  transform: translateY(-4px);
-}
-
-.dom-tile.playable:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 0 0 2px #f4dc9a,
-    0 0 18px rgba(216, 178, 92, 0.6),
-    0 8px 18px rgba(0, 0, 0, 0.7);
-}
-
-.dom-tile.dim {
-  opacity: 0.35;
-}
-
-.dom-ends {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  color: #efe2c8;
-  font-size: 15px;
-  margin: 4px 0;
-}
-
-.dom-endbadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+.tafl-piece {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 72%;
+  height: 72%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: linear-gradient(180deg, #f4dc9a 0%, #d8b25c 45%, #8a6a2c 85%, #5c451a 100%);
-  color: #1a1207;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 244, 210, 0.65),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.tafl-piece.bone {
+  background: radial-gradient(circle at 35% 30%, #e8dcc0, #b8a67e 55%, #7a6a4a);
+  border: 1px solid #4a3d28;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.tafl-piece.iron {
+  background: radial-gradient(circle at 35% 30%, #5a5a62, #2c2c33 55%, #121216);
+  border: 1px solid #000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.tafl-piece.king {
+  width: 84%;
+  height: 84%;
+  background: radial-gradient(circle at 35% 30%, #f4ead0, #c4b48a 50%, #8a7a58);
+  border: 2px solid #6b5322;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.35), 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.tafl-piece.king::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  height: 34%;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(to right, transparent 42%, #4a3d28 42%, #4a3d28 58%, transparent 58%),
+    linear-gradient(to bottom, transparent 42%, #4a3d28 42%, #4a3d28 58%, transparent 58%);
 }
