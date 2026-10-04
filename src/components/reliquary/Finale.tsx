@@ -170,10 +170,10 @@ export function Finale({
       </p>
       {won ? (
         <>
-          <p className="table-end">All four suits are home. The houses burn. Something is opening.</p>
+          <p className="table-end">All four suits are home. The chair is waiting.</p>
           <div className="table-row">
             <button type="button" className="close-book go" onClick={onWin}>
-              Open it
+              Sit back down
             </button>
           </div>
         </>

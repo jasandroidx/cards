@@ -303,9 +303,11 @@ test("vercel Host without a public hostname emits no og:image", () => {
 });
 
 test("emits og:image for a public host and prefers a custom card", () => {
+  const empty = mkdtempSync(join(tmpdir(), "grok-og-ph-"));
   const placeholder = injectGrokPwaHead("<html><head></head></html>", {
     appName: "Wild Race",
     host: "wild-race.grok.me",
+    cwd: empty,
     site: { title: "Wild Race" },
   });
   assert.match(
@@ -324,8 +326,10 @@ test("emits og:image for a public host and prefers a custom card", () => {
 });
 
 test("placeholder og:image appends site.color when it is 6-digit hex", () => {
+  const empty = mkdtempSync(join(tmpdir(), "grok-og-color-"));
   const themed = injectGrokPwaHead("<html><head></head></html>", {
     host: "wild-race.grok.me",
+    cwd: empty,
     site: { title: "Wild Race", color: "#FF4D2E" },
   });
   assert.match(
@@ -335,6 +339,7 @@ test("placeholder og:image appends site.color when it is 6-digit hex", () => {
 
   const invalid = injectGrokPwaHead("<html><head></head></html>", {
     host: "wild-race.grok.me",
+    cwd: empty,
     site: { title: "Wild Race", color: "red" },
   });
   assert.doesNotMatch(invalid, /color=/);

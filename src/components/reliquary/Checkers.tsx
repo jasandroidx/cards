@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
 const CHK_CSS = `
@@ -218,13 +217,10 @@ function moveToken(tokens: Token[], step: Step, board: Board): Token[] {
 
 export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   const [board, setBoard] = useState<Board>(startBoard);
-  // Onboarding nudge: claimed once on mount; while held, the house moves
-  // blind instead of searching.
-  const [nudged] = useState(() => takeFirstGameNudge());
   const [tokens, setTokens] = useState<Token[]>(() => tokensFrom(startBoard()));
   const [selected, setSelected] = useState<Sq | null>(null);
   const [lock, setLock] = useState<Sq | null>(null);
-  const [note, setNote] = useState("You are red, at the bottom. First to three captures takes the poker chip.");
+  const [note, setNote] = useState("You are red, at the bottom. First to three captures takes the mark.");
   const [over, setOver] = useState(false);
   const [air, setAir] = useState<{ r: number; c: number; jump: boolean } | null>(null);
   const [ghosts, setGhosts] = useState<{ id: number; r: number; c: number; you: boolean }[]>([]);
@@ -247,7 +243,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
     setOver(true);
     setSelected(null);
     setLock(null);
-    setNote(won ? "Three of theirs are gone. One poker chip." : "They took three of yours. No poker chip.");
+    setNote(won ? "Three of theirs are gone. One mark." : "They took three of yours. No mark.");
     if (!paid.current) {
       paid.current = true;
       onEarn(won ? 1 : 0);
@@ -293,11 +289,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
   }
 
   function runCpu(from: Board) {
-    let turn = cpuTurn(from);
-    if (nudged) {
-      const options = turns(from, -1);
-      if (options.length > 0) turn = options[Math.floor(Math.random() * options.length)] ?? null;
-    }
+    const turn = cpuTurn(from);
     if (!turn) {
       busy.current = false;
       finish(true);

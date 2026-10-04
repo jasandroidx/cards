@@ -20,144 +20,17 @@ import { bankTick, lossSound } from "@/lib/reliquary/atmosphere";
 const SEATS = ["You", "Left", "Partner", "Right"];
 
 const EUCHRE_CSS = `
-/* Felt zones for upcard and trick pile area */
-.euch-upcard-zone {
-  position: relative;
-  padding: 18px 20px;
-  border-radius: 10px;
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 110% 90% at 50% 10%, #142e24 0%, var(--pit-felt, #10241c) 65%, #08120e 100%);
-  border: 1px solid rgba(216, 178, 92, 0.35);
-  box-shadow:
-    inset 0 3px 12px rgba(0, 0, 0, 0.75),
-    inset 0 0 32px rgba(0, 0, 0, 0.55),
-    0 8px 22px rgba(0, 0, 0, 0.45);
-}
-.euch-upcard-zone::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 7px;
-  pointer-events: none;
-  border: 1px solid rgba(216, 178, 92, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-.euch-trick-felt {
-  position: relative;
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin: 10px 0 16px;
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 100% at 50% 20%, #12281f 0%, var(--pit-felt, #10241c) 60%, #08120e 100%);
-  border: 1px solid rgba(216, 178, 92, 0.35);
-  box-shadow:
-    inset 0 3px 14px rgba(0, 0, 0, 0.75),
-    inset 0 0 36px rgba(0, 0, 0, 0.6),
-    0 8px 22px rgba(0, 0, 0, 0.45);
-}
-.euch-trick-felt::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border-radius: 7px;
-  pointer-events: none;
-  border: 1px solid rgba(216, 178, 92, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-/* Brass trump indicator badge */
-.euch-brass-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 18px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(244, 220, 154, 0.12) 0%, rgba(138, 106, 44, 0.08) 100%),
-    linear-gradient(180deg, #3a2e1b 0%, #22180c 50%, #120b04 100%);
-  border: 1px solid #d8b25c;
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 244, 210, 0.35),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
-    0 0 14px rgba(216, 178, 92, 0.2);
-}
-.euch-brass-trump {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #f4dc9a;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-}
-.euch-brass-trump i {
-  font-style: normal;
-  font-size: 20px;
-  line-height: 1;
-  color: #f4dc9a;
-  filter: drop-shadow(0 0 4px rgba(216, 178, 92, 0.5));
-}
-.euch-brass-trump i.red {
-  color: #e04a3d;
-  filter: drop-shadow(0 0 4px rgba(224, 74, 61, 0.5));
-}
-.euch-brass-scores {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-  color: #e7dcc8;
-}
-.euch-brass-scores strong {
-  color: #f4dc9a;
-  font-weight: 600;
-}
-
-/* Weighty trick pile and card placement */
-.euch-trick { position: relative; display: flex; gap: 12px; align-items: flex-end; justify-content: center; min-height: 150px; padding: 10px 0; }
-.euch-trick .card {
-  box-shadow:
-    0 14px 22px rgba(0, 0, 0, 0.65),
-    0 4px 8px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-.euch-play { display: flex; flex-direction: column; align-items: center; gap: 6px; animation: euch-land 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) backwards; }
-.euch-play > span {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #d8b25c;
-}
+.euch-trick { position: relative; display: flex; gap: 10px; align-items: flex-end; justify-content: center; min-height: 150px; padding: 10px 0; }
+.euch-play { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: euch-land 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) backwards; }
+.euch-play > span { font-size: 12px; color: #b09a72; }
 @keyframes euch-land {
-  0% { transform: translateY(-26px) scale(1.18) rotate(-2deg); filter: brightness(1.6); opacity: 0; }
-  60% { transform: translateY(2px) scale(0.97) rotate(0.5deg); filter: brightness(1.05); opacity: 1; }
-  100% { transform: translateY(0) scale(1) rotate(0deg); filter: brightness(1); opacity: 1; }
+  0% { transform: scale(1.22); filter: brightness(1.7); }
+  60% { transform: scale(0.96); filter: brightness(1); }
+  100% { transform: scale(1); }
 }
-.euch-play.winning .card {
-  border-color: #d8b25c;
-  box-shadow:
-    0 14px 22px rgba(0, 0, 0, 0.65),
-    0 0 18px rgba(216, 178, 92, 0.65),
-    inset 0 0 0 1px rgba(216, 178, 92, 0.5);
-}
+.euch-play.winning .card { border-color: #d8b25c; box-shadow: 0 0 12px rgba(216, 178, 92, 0.55); }
 .euch-sweep { display: flex; justify-content: center; }
-.euch-sweep .euch-cards { display: flex; gap: 12px; animation: euch-sweep-away 0.45s ease-in forwards; animation-delay: 0.7s; }
+.euch-sweep .euch-cards { display: flex; gap: 10px; animation: euch-sweep-away 0.45s ease-in forwards; animation-delay: 0.7s; }
 .euch-sweep.to-you .euch-cards { --sweep-y: 80px; }
 .euch-sweep.to-them .euch-cards { --sweep-y: -80px; }
 @keyframes euch-sweep-away {
@@ -165,9 +38,8 @@ const EUCHRE_CSS = `
 }
 .euch-deal-card { animation: euch-deal-in 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards; }
 @keyframes euch-deal-in {
-  0% { opacity: 0; transform: translateY(40px) rotate(4deg) scale(0.92); }
-  60% { transform: translateY(-3px) rotate(-1deg) scale(1.02); }
-  100% { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translateY(30px) rotate(3deg); }
+  to { opacity: 1; transform: none; }
 }
 .table.euchre { position: relative; }
 .euch-trump-flash { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(10, 6, 3, 0.88); border-radius: 6px; }
@@ -315,7 +187,7 @@ export function Euchre({
             </div>
           )}
           {!hand && (
-            <div className="felt euch-upcard-zone">
+            <div className="felt">
               <div className="lamp">
                 <CardFace card={deal.upcard} />
                 <span>The upcard</span>
@@ -332,43 +204,36 @@ export function Euchre({
           )}
           {hand && (
             <>
-              <div className="euch-brass-indicator">
-                <span className="euch-brass-trump">
-                  Trump <i className={isRed(hand.trump) ? "red" : ""}>{suitMark(hand.trump)}</i>
-                </span>
-                <span className="euch-brass-scores">
-                  Your side <strong>{hand.yourTricks}</strong> · Theirs <strong>{hand.theirTricks}</strong>
-                </span>
-              </div>
-              <div className="euch-trick-felt">
-                <div className="euch-trick">
-                  {sweep ? (
-                    <div className={`euch-sweep ${sweep.yourSide ? "to-you" : "to-them"}`}>
-                      <div className="euch-cards">
-                        {sweep.trick.map((p) => (
-                          <div key={p.card.id} className={`euch-play${p.seat === sweepWin ? " winning" : ""}`}>
-                            <CardFace card={p.card} />
-                            <span>{SEATS[p.seat]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {hand.trick.map((p, i) => (
-                        <div
-                          key={p.card.id}
-                          className={`euch-play${p.seat === winSeat ? " winning" : ""}`}
-                          style={{ animationDelay: `${i * 90}ms` }}
-                        >
+              <p className="table-rule">
+                Trump {suitMark(hand.trump)} · Your side {hand.yourTricks} · Theirs {hand.theirTricks}
+              </p>
+              <div className="euch-trick">
+                {sweep ? (
+                  <div className={`euch-sweep ${sweep.yourSide ? "to-you" : "to-them"}`}>
+                    <div className="euch-cards">
+                      {sweep.trick.map((p) => (
+                        <div key={p.card.id} className={`euch-play${p.seat === sweepWin ? " winning" : ""}`}>
                           <CardFace card={p.card} />
                           <span>{SEATS[p.seat]}</span>
                         </div>
                       ))}
-                      {hand.trick.length === 0 && <span className="table-rule">Lead.</span>}
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {hand.trick.map((p, i) => (
+                      <div
+                        key={p.card.id}
+                        className={`euch-play${p.seat === winSeat ? " winning" : ""}`}
+                        style={{ animationDelay: `${i * 90}ms` }}
+                      >
+                        <CardFace card={p.card} />
+                        <span>{SEATS[p.seat]}</span>
+                      </div>
+                    ))}
+                    {hand.trick.length === 0 && <span className="table-rule">Lead.</span>}
+                  </>
+                )}
               </div>
               <div className="hand">
                 {(hand.hands[0] ?? []).map((card, index) => {
@@ -396,7 +261,7 @@ export function Euchre({
                         ? "A march. Three marks."
                         : "Made. Two marks."}
                   </p>
-                  <button type="button" className="close-book go" onClick={again}>
+                  <button type="button" className="close-book go" onClick={() => again}>
                     Deal again
                   </button>
                 </div>

@@ -3,16 +3,15 @@
  * walk does not restart and the player does not advance. Pure rules only.
  */
 
-export type KingCall = "passed" | "card" | "empty";
+export type KingCall = "passed" | "card" | "roll";
 
 /**
  * One die. Even, you stepped past him and stay where you are. Odd, he takes
- * a card out of your hand — or, with an empty hand, your light, or nothing
- * but his laughter.
+ * a card out of your hand, or, with an empty hand, the next roll instead.
  */
 export function kingCalls(die: number, hasCard: boolean): KingCall {
   if (die % 2 === 0) return "passed";
-  return hasCard ? "card" : "empty";
+  return hasCard ? "card" : "roll";
 }
 
 /** The die is one through six. Anything else is not a die. */

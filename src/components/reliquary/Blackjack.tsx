@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { isRed, suitMark, type Suit } from "@/lib/reliquary/euchre";
 import { bankTick } from "@/lib/reliquary/atmosphere";
 
@@ -109,13 +108,6 @@ export function Blackjack({ onEarn }: { onEarn: (n: number) => void }) {
 
   function newHand() {
     deckRef.current = buildDeck();
-    // Onboarding nudge: the first table game of the session opens with a
-    // blackjack for the player. The deck is drawn from the end.
-    if (takeFirstGameNudge()) {
-      const d = deckRef.current;
-      d[d.length - 1] = { rank: 14, suit: "spades" };
-      d[d.length - 2] = { rank: 13, suit: "hearts" };
-    }
     const p = [draw(), draw()];
     const d = [draw(), draw()];
     setPlayer(p);
@@ -192,44 +184,42 @@ export function Blackjack({ onEarn }: { onEarn: (n: number) => void }) {
   const dv = handValue(dealer);
 
   return (
-    <div className="felt bj-table">
-      <p className="table-rule bj-rule">
+    <div className="felt">
+      <p className="table-rule">
         Blackjack against the house. Hit or stand. The house draws to seventeen and stands on all seventeens.
         First to three hands takes a mark.
       </p>
-      <p className="table-end bj-score">
+      <p className="table-end">
         You {youHands} — the house {houseHands}
       </p>
-      <div className="table-row bj-dealer-zone" style={{ alignItems: "flex-start" }}>
-        <div style={{ width: "100%" }}>
-          <div className="dice-pit-label bj-kicker">HOUSE</div>
-          <div className="table-row bj-cards">
+      <div className="table-row" style={{ alignItems: "flex-start" }}>
+        <div>
+          <div className="table-row">
             {dealer.map((c, i) => (
               <CardFace key={`${i}-${i === 1 && !revealed ? "down" : "up"}`} card={c} down={i === 1 && !revealed} index={i} />
             ))}
           </div>
-          <span className="bj-label">The house{revealed ? ` · ${dv}` : ""}</span>
+          <span>The house{revealed ? ` · ${dv}` : ""}</span>
         </div>
       </div>
-      <div className="table-row bj-player-zone" style={{ alignItems: "flex-start" }}>
-        <div style={{ width: "100%" }}>
-          <div className="dice-pit-label bj-kicker bj-player-kicker">YOU</div>
-          <div className="table-row bj-cards">
+      <div className="table-row" style={{ alignItems: "flex-start" }}>
+        <div>
+          <div className="table-row">
             {player.map((c, i) => (
               <CardFace key={i} card={c} index={i} />
             ))}
           </div>
-          <span className="bj-label">You · {pv}</span>
+          <span>You · {pv}</span>
         </div>
       </div>
-      {note && <p className="table-end bj-note">{note}</p>}
+      {note && <p className="table-end">{note}</p>}
       {over && (
-        <p className="table-end bj-over">
+        <p className="table-end">
           {over === "you" ? "You take the match. One mark." : "The house takes the match. Nothing for the purse."}
         </p>
       )}
       {phase === "player" && !over && (
-        <div className="table-row bj-actions">
+        <div className="table-row">
           <button type="button" className="close-book go" onClick={hit}>
             Hit
           </button>

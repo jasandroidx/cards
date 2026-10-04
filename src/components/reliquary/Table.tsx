@@ -13,13 +13,11 @@ import {
   type Gate,
   type Mode,
 } from "@/lib/reliquary/sitting";
-import { takeFirstGameNudge } from "@/lib/reliquary/onboarding";
 import { Box } from "@/components/reliquary/Box";
 import { Farkle, GoFish, LiarsDice } from "@/components/reliquary/Quick";
 import { mawApproach } from "@/lib/reliquary/death";
 import { MAX_LIGHT } from "@/lib/reliquary/light";
-import { Four } from "@/components/reliquary/Sides";
-import { Darts } from "@/components/reliquary/PhaserDarts";
+import { Darts, Four } from "@/components/reliquary/Sides";
 import { Blackjack } from "@/components/reliquary/Blackjack";
 import { Dominoes } from "@/components/reliquary/Dominoes";
 import { Checkers } from "@/components/reliquary/Checkers";
@@ -30,7 +28,7 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   lamp: {
     kicker: "The hall",
     title: "The lamp",
-    rule: "Play onto the pile. Match the suit, match the number, or play one higher. Four cards earns a poker chip. A poker chip is this place agreeing to let you through.",
+    rule: "Play onto the pile. Match the suit, match the number, or play one higher. Four cards earns a mark. A mark is this place agreeing to let you through.",
   },
   cut: {
     kicker: "The chapel",
@@ -45,14 +43,13 @@ const COPY: Record<Mode, { kicker: string; title: string; rule: string }> = {
   maw: {
     kicker: "In the road",
     title: "The Maw",
-    rule: "It loves poker chips. Bring one, or don't come close. Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a poker chip.",
+    rule: "It loves poker chips. Bring one, or don't come close. Five tricks. Beat its card with a higher one. An ace is high. Win three, and it moves. Lose, and it takes a mark.",
   },
 };
 
 export function Table({
   mode,
   marks,
-  displayMarks,
   owned,
   mawBeaten,
   pocket,
@@ -73,7 +70,6 @@ export function Table({
 }: {
   mode: Mode;
   marks: number;
-  displayMarks: number;
   owned: string[];
   mawBeaten: boolean;
   pocket: string[];
@@ -129,7 +125,7 @@ export function Table({
             <Sequence mode={mode} onEarn={onEarn} onSour={joltTable} />
           )}
           <div className="table-row">
-            <strong>{displayMarks} poker chip{displayMarks === 1 ? "" : "s"}</strong>
+            <strong>{marks} marks</strong>
             <button type="button" className="close-book" onClick={onClose}>
               Stand up
             </button>
@@ -141,7 +137,7 @@ export function Table({
             <>
               <h3>{gate.name}</h3>
               <p>
-                You have {marks}. {gate.opens} stays shut until you pay {gate.cost} {gate.cost === 1 ? "poker chip" : "poker chips"}.
+                You have {marks}. {gate.opens} stays shut until you pay {gate.cost} {gate.cost === 1 ? "mark" : "marks"}.
               </p>
               <button type="button" className="close-book go" disabled={!afford} onClick={() => onBuy(gate)}>
                 {afford ? "Buy it" : "Not enough"}
@@ -155,7 +151,7 @@ export function Table({
           ) : mawBeaten ? (
             <p>The road is open. The reliquary will take you.</p>
           ) : (
-            <p>Past the yard, something is in the road. It loves poker chips. Yours will not move it.</p>
+            <p>Past the yard, something is in the road. It loves poker chips. Marks will not move it.</p>
           )}
         </div>
       </div>
@@ -187,7 +183,7 @@ function HallSeat({ onEarn, onSat, onKeep }: { onEarn: (n: number) => void; onSa
   }
 
   if (out) {
-    return <p className="table-end">The lamp went out. The hand is gone, and it took a poker chip.</p>;
+    return <p className="table-end">The lamp went out. The hand is gone, and it took a mark.</p>;
   }
 
   return (
@@ -281,12 +277,7 @@ function Sequence({ mode, onEarn, onSour }: { mode: "lamp" | "cut"; onEarn: (n: 
   const legal = mode === "cut" ? canCut : canPlay;
   const pay = mode === "cut" ? cutMarks : marksFor;
   const [sitting, setSitting] = useState(() => {
-    let deck = shuffleDeck();
-    // Onboarding nudge: the first table game of the session opens with no
-    // sour seven in hand, so the first win is never an instant loss.
-    if (takeFirstGameNudge()) {
-      while (deck.slice(0, 3).some(isSour)) deck = shuffleDeck();
-    }
+    const deck = shuffleDeck();
     return {
       deck: deck.slice(3),
       hand: deck.slice(0, 3),
@@ -321,7 +312,7 @@ function Sequence({ mode, onEarn, onSour }: { mode: "lamp" | "cut"; onEarn: (n: 
   return (
     <>
       <div className="felt">
-        <img className="plate" src="/plates/card-table.jpg" alt="The lamp table" />
+        <img className="plate" src="/hand.jpg" alt="" />
         <div className="lamp">
           {sitting.top ? (
             <div key={sitting.top.id} className="deal-wrap">
@@ -455,11 +446,9 @@ function MawApproach({
   if (mawApproach(pocket) === "plays") {
     return (
       <>
-        <img className="plate" src="/plates/claw.jpg" alt="A black claw over the cards" />
         <p className="table-rule">
-          Flesh of cards. Bone of dice. The Maw. It was the Queen's royal guard, before the rot took
-          its face. It does not want poker chips — it wants the ante. You hold the poker chip out. It takes
-          it gently, for something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
+          It is hungry, but it loves poker chips more. You hold yours out. It takes it — gently, for
+          something with that many teeth. Your candle: {light > 0 ? `${light} wax` : "out"}. It burns
           one a trick.
         </p>
         <div className="table-row">
@@ -570,7 +559,7 @@ function Maw({
           {forfeited.current
             ? "The candle gutters. It loses interest."
             : state.passed
-              ? "It moves. Three poker chips, and the road past it can be bought."
+              ? "It moves. Three marks, and the road past it can be bought."
               : "It does not move."}
         </p>
       )}
@@ -590,7 +579,7 @@ function End({ payout, again, sour = false }: { payout: number; again: () => voi
   return (
     <div className="table-row">
       <p className="table-end">
-        {sour ? "The seven of spades. The lamp puts the hand out." : payout === 0 ? "Nothing for the purse." : `${payout} poker chip${payout === 1 ? "" : "s"}.`}
+        {sour ? "The seven of spades. The lamp puts the hand out." : payout === 0 ? "Nothing for the purse." : `${payout} mark${payout === 1 ? "" : "s"}.`}
       </p>
       <button type="button" className="close-book go" onClick={again}>
         Deal again

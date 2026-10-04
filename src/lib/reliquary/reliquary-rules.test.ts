@@ -50,10 +50,10 @@ describe("the king on one square", () => {
     }
   });
 
-  it("takes a card on an odd die, or finds the hand empty", () => {
+  it("takes a card on an odd die, or the next roll when the hand is empty", () => {
     for (const die of [1, 3, 5]) {
       assert.equal(kingCalls(die, true), "card");
-      assert.equal(kingCalls(die, false), "empty");
+      assert.equal(kingCalls(die, false), "roll");
       assert.equal(kingSpares(die), false);
     }
   });

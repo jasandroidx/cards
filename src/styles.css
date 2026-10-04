@@ -50,128 +50,6 @@ body::before {
   inset: 0;
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
-  animation: vignette-breathe 7s ease-in-out infinite;
-}
-
-@keyframes vignette-breathe {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-
-/* The scene itself breathes — a very slow push inward. */
-.scene-img {
-  animation: myst-in 1.1s ease, scene-breathe 24s ease-in-out infinite;
-}
-
-@keyframes scene-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.035); }
-}
-
-/* Drifting fog. */
-.scene-fog {
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 40% 22% at 20% 70%, rgba(160, 160, 170, 0.05), transparent 70%),
-    radial-gradient(ellipse 34% 18% at 75% 60%, rgba(160, 160, 170, 0.04), transparent 70%),
-    radial-gradient(ellipse 28% 15% at 50% 80%, rgba(160, 160, 170, 0.05), transparent 70%);
-  animation: fog-drift 38s ease-in-out infinite alternate;
-}
-
-@keyframes fog-drift {
-  0% { transform: translateX(-4%); }
-  100% { transform: translateX(4%); }
-}
-
-/* When the candle gutters out, the dark is total — except for eyes. */
-.scene.guttered .scene-img {
-  filter: brightness(0.25) saturate(0.6);
-}
-.scene.guttered .scene-vignette {
-  background: radial-gradient(ellipse at center, transparent 18%, rgba(0, 0, 0, 0.92) 100%);
-}
-.gutter-eyes {
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  font-size: 26px;
-  letter-spacing: 0.6em;
-  color: #d4af37;
-  opacity: 0;
-  animation: eyes-blink 9s ease-in-out infinite;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
-}
-@keyframes eyes-blink {
-  0%, 88%, 100% { opacity: 0; }
-  91%, 95% { opacity: 0.85; }
-}
-
-/* Whispers fade in and out of the caption. */
-.whisper {
-  display: block;
-  margin-top: 6px;
-  font-style: italic;
-  color: #9a8a6a;
-  animation: whisper-in 8s ease forwards;
-}
-@keyframes whisper-in {
-  0% { opacity: 0; }
-  15% { opacity: 1; }
-  75% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* The Joker visits. */
-.joker-visit {
-  position: absolute;
-  z-index: 4;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
-  animation: joker-flicker 0.9s ease-in-out infinite;
-}
-
-.joker-sigil {
-  display: inline-block;
-  width: 34px;
-  height: 34px;
-  line-height: 32px;
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: #d4af37;
-  border: 1px solid rgba(212, 175, 55, 0.7);
-  border-radius: 50%;
-  background: rgba(10, 8, 5, 0.8);
-  transform: rotate(-8deg);
-}
-@keyframes joker-flicker {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
-}
-
-/* The Joker's face. */
-.joker-face {
-  margin: 4px 0 18px;
-  height: 240px;
-  border: 3px solid #1a1410;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-  filter: sepia(0.25) contrast(1.05);
-}
-
-.joker-visit-img {
-  display: block;
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  object-position: top;
-  border-radius: 50%;
-  border: 1px solid rgba(212, 175, 55, 0.7);
 }
 
 .scene.warm .scene-img {
@@ -198,230 +76,39 @@ body::before {
   outline: 1px solid rgba(212, 179, 106, 0.45);
 }
 
-/* Table view (hall.jpg): the lamp burns top-right; the stock pile sits top-center. */
 .hot-lamp {
-  left: 67%;
-  top: 3%;
-  width: 17%;
-  height: 30%;
-}
-
-.hot-cupboard {
-  left: 2%;
-  top: 46%;
-  width: 32%;
-  height: 42%;
-}
-
-.hot-door {
-  right: 2%;
-  top: 8%;
-  width: 26%;
-  height: 77%;
-}
-
-/* Cell view (cell.jpg): the shelf and cup are on the right wall. */
-.hot-shelf {
-  left: 60%;
-  top: 40%;
-  width: 38%;
-  height: 32%;
-}
-
-/* Cell view: the back wall, center — hold the cup up here. */
-.hot-wall {
-  left: 36%;
-  top: 18%;
-  width: 20%;
-  height: 32%;
-}
-
-/* Table view: the stock pile, top of the table. */
-.hot-deck {
-  left: 23%;
-  top: 22%;
-  width: 15%;
-  height: 12%;
-}
-
-/* Table view: the player's own chair at the near edge (implied, below frame). */
-.hot-chair {
-  left: 38%;
-  top: 82%;
-  width: 24%;
-  height: 18%;
-}
-
-/* Room view (room.jpg): the loose board is under the table. */
-.hot-floor {
-  left: 35%;
-  top: 88%;
-  width: 30%;
-  height: 12%;
-}
-
-/* Cell view: scratch marks, low on the back wall where a prisoner would reach. */
-.hot-scratches {
-  left: 38%;
-  top: 62%;
-  width: 14%;
-  height: 12%;
-}
-
-/* Glass view (glass.jpg): peer by the lamp-light. */
-.hot-glass {
-  left: 25%;
-  top: 13%;
-  width: 12%;
-  height: 40%;
-}
-
-.hot-fire {
-  left: 30%;
-  top: 55%;
-  width: 40%;
-  height: 40%;
-}
-
-.hot-ash {
-  left: 2%;
-  top: 78%;
-  width: 26%;
-  height: 18%;
-}
-
-/* Cell view: a loose stone, low in the back wall where it meets the floor. */
-.hot-stone {
-  left: 48%;
-  top: 70%;
-  width: 14%;
-  height: 16%;
-}
-
-/* The prisoner's game: noughts scratched low on the cell's back wall. */
-.hot-noughts {
-  left: 20%;
-  top: 74%;
-  width: 16%;
-  height: 14%;
-}
-
-/* Myst slice 2: the chapel. */
-.hot-chdice {
-  left: 12%;
-  top: 38%;
-  width: 48%;
-  height: 32%;
-}
-
-.hot-chfire {
-  left: 62%;
-  top: 12%;
-  width: 33%;
-  height: 65%;
-}
-
-.hot-chbook {
-  left: 30%;
-  top: 72%;
-  width: 24%;
-  height: 20%;
-}
-
-.hot-chpews {
-  left: 4%;
-  top: 52%;
-  width: 42%;
-  height: 18%;
-}
-
-.hot-chbowl {
-  left: 36%;
-  top: 74%;
-  width: 28%;
-  height: 20%;
-}
-
-.hot-chniche {
-  left: 38%;
-  top: 22%;
-  width: 26%;
-  height: 28%;
-}
-
-/* Myst slice 4: the yard. */
-.hot-ystones {
   left: 8%;
-  top: 30%;
-  width: 50%;
-  height: 40%;
-}
-
-.hot-yfallen {
-  left: 64%;
-  top: 38%;
-  width: 20%;
-  height: 15%;
-}
-
-.hot-ymud {
-  left: 5%;
-  top: 42%;
-  width: 55%;
-  height: 30%;
-}
-
-.hot-ypull {
-  left: 66%;
-  top: 34%;
-  width: 24%;
-  height: 26%;
-}
-
-.hot-ywall {
-  left: 5%;
-  top: 18%;
-  width: 90%;
+  top: 6%;
+  width: 22%;
   height: 24%;
 }
 
-.hot-ytile0 {
-  left: 18%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
+.hot-cupboard {
+  left: 0;
+  top: 28%;
+  width: 24%;
+  height: 48%;
 }
 
-.hot-ytile1 {
-  left: 42.5%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
+.hot-door {
+  right: 0;
+  top: 18%;
+  width: 28%;
+  height: 62%;
 }
 
-.hot-ytile2 {
-  left: 67%;
-  top: 46%;
-  width: 15%;
-  height: 18%;
+.hot-shelf {
+  left: 28%;
+  top: 22%;
+  width: 44%;
+  height: 40%;
 }
 
-/* From the Dealer's seat, the room is wrong. */
-.scene.seated .scene-img {
-  filter: saturate(0.65) brightness(0.82);
-}
-
-/* The grave on square 0 — a stone the road remembers. */
-.hot-grave {
-  left: 64%;
-  top: 58%;
-  width: 14%;
-  height: 26%;
-  background-image: url("/plates/graveyard.jpg");
-  background-size: cover;
-  background-position: center;
-  border: 1px solid rgba(20, 16, 12, 0.9);
-  border-radius: 45% 45% 4px 4px;
+.hot-wall {
+  right: 0;
+  top: 20%;
+  width: 22%;
+  height: 50%;
 }
 
 .pad {
@@ -613,15 +300,6 @@ body::before {
   padding: 14px 24px 12px;
   border-color: #d8b25c;
   box-shadow: 0 0 22px rgba(216, 178, 92, 0.35);
-}
-
-/* Beckon: the primary action pulses until the first mark is earned. */
-.book-btn.primary.beckon {
-  animation: beckon-pulse 2.2s ease-in-out infinite;
-}
-@keyframes beckon-pulse {
-  0%, 100% { box-shadow: 0 0 22px rgba(216, 178, 92, 0.35); }
-  50% { box-shadow: 0 0 44px rgba(216, 178, 92, 0.75); }
 }
 
 .dice-line {
@@ -1024,21 +702,6 @@ body::before {
   cursor: pointer;
 }
 
-.sq-go {
-  cursor: pointer;
-}
-
-.sq-shut {
-  cursor: default;
-}
-
-.map-hint {
-  font-size: 12px;
-  font-style: italic;
-  opacity: 0.75;
-  margin: 4px 0 8px;
-}
-
 .close-book.go {
   display: block;
   margin-top: 22px;
@@ -1179,13 +842,12 @@ body::before {
 }
 
 .dartboard {
-  width: min(290px, 72vw);
+  width: min(280px, 70vw);
   height: auto;
   cursor: crosshair;
   display: block;
-  margin: 0;
-  border-radius: 50%;
-  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.75));
+  margin: 8px 0;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.45));
 }
 
 .dartboard .hit {
@@ -1196,19 +858,10 @@ body::before {
   display: grid;
   grid-template-columns: repeat(7, 36px);
   gap: 6px;
-  margin: 8px auto;
-  padding: 8px;
-  background:
-    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 10px),
-    linear-gradient(160deg, #3d2a1a 0%, #21150c 55%, #120a05 100%);
-  border: 10px solid #140d08;
-  outline: 1px solid rgba(216, 178, 92, 0.45);
-  outline-offset: -5px;
-  border-radius: 12px;
-  box-shadow:
-    inset 0 3px 12px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 1px rgba(216, 178, 92, 0.25),
-    0 18px 40px rgba(0, 0, 0, 0.7);
+  margin: 8px 0;
+  padding: 10px;
+  background: #10241c;
+  border: 8px solid #1a1410;
 }
 
 .disc {
@@ -1216,34 +869,24 @@ body::before {
   height: 36px;
   border-radius: 50%;
   border: 0;
-  background: radial-gradient(circle at 50% 50%, #0d1e17 0%, #08120e 100%);
-  box-shadow:
-    inset 0 3px 6px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
-    inset 0 -1px 1px rgba(216, 178, 92, 0.15);
+  background: #0c1612;
+  box-shadow: inset 0 0 0 2px #1a2820;
 }
 
 .disc.you,
 .disc.them {
   animation: disc-drop 0.32s cubic-bezier(0.15, 0.85, 0.2, 1);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.28),
+    0 4px 6px rgba(0, 0, 0, 0.45);
 }
 
 .disc.you {
-  background: radial-gradient(circle at 35% 30%, #d8544a 0%, #8c241c 65%, #4a0d08 100%);
-  box-shadow:
-    inset 0 2px 3px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.6),
-    0 2px 5px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(216, 178, 92, 0.5);
+  background: radial-gradient(circle at 35% 30%, #c45048, #5c1a16 70%);
 }
 
 .disc.them {
-  background: radial-gradient(circle at 35% 30%, #fff6e5 0%, #dcd0b8 65%, #92846c 100%);
-  box-shadow:
-    inset 0 2px 3px rgba(255, 255, 255, 0.7),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.5),
-    0 2px 5px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(180, 150, 90, 0.6);
+  background: radial-gradient(circle at 35% 30%, #f4ead6, #b7a48a 72%);
 }
 
 .checkers {
@@ -1550,41 +1193,6 @@ body::before {
   text-transform: uppercase;
   font-size: 12px;
   color: #7a5a32;
-}
-
-/* Gate rite: the chain-breaking ceremony. Dark, not parchment — this is not a transaction. */
-.gate-rite {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
-  width: min(520px, calc(100vw - 36px));
-  padding: 28px 28px 22px;
-  background: #14100c;
-  color: #e8dcc0;
-  text-align: left;
-  border: 1px solid #6b5322;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(212, 175, 55, 0.12);
-}
-
-.gate-rite .leaf-kicker {
-  color: #d4af37;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 12px;
-  margin: 0 0 12px;
-}
-
-.gate-rite-line {
-  margin: 0 0 20px;
-  font-family: var(--font-display);
-  font-size: 26px;
-  line-height: 1.3;
-}
-
-.gate-rite .close-book.go {
-  border-color: #d4af37;
-  color: #d4af37;
 }
 
 .paper {
@@ -2020,111 +1628,42 @@ body::before {
 
 .win-sol {
   min-height: 100svh;
-  color: #e8dcc0;
+  background: #008000;
+  color: #fff;
   font-family: Tahoma, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(ellipse 70% 42% at 50% 0%, rgba(255, 176, 84, 0.10), transparent 70%),
-    radial-gradient(ellipse 120% 90% at 50% 40%, #14201a 0%, #0b120e 55%, #060a08 100%);
-}
-
-/* Film grain over the table. */
-.win-sol::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.07;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
-}
-
-/* Vignette closing in. */
-.win-sol::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 49;
-  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 
 .win-sol.phase-1 {
-  background:
-    radial-gradient(ellipse 70% 42% at 50% 0%, rgba(255, 176, 84, 0.08), transparent 70%),
-    radial-gradient(ellipse 120% 90% at 50% 40%, #101a15 0%, #080f0b 55%, #040705 100%);
+  background: #046334;
 }
 
 .win-sol.phase-2 {
-  background:
-    radial-gradient(ellipse 70% 42% at 50% 0%, rgba(255, 176, 84, 0.05), transparent 70%),
-    radial-gradient(ellipse 120% 90% at 50% 40%, #0c130f 0%, #060b08 55%, #020403 100%);
-}
-
-.win-sol.phase-2 .win-face {
-  filter: saturate(0.82);
+  background: #043024;
 }
 
 .win-sol.phase-3 {
-  background: #020403 url("/crack.jpg") center/cover no-repeat;
+  background: #02150f url("/crack.jpg") center/cover no-repeat;
   animation: sol-shake 0.35s linear infinite;
 }
 
-.win-sol.phase-3::after {
-  background:
-    radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(20, 0, 0, 0.72) 100%);
-  animation: dread-pulse 2.6s ease-in-out infinite;
-}
-
-@keyframes dread-pulse {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
-}
-
 .win-sol.falling {
-  background: #020403 url("/crack.jpg") center/cover no-repeat;
+  background: #02150f url("/crack.jpg") center/cover no-repeat;
 }
 
 .win-bar {
-  height: 34px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
-  background: linear-gradient(180deg, #171310 0%, #0d0a07 100%);
-  border-bottom: 1px solid rgba(216, 178, 92, 0.35);
-  color: #d8b25c;
-  font-family: var(--font-display);
-  font-size: 16px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.win-bar .win-menu {
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  color: rgba(216, 178, 92, 0.55);
+  padding: 0 10px;
+  background: #c0c0c0;
+  color: #111;
+  font-size: 13px;
 }
 
 .win-table {
   position: relative;
   padding: 18px 16px 32px;
-}
-
-/* Candlelight breathing over the felt. */
-.win-table::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 55% 30% at 50% 0%, rgba(255, 190, 100, 0.10), transparent 70%);
-  animation: candle-flicker 4.5s ease-in-out infinite;
-}
-
-@keyframes candle-flicker {
-  0%, 100% { opacity: 0.85; }
-  30% { opacity: 1; }
-  55% { opacity: 0.78; }
-  72% { opacity: 0.95; }
 }
 
 .win-top,
@@ -2156,59 +1695,11 @@ body::before {
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
 }
 
 .win-card {
   position: absolute;
   left: 0;
-  transition: transform 0.16s ease-out, filter 0.16s ease-out;
-  animation: deal-in 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards;
-}
-
-@keyframes deal-in {
-  from {
-    transform: translateY(-16px) scale(0.96);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-
-.win-card:hover {
-  transform: translateY(-6px);
-  z-index: 5;
-}
-
-.win-card:hover .win-face {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 14px 22px rgba(0, 0, 0, 0.5),
-    0 0 12px rgba(216, 178, 92, 0.35);
-  border-color: #d8b25c;
-}
-
-.win-card:active .win-face {
-  transform: translateY(-2px) scale(0.98);
-}
-
-/* Freshly drawn waste / foundation cards flip in. */
-.win-top .win-pile .win-face {
-  animation: flip-in 0.28s ease-out backwards;
-  transform-origin: 50% 50%;
-}
-
-@keyframes flip-in {
-  from {
-    transform: rotateY(90deg);
-    opacity: 0.4;
-  }
-  to {
-    transform: rotateY(0deg);
-    opacity: 1;
-  }
 }
 
 .win-face {
@@ -2222,15 +1713,13 @@ body::before {
   border: 1px solid #b3965e;
   border-radius: 6px;
   background:
-    radial-gradient(ellipse at 28% 12%, rgba(255, 255, 255, 0.5) 0%, transparent 52%),
-    repeating-linear-gradient(0deg, rgba(120, 90, 40, 0.03) 0 2px, transparent 2px 5px),
-    linear-gradient(160deg, #f6efdd 0%, #ecdfc2 58%, #dcc79c 100%);
+    radial-gradient(ellipse at 28% 12%, rgba(255, 255, 255, 0.55) 0%, transparent 52%),
+    linear-gradient(160deg, #f8f2e4 0%, #f0e4c9 58%, #e4d2ae 100%);
   color: #161616;
   text-align: left;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    inset 0 0 18px rgba(120, 90, 40, 0.12),
-    0 8px 14px rgba(0, 0, 0, 0.45);
+    0 8px 14px rgba(0, 0, 0, 0.35);
 }
 
 .win-face b {
@@ -2247,7 +1736,7 @@ body::before {
 
 .win-face.red,
 .win-face.red i {
-  color: #a31616;
+  color: #d40000;
 }
 
 .win-face.blank {
@@ -2260,18 +1749,12 @@ body::before {
   width: 86px;
   height: 120px;
   box-sizing: border-box;
-  border: 1px dashed rgba(216, 178, 92, 0.4);
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.28);
-  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 4px;
 }
 
 .chosen .win-face {
-  outline: 2px solid #d8b25c;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 8px 14px rgba(0, 0, 0, 0.45),
-    0 0 18px rgba(216, 178, 92, 0.65);
+  outline: 2px solid #ffe14a;
 }
 
 .win-crack {
@@ -2289,14 +1772,6 @@ body::before {
 .falling .win-crack {
   height: 18px;
   box-shadow: 0 0 40px #000;
-}
-
-.phase-3 .win-crack,
-.falling .win-crack {
-  box-shadow:
-    0 0 40px #000,
-    0 0 24px rgba(200, 60, 20, 0.55),
-    0 -2px 8px rgba(200, 60, 20, 0.35);
 }
 
 .falling {
@@ -2517,24 +1992,6 @@ body::before {
 
 .dart-stage {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  margin: 12px auto;
-}
-
-/* Phaser darts mount: the canvas scales to fit while keeping 1280x800. */
-.phaser-darts-mount {
-  width: min(100%, 760px);
-  aspect-ratio: 1280 / 800;
-  margin: 12px auto;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #070605;
-}
-.phaser-darts-mount canvas {
-  display: block;
 }
 
 .dartboard.dart-wobble {
@@ -2558,10 +2015,8 @@ body::before {
   margin: 0 0 0 -13px;
   transform-origin: 50% 0;
   pointer-events: none;
-  z-index: 10;
-  filter:
-    drop-shadow(0 8px 12px rgba(0, 0, 0, 0.85))
-    drop-shadow(0 0 4px rgba(216, 178, 92, 0.35));
+  z-index: 3;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
   transition:
     left 350ms cubic-bezier(0.55, 0.06, 0.68, 0.19),
     top 350ms cubic-bezier(0.55, 0.06, 0.68, 0.19);
@@ -2853,435 +2308,6 @@ body::before {
 
 .dice-pit .dice3d-scene {
   filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.55));
-}
-
-/* ============ Blackjack Table Dressing ============ */
-
-.felt.bj-table {
-  position: relative;
-  padding: 18px 20px 22px;
-  border-radius: 12px;
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 4px),
-    radial-gradient(ellipse 120% 100% at 50% 10%, #12281f 0%, var(--pit-felt) 60%, #08120e 100%);
-  border: 1px solid rgba(216, 178, 92, 0.4);
-  box-shadow:
-    inset 0 3px 14px rgba(0, 0, 0, 0.75),
-    inset 0 0 46px rgba(0, 0, 0, 0.6),
-    0 12px 28px rgba(0, 0, 0, 0.5);
-  gap: 16px;
-}
-
-/* Gold inlay framing inside the felt bed */
-.felt.bj-table::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 8px;
-  pointer-events: none;
-  border: 1px solid rgba(216, 178, 92, 0.25);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-}
-
-.bj-rule {
-  margin-bottom: 8px;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.bj-score {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--pit-gold);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  margin-bottom: 6px;
-}
-
-.bj-dealer-zone,
-.bj-player-zone {
-  position: relative;
-  padding: 14px 16px;
-  border-radius: 8px;
-  width: 100%;
-}
-
-/* Dealer zone (the house): slightly darker felt, thin gold rule separating top from bottom */
-.bj-dealer-zone {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.45) 100%),
-    rgba(6, 14, 10, 0.5);
-  border: 1px solid rgba(216, 178, 92, 0.25);
-  border-bottom: 2px solid rgba(216, 178, 92, 0.45);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-/* Player zone: warmer felt bed */
-.bj-player-zone {
-  background:
-    radial-gradient(ellipse 80% 80% at 50% 50%, rgba(216, 178, 92, 0.06) 0%, transparent 80%),
-    rgba(16, 36, 28, 0.35);
-  border: 1px solid rgba(216, 178, 92, 0.18);
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.3);
-}
-
-.bj-kicker {
-  text-align: left;
-  margin-bottom: 8px;
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  opacity: 0.85;
-}
-
-.bj-player-kicker {
-  color: rgba(243, 234, 220, 0.8);
-}
-
-.bj-cards {
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-/* Soft felt contact shadow under cards landing on felt */
-.bj-cards .card {
-  box-shadow:
-    0 12px 20px rgba(0, 0, 0, 0.55),
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-
-.bj-cards .card.back {
-  box-shadow:
-    inset 0 0 0 3px #0d0a06,
-    inset 0 0 0 4px rgba(216, 178, 92, 0.55),
-    0 12px 20px rgba(0, 0, 0, 0.6),
-    0 2px 5px rgba(0, 0, 0, 0.32);
-}
-
-.bj-label {
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: #efe2c8;
-}
-
-/* Quiet typographic hierarchy for score/note readouts */
-.bj-note,
-.bj-over {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: #f3eadc;
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.bj-over {
-  color: var(--pit-gold);
-  font-size: 20px;
-}
-
-.bj-actions {
-  gap: 14px;
-}
-
-/* ============ Mire Games Dressing: Well, Tiles, Yard ============ */
-
-/* Mire modal container / table backdrop: murky dark water and sucking mud */
-.table.mire-table {
-  background:
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 5px),
-    radial-gradient(ellipse 120% 90% at 50% 0%, #0c1815 0%, #070e0c 55%, #030605 100%);
-  border: 1px solid rgba(138, 118, 72, 0.35);
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
-    inset 0 0 100px rgba(2, 8, 6, 0.85),
-    0 40px 100px rgba(0, 0, 0, 0.85),
-    0 0 50px rgba(16, 36, 28, 0.3);
-}
-
-.table.mire-table::before {
-  /* Subtle murky flicker / rippling water light */
-  background: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(68, 92, 76, 0.12) 0%, transparent 70%);
-}
-
-.mire-kicker {
-  color: #a8925c !important;
-  letter-spacing: 0.22em;
-}
-
-/* Pool / Well pit */
-.mire-well-pool {
-  position: relative;
-  padding: 20px;
-  border-radius: 10px;
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(14, 28, 23, 0.7) 0%, rgba(4, 9, 7, 0.95) 100%),
-    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0 4px, transparent 4px 12px);
-  border: 1px solid rgba(100, 85, 55, 0.3);
-  box-shadow:
-    inset 0 10px 30px rgba(0, 0, 0, 0.9),
-    inset 0 0 15px rgba(10, 24, 18, 0.6);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Ledges floating over dark water */
-.mire-ledge-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(15, 24, 20, 0.8);
-  border: 1px solid rgba(168, 146, 92, 0.3);
-  border-radius: 6px;
-  font-family: var(--font-display);
-  font-size: 18px;
-  color: #d8c8a8;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.mire-ledge-bar b {
-  color: var(--pit-gold);
-  font-size: 22px;
-}
-
-/* Half-drowned letter tiles and card tiles */
-.mire-tile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 68px;
-  border-radius: 6px;
-  background: linear-gradient(165deg, #1c2621 0%, #0e1411 60%, #070a08 100%);
-  border: 1px solid rgba(168, 146, 92, 0.4);
-  color: #e6dac3;
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 500;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -8px 12px rgba(0, 0, 0, 0.7),
-    0 6px 12px rgba(0, 0, 0, 0.6);
-  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
-  position: relative;
-}
-
-.mire-tile::after {
-  /* Mud line / silt tide mark at the bottom of the tile */
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30%;
-  background: linear-gradient(to top, rgba(12, 10, 8, 0.75), transparent);
-  border-radius: 0 0 5px 5px;
-  pointer-events: none;
-}
-
-.mire-tile:hover:not(:disabled) {
-  transform: translateY(-5px);
-  border-color: var(--pit-gold);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 10px 18px rgba(0, 0, 0, 0.7),
-    0 0 12px rgba(216, 178, 92, 0.25);
-}
-
-.mire-tile:disabled {
-  opacity: 0.3;
-  cursor: default;
-  filter: grayscale(0.8);
-}
-
-.mire-tile.picked-slot {
-  border-color: var(--pit-gold);
-  background: linear-gradient(165deg, #2a3830 0%, #141f1a 100%);
-  box-shadow:
-    0 0 14px rgba(216, 178, 92, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-/* Sucking mud bed for Yard / Tiles */
-.mire-mud-bed {
-  padding: 18px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(18, 14, 10, 0.8) 0%, rgba(8, 6, 4, 0.95) 100%),
-    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.4) 0 3px, transparent 3px 8px);
-  border: 1px solid rgba(120, 100, 65, 0.3);
-  border-radius: 8px;
-  box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.85);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Yard Input Field */
-.mire-input {
-  background: rgba(10, 14, 12, 0.85);
-  border: 1px solid rgba(168, 146, 92, 0.4);
-  border-radius: 4px;
-  color: #f3eadc;
-  font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  padding: 10px 14px;
-  text-align: center;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
-}
-
-.mire-input:focus {
-  outline: none;
-  border-color: var(--pit-gold);
-  box-shadow:
-    inset 0 2px 6px rgba(0, 0, 0, 0.8),
-    0 0 10px rgba(216, 178, 92, 0.3);
-}
-
-/* Mire buttons */
-.mire-btn {
-  border: 1px solid rgba(168, 146, 92, 0.5);
-  background: rgba(12, 18, 15, 0.8);
-  color: #e6dac3;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 10px 18px;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.mire-btn:hover:not(:disabled) {
-  background: rgba(168, 146, 92, 0.2);
-  border-color: var(--pit-gold);
-  color: #fff;
-  box-shadow: 0 0 12px rgba(216, 178, 92, 0.2);
-}
-
-.mire-btn.go {
-  border-color: #d8b25c;
-  background: rgba(40, 30, 15, 0.7);
-  color: var(--pit-gold);
-}
-
-.mire-btn.go:hover:not(:disabled) {
-  background: var(--pit-gold);
-  color: #1a1208;
-}
-
-.mire-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-/* Telemetry debug overlay — dev aid only, opened by triple-clicking the objective banner. */
-.telemetry-overlay {
-  position: fixed;
-  right: 12px;
-  bottom: 12px;
-  z-index: 200;
-  width: 300px;
-  max-height: 50vh;
-  overflow: auto;
-  background: rgba(10, 8, 6, 0.96);
-  border: 1px solid #6b5a3e;
-  border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 12px;
-  color: #d8c9a3;
-}
-.telemetry-head {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.telemetry-head span { flex: 1; }
-.telemetry-btn {
-  background: none;
-  border: 1px solid #6b5a3e;
-  color: #d8c9a3;
-  border-radius: 4px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-size: 11px;
-}
-.telemetry-list { list-style: none; margin: 0; padding: 0; }
-.telemetry-list li { padding: 2px 0; border-bottom: 1px dotted #3a3226; }
-.telemetry-list code { color: #e8b64c; }
-.telemetry-list span { opacity: 0.6; margin-left: 6px; }
-
-/* Pause menu: iron and dark, like the gate rite. A held breath, not a transaction. */
-.pause-btn {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 60;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #6b5322;
-  background: rgba(20, 16, 12, 0.85);
-  color: #d4af37;
-  font-size: 12px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-.pause-btn:hover {
-  background: rgba(40, 32, 22, 0.95);
-  color: #e8dcc0;
-}
-.pause-back {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  background: rgba(0, 0, 0, 0.6);
-}
-.pause-menu {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
-  width: min(360px, calc(100vw - 36px));
-  padding: 28px 28px 22px;
-  background: #14100c;
-  color: #e8dcc0;
-  text-align: center;
-  border: 1px solid #6b5322;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(212, 175, 55, 0.12);
-}
-.pause-menu .leaf-kicker {
-  color: #d4af37;
-}
-.pause-menu .close-book {
-  display: block;
-  width: 100%;
-  margin-top: 14px;
-  font-size: 14px;
-}
-.pause-warn {
-  margin: 6px 0 4px;
-  font-style: italic;
-  color: #c9a96a;
-  font-size: 15px;
-}
-.pause-menu .table-row {
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-}
-.pause-menu .table-row .close-book {
-  width: auto;
 }
 
 /* ============ Dominoes obsidian bone tiles design ============ */

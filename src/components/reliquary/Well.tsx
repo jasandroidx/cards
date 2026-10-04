@@ -41,43 +41,31 @@ export function Well({ onClear, onFail, onClose }: { onClear: () => void; onFail
 
   return (
     <div className="journal-back" onClick={onClose}>
-      <div className="table one-col mire-table" role="dialog" aria-label="The well" onClick={(event) => event.stopPropagation()}>
+      <div className="table one-col" role="dialog" aria-label="The well" onClick={(event) => event.stopPropagation()}>
         <div className="table-top">
-          <p className="leaf-kicker mire-kicker">The mire</p>
+          <p className="leaf-kicker">The mire</p>
           <h2>The well</h2>
           <p className="table-rule">Kicking off the ledges. Play a card low enough to catch the next ledge. Miss three times and you go down.</p>
-
-          <div className="mire-well-pool">
-            {!done && nextLedge !== null && (
-              <div className="mire-ledge-bar">
-                <span>Next ledge: <b>{nextLedge}</b></span>
-                <span>Bumps: <b>{state.bumps}/{WELL_MISSES_BEFORE_CLEAR - 1}</b></span>
-              </div>
-            )}
-
-            {state.cleared && <p className="table-end">You caught the last ledge. You carry the Black Ace.</p>}
-            {state.fallen && <p className="table-end">You fell into the well.</p>}
-
-            <div className="table-row" style={{ flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-              {left.map((rank, i) => (
-                <button key={`${rank}-${i}`} type="button" className="mire-tile" onClick={() => play(rank)}>
-                  {rank}
-                </button>
-              ))}
-            </div>
-
-            {his.length > 0 && (
-              <p className="table-rule" style={{ margin: 0, textAlign: "center", fontSize: "14px" }}>
-                Caught ledges: {his.join(", ")}
-              </p>
-            )}
+          {state.cleared && <p className="table-end">You caught the last ledge. You carry the Black Ace.</p>}
+          {state.fallen && <p className="table-end">You fell into the well.</p>}
+          {!done && nextLedge !== null && (
+            <p className="table-rule">Next ledge: {nextLedge}. Bumps: {state.bumps}/{WELL_MISSES_BEFORE_CLEAR - 1}</p>
+          )}
+          <div className="table-row" style={{ flexWrap: "wrap", gap: 4 }}>
+            {left.map((rank, i) => (
+              <button key={`${rank}-${i}`} type="button" className="close-book go" onClick={() => play(rank)}>
+                {rank}
+              </button>
+            ))}
           </div>
-
-          <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
-            <button type="button" className="mire-btn" onClick={onClose}>
-              {done ? "Stand up" : "Leave the well"}
+          {his.length > 0 && (
+            <p className="table-rule">Caught: {his.join(", ")}</p>
+          )}
+          {done && (
+            <button type="button" className="close-book" onClick={onClose}>
+              Stand up
             </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
