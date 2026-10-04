@@ -220,7 +220,10 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
     return "The king's square. Beyond him the dark has teeth: it loves a poker chip, and it eats the empty-handed. Go back kindled, or don't go.";
   }
   if (position < 0 && !owned.includes("chapel")) {
-    if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
+    if (marks < 1) {
+      if (sat > 0) return `The lamp is all that stands between you and the dark. It will deal ${3 - sat} more. A win pays a poker chip.`;
+      return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
+    }
     return `${purse} Open the chapel. Then take the road.`;
   }
   if (position < 0) return `${purse} The chapel is open. Take the road — the map walks you.`;
