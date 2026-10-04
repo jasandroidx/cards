@@ -198,13 +198,13 @@ function objective(
     if (marks < 1) return "Win a poker chip at the lamp — the flame is all that says you are here. Sit at any table game.";
     return "Open the chapel.";
   }
-  if (position < 0) return "Take the road. That's outside — you'll roll dice to walk it.";
+  if (position < 0) return "Take the road. That's outside — open the map, click a square, step in.";
   if (position >= 27 && position < 28 && !mawBeaten) return "Face the Maw. It loves poker chips.";
-  if (sat >= 3 && position < 10) return "Roll to walk. The lamp won't deal again — come back when you need poker chips.";
+  if (sat >= 3 && position < 10) return "Walk the road — map, square, step in. The lamp won't deal again — come back when you need poker chips.";
   if (!gate) return "Walk to the reliquary at square 29.";
   if (marks < gate.cost)
     return `Earn ${gate.cost} ${gate.cost === 1 ? "poker chip" : "poker chips"} to open ${gate.opens}. Play hands back in the hall.`;
-  return `Open ${gate.opens}. Then roll to walk.`;
+  return `Open ${gate.opens}. Then walk — map, square, step in.`;
 }
 
 function where(marks: number, owned: string[], mawBeaten: boolean, position: number, sat: number): string {
@@ -220,15 +220,15 @@ function where(marks: number, owned: string[], mawBeaten: boolean, position: num
     if (marks < 1) return "The lamp is all that stands between you and the dark. Play one hand. A win pays a poker chip.";
     return `${purse} Open the chapel. Then take the road.`;
   }
-  if (position < 0) return `${purse} The chapel is open. Take the road and roll.`;
+  if (position < 0) return `${purse} The chapel is open. Take the road — map, square, step in.`;
   if (sat >= 3 && position < 10) {
-    return `${purse} The lamp will not deal a fourth hand. Roll. Then you can come back.`;
+    return `${purse} The lamp will not deal a fourth hand. Walk the road. Then you can come back.`;
   }
   if (!gate) return `${purse} The way back is open.`;
   if (marks < gate.cost) {
     return `${purse} ${gate.opens} costs ${gate.cost}. Go back to the hall and play a hand.`;
   }
-  return `${purse} Roll to walk. ${gate.opens} costs ${gate.cost}, and you can pay.`;
+  return `${purse} Click a square on the map and step in. ${gate.opens} costs ${gate.cost}, and you can pay.`;
 }
 
 function linesFor(
@@ -1783,6 +1783,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
           >
             <div className="page-leaf map-leaf">
               <p className="leaf-kicker">Your map</p>
+              <p className="table-rule">Click a square, then step in.</p>
               <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="The road of games">
                 <path d={d} className="map-roadbed" fill="none" stroke="#8d6b45" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
                 <path d={d} className="map-thread" fill="none" stroke="#5c2a26" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />

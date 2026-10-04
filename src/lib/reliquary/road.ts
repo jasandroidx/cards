@@ -31,7 +31,7 @@ export const SQUARES: Square[] = [
     house: "breach",
     game: "Arrival",
     blurb:
-      "Where you landed. The hall is behind you; the road ahead is every game that broke. Roll to walk. When it stops, go back and play a hand.",
+      "Where you landed. The hall is behind you; the road ahead is every game that broke. Click a square, then step in. When it stops, go back and play a hand.",
     labeled: true,
   },
   {
