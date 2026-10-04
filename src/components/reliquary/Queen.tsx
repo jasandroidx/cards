@@ -10,7 +10,7 @@ const QUEEN_STAGES = [
   "The final card turns. Light floods the suit.",
 ];
 
-export function Queen({ onWon, onLost, onClose, onFirstRound }: { onWon: () => void; onLost: () => void; onClose: () => void; onFirstRound?: () => void }) {
+export function Queen({ onWon, onLost, onClose, onFirstRound, glassWon }: { onWon: () => void; onLost: () => void; onClose: () => void; onFirstRound?: () => void; glassWon?: boolean }) {
   const [state, setState] = useState<QueenState>(() => startQueen());
   const [settled, setSettled] = useState(false);
   const [winShown, setWinShown] = useState(false);
@@ -59,7 +59,7 @@ export function Queen({ onWon, onLost, onClose, onFirstRound }: { onWon: () => v
           <p className="leaf-kicker">Square 28</p>
           <h2>Her coat</h2>
           <img className="plate" src="/queen.jpg" alt="The queen, face in shadow" />
-          <p className="table-rule">She lays a card down. Beat it. Four times, and she will try to take one out of your hand.</p>
+          <p className="table-rule">{glassWon ? "She lays a card down. She has played you before." : "She lays a card down. Beat it. Four times, and she will try to take one out of your hand."}</p>
 
           {state.top && !settled && (
             <div className="lamp">
