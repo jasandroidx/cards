@@ -71,27 +71,6 @@ function highestDoubleFirst(you: Tile[], cpu: Tile[]): { tile: Tile; by: "you" |
   return { tile: high!, by };
 }
 
-const DOM_CSS = `
-.dom-chain { display: flex; gap: 6px; overflow-x: auto; padding: 10px 4px; align-items: center; min-height: 88px; }
-.dom-tile { display: inline-flex; align-items: stretch; background: linear-gradient(160deg, #f4ecd8 0%, #d8c9a6 100%); border: 2px solid #241c12; border-radius: 8px; padding: 0; cursor: pointer; flex: 0 0 auto; }
-.dom-tile:disabled { cursor: default; }
-.dom-hand { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-.dom-hand .dom-tile { width: 78px; height: 42px; }
-.dom-chain .dom-tile { width: 62px; height: 34px; }
-.dom-tile.doubles { flex-direction: column; }
-.dom-hand .dom-tile.doubles { width: 42px; height: 78px; }
-.dom-chain .dom-tile.doubles { width: 34px; height: 62px; }
-.dom-half { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 5px; min-width: 0; min-height: 0; }
-.dom-div { flex: 0 0 2px; background: #241c12; }
-.dom-tile.doubles .dom-div { flex: 0 0 2px; }
-.dom-pip { width: 6px; height: 6px; border-radius: 50%; background: #241c12; place-self: center; box-shadow: inset 0 1px 1px rgba(0,0,0,0.4); }
-.dom-tile.playable { box-shadow: 0 0 0 2px #d8b25c, 0 4px 10px rgba(0,0,0,0.45); transform: translateY(-4px); }
-.dom-tile.playable:hover { transform: translateY(-6px); }
-.dom-tile.dim { opacity: 0.4; }
-.dom-ends { display: flex; gap: 10px; align-items: center; color: #efe2c8; font-size: 15px; margin: 4px 0; }
-.dom-endbadge { border: 1px solid #d8b25c; border-radius: 6px; padding: 2px 10px; color: #f4e6c4; }
-`;
-
 function Half({ v }: { v: number }) {
   return (
     <span className="dom-half">
@@ -297,7 +276,6 @@ export function Dominoes({ onEarn }: { onEarn: (n: number) => void }) {
 
   return (
     <div className="felt">
-      <style>{DOM_CSS}</style>
       <p className="table-rule">
         Twenty-eight bones, seven each. Match an open end. Fewest pips takes the mark.
       </p>
