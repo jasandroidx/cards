@@ -93,7 +93,7 @@ export function Finale({
   }
 
   return (
-    <div className="table one-col" role="dialog" aria-label="The last chair" onClick={(event) => event.stopPropagation()}>
+    <div className="table one-col finale" role="dialog" aria-label="The last chair" onClick={(event) => event.stopPropagation()}>
       <p className="leaf-kicker">The reliquary</p>
       <h2>The last chair</h2>
       <p className="leaf-body">

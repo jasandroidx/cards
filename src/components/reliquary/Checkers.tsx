@@ -436,6 +436,7 @@ export function Checkers({ onEarn }: { onEarn: (n: number) => void }) {
       ) : (
         <img className="plate" src="/checkers.jpg" alt="" />
       )}
+      <p className="chk-kicker">The long game</p>
       <p className="table-rule">{note}</p>
       <p className="table-end">
         Captures —{" "}

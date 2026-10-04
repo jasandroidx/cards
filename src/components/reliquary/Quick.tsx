@@ -992,10 +992,16 @@ export function GoFish({ onEarn }: { onEarn: (n: number) => void }) {
   const ranks = [...new Set(you.map((card) => card.rank))];
 
   return (
-    <div className="felt">
+    <div className="felt fish">
       <img className="plate" src="/fish.jpg" alt="" />
       <p className="table-rule">Go Fish. Short deck, ace through eight. Ask for a rank you hold. Four of a kind is a book. More books wins a mark.</p>
-      <p className="table-end">
+      <div className="fish-pond" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <span className="fish-moon" />
+      </div>
+      <p className="table-end fish-stock">
         Your books {yourBooks}. Their books {cpuBooks}. Pond {stock.length}.
       </p>
       <p className="table-rule">{note}</p>

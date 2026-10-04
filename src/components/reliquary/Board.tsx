@@ -1784,8 +1784,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             <div className="page-leaf map-leaf">
               <p className="leaf-kicker">Your map</p>
               <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="The road of games">
-                <path d={d} fill="none" stroke="#8d6b45" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
-                <path d={d} fill="none" stroke="#5c2a26" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                <path d={d} className="map-roadbed" fill="none" stroke="#8d6b45" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round" />
+                <path d={d} className="map-thread" fill="none" stroke="#5c2a26" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                 <path
                   d={`M ${stairA.x} ${stairA.y} Q ${(stairA.x + stairB.x) / 2} ${Math.min(stairA.y, stairB.y) - 48} ${stairB.x} ${stairB.y}`}
                   fill="none"
@@ -1804,7 +1804,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                   const reached = here >= s.id;
                   const active = picked === s.id;
                   return (
-                    <g key={s.id} className="sq" onClick={() => setPicked(s.id)}>
+                    <g key={s.id} className={`sq map-sq map-kind-${s.kind}${reached ? " map-reached" : ""}${active ? " map-active" : ""}`} onClick={() => setPicked(s.id)}>
                       <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
                       <circle
                         cx={p.x}
@@ -1829,6 +1829,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 })}
                 {here >= 0 && (
                   <rect
+                    className="map-you"
                     x={xy(here).x - 6}
                     y={xy(here).y - 28}
                     width="12"
@@ -2174,7 +2175,7 @@ function Death({ marks, position }: { marks: number; position: number }) {
 
   return (
     <div className="journal-back" role="dialog" aria-label="Eaten">
-      <div className="table one-col">
+      <div className="table one-col death">
         <p className="leaf-kicker">The Maw</p>
         <h2>It ate you.</h2>
         <p className="leaf-body">
@@ -2212,7 +2213,7 @@ function Ending({ onReturn }: { onReturn: () => void }) {
 
   return (
     <div className="journal-back" role="dialog" aria-label="The Reliquary">
-      <div className="table one-col">
+      <div className="table one-col ending">
         <p className="leaf-kicker">The Reliquary</p>
         <img className="plate" src="/plates/reliquary.jpg" alt="The reliquary" />
         {revealed && (
