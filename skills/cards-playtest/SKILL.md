@@ -1,30 +1,42 @@
 # Cards playtest skill
 
-Use when verifying a change to `jasandroidx/cards` in the browser.
+Use when verifying a change to `jasandroidx/cards` in a real browser.
 
-## Setup
+## Setup (loopback only; never Funnel, never a public tunnel)
 
-- Playwright MCP is configured in `opencode.json` (`playwright` server).
-- Dev server: `npm run dev` (Vite default port; confirm from terminal output).
-- The full loop to smoke-test: load page → play Klondike until the fall →
-  sign the paper → earn first mark → buy chapel gate → step onto the road.
+1. `npm ci` (first time). Then `npx playwright install chromium` once, if
+   Playwright has no browser yet.
+2. Dev server: `npm run dev` → `http://127.0.0.1:8080/` (script binds 0.0.0.0:8080;
+   only ever open it as 127.0.0.1, and don't share the port).
+3. Quick look, desktop + mobile + JSON verdict:
+   `node scripts/browser-smoke.mjs http://127.0.0.1:8080/ /workspace/screenshots/playtest-<job>-home.png`
+   (the guard refuses non-loopback URLs and paths outside /workspace).
+4. Interactive play: the Playwright MCP (local stdio). Navigate, click by visible
+   button text (verbs: "Play a hand", "Open the chapel", "Roll", "Her coat"), and
+   take screenshots.
+
+## Jump to a square with a save preset
+
+Set the save, then reload:
+`localStorage.setItem("reliquary-v3", JSON.stringify(PRESET)); location.reload();`
+Presets live in `skills/cards-playtest/presets.json` (add it in the same PR).
+A save with `position >= 0` must open on the road, not in solitaire.
 
 ## Rules
 
-1. **Play it, don't imagine it.** After any gameplay change, drive the real
-   browser through the affected path and report what actually happened.
-2. One variable at a time. If testing a road square, set up the save state
-   to reach it directly (localStorage `reliquary-v3`) rather than replaying
-   the whole game each time — but do one full clean-save run per phase.
-3. Screenshot the moment: the fall, each gate purchase, each new square's
-   first resolution. Name them `playtest-<job>-<step>.png`.
-4. Onboarding check: after any change near the opening, confirm the game still
-   starts as ordinary green-table solitaire with one next action and no
-   "do you want to fall" menu.
+1. Play it; don't imagine it. Drive the affected path and report what happened.
+2. One variable at a time. Use a preset to reach a square, plus **one full
+   clean-save run per phase**: solitaire → fall → Joker → sign → win one hand →
+   open the chapel → roll.
+3. Screenshot the moment: the fall, each gate purchase, each new square's first
+   resolution. Name: `/workspace/screenshots/playtest-<job>-<step>.png`
+   (screenshots/ is gitignored; never commit them).
+4. Onboarding check after any change near the opening: still green-table
+   solitaire, one next action, no "do you want to fall" menu.
+5. Old-save check: load a `position >= 0` preset and confirm it opens on the road.
 
 ## Reporting
 
 - did / didn't / needs-yes. No theater.
-- A green claim needs the screenshot or the exact terminal output attached.
-- If the game soft-locks or a caption is missing, that's the finding —
-  report it plainly, don't work around it in the test.
+- A green claim needs the screenshot path or exact terminal output.
+- A soft-lock or missing caption is the finding. Report it, don't work around it.

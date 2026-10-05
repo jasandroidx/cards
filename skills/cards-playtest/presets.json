@@ -1,0 +1,8 @@
+{
+  "road-0":   { "marks": 1, "owned": ["chapel"], "mawBeaten": false, "position": 0,  "fallen": true, "heard": true, "signed": true, "met": true, "carried": [], "boons": [], "pocket": [] },
+  "hearts-10":{ "marks": 2, "owned": ["chapel"], "mawBeaten": false, "position": 10, "fallen": true, "heard": true, "signed": true, "met": true, "carried": [], "boons": [], "pocket": [] },
+  "spades-14":{ "marks": 2, "owned": ["chapel","bridge"], "mawBeaten": false, "position": 14, "fallen": true, "heard": true, "signed": true, "met": true, "carried": [], "boons": [], "pocket": [] },
+  "dc-24":    { "marks": 3, "owned": ["chapel","bridge","yard"], "mawBeaten": false, "position": 24, "fallen": true, "heard": true, "signed": true, "met": true, "carried": [{"rank":7,"suit":"hearts"}], "boons": [], "pocket": [] },
+  "maw-27":   { "marks": 3, "owned": ["chapel","bridge","yard"], "mawBeaten": false, "position": 27, "fallen": true, "heard": true, "signed": true, "met": true, "carried": [], "boons": [], "pocket": [] },
+  "queen-28": { "marks": 0, "owned": ["chapel","bridge","yard","queen"], "mawBeaten": true, "position": 28, "fallen": true, "heard": true, "signed": true, "met": true, "carried": [], "boons": ["heart","undo"], "pocket": [] }
+}
