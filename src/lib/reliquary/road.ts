@@ -1,4 +1,4 @@
-export type Kind = "start" | "road" | "gate" | "way" | "trap" | "shortcut" | "end";
+export type Kind = "start" | "road" | "gate" | "way" | "trap" | "shortcut" | "end" | "dead";
 
 export type House =
   | "breach"
@@ -20,6 +20,18 @@ export interface Square {
   relic?: string;
   blurb: string;
   labeled: boolean;
+  /** Narrative context for world-as-cards reframing. */
+  locationContext?: string;
+  /** Binary choice at this square. */
+  choice?: {
+    left: { text: string; effect: string };
+    right: { text: string; effect: string };
+  };
+  /** Character sitting in the dead seat at this table. */
+  character?: string;
+  /** What the character does or says. */
+  characterDesc?: string;
+  dialogue?: string[];
 }
 
 export const SQUARES: Square[] = [
@@ -33,6 +45,7 @@ export const SQUARES: Square[] = [
     blurb:
       "Where you landed. The hall is behind you; the road ahead is every game that broke. Click a bright square to walk. When you need poker chips, go back and play a hand.",
     labeled: true,
+    locationContext: "You fell through the table. Under the table is every game that broke.",
   },
   {
     id: 1,
@@ -46,13 +59,16 @@ export const SQUARES: Square[] = [
   },
   {
     id: 2,
-    name: "Ash",
-    short: "",
-    kind: "road",
+    name: "The Skeleton",
+    short: "Skel",
+    kind: "dead",
     house: "breach",
-    game: "Walk",
-    blurb: "Ash underfoot. The fog has not lifted. Something was dealt here, and left.",
-    labeled: false,
+    game: "The dead seat",
+    blurb: "A skeleton sits in the ash, still holding its cards. It offers you a choice: take its hand, or walk past.",
+    labeled: true,
+    character: "Skeleton",
+    characterDesc: "Rattles his bones and whispers a cryptic hint about a hidden clue.",
+    dialogue: ["Your fate lies in the cards you hold.", "Choose wisely, or be forever ash."]
   },
   {
     id: 3,
@@ -78,13 +94,16 @@ export const SQUARES: Square[] = [
   },
   {
     id: 5,
-    name: "Ash",
-    short: "",
-    kind: "road",
+    name: "The Ghost",
+    short: "Ghost",
+    kind: "dead",
     house: "breach",
-    game: "Walk",
-    blurb: "If you took the stair, you never stood here. If you did not — ash, and the road going on.",
-    labeled: false,
+    game: "The dead seat",
+    blurb: "A ghost drifts through the fog. It doesn't speak. It just watches. And waits.",
+    labeled: true,
+    character: "Ghost",
+    characterDesc: "Watches silently, occasionally flickering like a candle flame. It doesn't speak but seems to know everything.",
+    dialogue: ["...", "The silence speaks louder than words."]
   },
   {
     id: 6,
@@ -183,6 +202,10 @@ export const SQUARES: Square[] = [
     blurb:
       "The Dealer and two empty chairs. One hand of spades — you and him against the dead seats. Make the bid and the bridge drops. The water turns silver.",
     labeled: true,
+    choice: {
+      left: { text: "Cross the bridge", effect: "unlock:15" },
+      right: { text: "Burn the bridge behind you", effect: "lock:13,unlock:16" },
+    },
   },
   {
     id: 15,
