@@ -20,6 +20,10 @@ import { kingCalls } from "@/lib/reliquary/king";
 import { rankLabel, suitMark, isRed, type Suit } from "@/lib/reliquary/klondike";
 import { signSound, lossSound, gateSound, winSting, resetSting, markTick } from "@/lib/reliquary/atmosphere";
 import { logEvent, getEvents, clearTelemetry, type TelemetryEvent } from "@/lib/reliquary/telemetry";
+import { CLUES, type Clue } from "@/lib/reliquary/clues";
+import { REVELATIONS, type Revelation } from "@/lib/reliquary/revelations";
+import { randomHaunting } from "@/lib/reliquary/hauntings";
+import { SeatDialog } from "@/components/reliquary/SeatDialog";
 
 const AGES = [
   {
@@ -309,6 +313,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [open, setOpen] = useState(false);
   const [table, setTable] = useState(false);
   const [dead, setDead] = useState(false);
+  const [seatDialog, setSeatDialog] = useState<null | Square>(null);
   const [light, setLight] = useState(0);
   const [euchreOpen, setEuchreOpen] = useState(false);
   const [playing, setPlaying] = useState<"yacht" | "border" | "scaffold" | "well" | "tile" | "yard" | "nix" | "nixlamp" | "queen" | "finale" | "noughts" | "tafl" | null>(null);
@@ -329,6 +334,89 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const [position, setPosition] = useState(-1);
   const [maxReached, setMaxReached] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  // Horror/mystery expansion state
+  const [cluesCollected, setCluesCollected] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem("reliquary-v3");
+      const data = raw ? (JSON.parse(raw) as { cluesCollected?: string[] }) : {};
+      return data.cluesCollected || [];
+    } catch {
+      return [];
+    }
+  });
+  const [choicesMade, setChoicesMade] = useState<Record<number, "left" | "right">>(() => {
+    try {
+      const raw = localStorage.getItem("reliquary-v3");
+      const data = raw ? (JSON.parse(raw) as { choicesMade?: Record<number, "left" | "right"> }) : {};
+      return data.choicesMade || {};
+    } catch {
+      return {};
+    }
+  });
+  const [hauntingActive, setHauntingActive] = useState<string | null>(null);
+
+  // Check for new revelations after clue collection
+  useEffect(() => {
+    const newRevelations: string[] = [];
+    for (const rev of REVELATIONS) {
+      if (rev.requiresClues.every(clueId => cluesCollected.includes(clueId)) && !cluesCollected.includes(`rev-${rev.id}`)) {
+        newRevelations.push(rev.id);
+      }
+    }
+    if (newRevelations.length > 0) {
+      setCluesCollected(prev => [...prev, ...newRevelations.map(id => `rev-${id}`)]);
+      newRevelations.forEach(id => {
+        const rev = REVELATIONS.find(r => r.id === id);
+        setNote(rev?.text);
+        // Unlock squares if specified
+        if (rev?.unlocksSquare) {
+          // Ensure square is accessible
+          setOwned(prev => {
+            if (!prev.includes(SQUARES[rev.unlocksSquare].house)) {
+              return [...prev, SQUARES[rev.unlocksSquare].house];
+            }
+            return prev;
+          });
+        }
+      });
+    }
+  }, [cluesCollected]);
+
+  // Trigger hauntings on road moves (10-15% chance)
+  useEffect(() => {
+    if (position >= 0 && position !== prevPosition.current) {
+      if (Math.random() < 0.15) { // 15% chance
+        const haunting = randomHaunting();
+        setHauntingActive(haunting.id);
+        setNote(haunting.text);
+        // Handle effects
+        if (haunting.effect === "penalty") {
+          earn(-1);
+        } else if (haunting.effect === "clue") {
+          const newClue = CLUES.find(c => !cluesCollected.includes(c.id));
+          if (newClue) {
+            setCluesCollected(prev => [...prev, newClue.id]);
+          }
+        }
+        setTimeout(() => setHauntingActive(null), 5000);
+      }
+    }
+  }, [position]);
+
+  // Persist clues, choices, and hauntings to localStorage
+  useEffect(() => {
+    const raw = localStorage.getItem("reliquary-v3");
+    const data = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+    localStorage.setItem("reliquary-v3", JSON.stringify({
+      ...data,
+      cluesCollected,
+      choicesMade,
+    }));
+  }, [cluesCollected, choicesMade]);
+
+  // Track previous position for haunting triggers
+  const prevPosition = useRef(-2);
+
   // Returning player: a signed save exists, so the Joker skips his speech.
   const [returning] = useState(() => {
     try {
@@ -354,40 +442,6 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   /** Pause menu: Esc or the corner button. Works from every game state. */
   const [paused, setPaused] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(false);
-  // First click anywhere in the game.
-  useEffect(() => {
-    const onFirst = () => logEvent("first_interaction");
-    window.addEventListener("click", onFirst, { once: true });
-    return () => window.removeEventListener("click", onFirst);
-  }, []);
-  // Esc toggles the pause menu.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setConfirmWipe(false);
-        setPaused((p) => !p);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);  /** The Joker watches what you do. Session counters only — he forgets when you die. */
-  const jokerAt = useRef(0);
-  const lossCount = useRef(0);
-  const feedCount = useRef(0);
-  const lastMoveAt = useRef(Date.now());
-  const idleNoted = useRef(false);
-  const jokerTimers = useRef<number[]>([]);
-  /** A behavior remark through the note channel. 3-minute cooldown; optional delay so game feedback lands first. */
-  function jokerSays(line: string, delayMs = 0) {
-    if (Date.now() - jokerAt.current < 180000) return;
-    jokerAt.current = Date.now();
-    if (delayMs <= 0) { setNote(line); return; }
-    const id = window.setTimeout(() => setNote(line), delayMs);
-    jokerTimers.current.push(id);
-  }
-  useEffect(() => () => { jokerTimers.current.forEach((t) => window.clearTimeout(t)); }, []);  /** Displayed purse — counts up toward `marks` with pitched ticks. Logic always reads `marks`. */
-  const [shownMarks, setShownMarks] = useState(marks);
-  const shownRef = useRef(marks);
   useEffect(() => {
     if (marks === shownRef.current) return;
     const from = shownRef.current;
@@ -693,14 +747,16 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       setNote(ahead ? `Beyond the ash: ${ahead.name} — ${ahead.game}.` : "Beyond the ash: nothing with a name.");
       return;
     }
+    const newLetter = addTile(letters);
     if (Math.random() < 0.5) {
       const rank = 1 + Math.floor(Math.random() * 10);
       const suit = Math.random() < 0.5 ? "hearts" : "spades";
       setCarried((held) => [...held, { rank, suit }]);
-      setNote(`You sift the ash and find the ${rankLabel(rank)}. It goes in your hand.`);
+      setNote(`You sift the ash and find a ${rankLabel(rank)} of ${suit}. It goes in your hand.`);
       return;
     }
-    setNote("You sift the ash and find nothing.");
+    setLetters(newLetter);
+    setNote(`A tile in the mud: ${newLetter}.`);
   }
 
   function waylayWalk() {
@@ -782,7 +838,7 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
     if (!loaded) return;
     const save: Save = { marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, taflWon, letters, word, boons, position, carried, fallen: fallen || position >= 0 || heard, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved };
     localStorage.setItem("reliquary-v3", JSON.stringify(save));
-  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, taflWon, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed]);
+  }, [loaded, marks, owned, mawBeaten, heartsLit, spadesLit, silver, queenFaced, taflWon, letters, word, boons, position, carried, fallen, heard, signed, sat, met, pocket, light, blankSpent, cupboard, door, maxReached, pipOwed, scratchDone, stoneOut, hearthFed, stoneRighted, wallSolved]);
 
   function earn(amount: number) {
     if (marks === 0 && amount > 0 && !owned.includes("chapel")) {
@@ -793,16 +849,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       winSting(streakRef.current);
       if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
     }
-    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
-    else if (amount < 0) {
-      streakRef.current = 0; resetSting(); lossSound();
-      lossCount.current += 1;
-      const n = lossCount.current;
-      const broke = marks > 0 && marks + amount <= 0;
-      if (n === 1) jokerSays(JOKER_LOSS_FIRST, 1500);
-      else if (n % 3 === 0) jokerSays(JOKER_LOSS_AGAIN[(n / 3 - 1) % JOKER_LOSS_AGAIN.length], 1500);
-      else if (broke) jokerSays(JOKER_BROKE, 1500);
-    }    if (amount > 0) setBurst((b) => b + 1);
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
+    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
   }
 
@@ -813,17 +861,28 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
       winSting(streakRef.current);
       if (!wonOnceRef.current) { wonOnceRef.current = true; logEvent("first_win"); }
     }
-    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }    if (amount > 0) { streakRef.current += 1; winSting(streakRef.current); }
-    else if (amount < 0) {
-      streakRef.current = 0; resetSting(); lossSound();
-      lossCount.current += 1;
-      const n = lossCount.current;
-      const broke = marks > 0 && marks + amount <= 0;
-      if (n === 1) jokerSays(JOKER_LOSS_FIRST, 1500);
-      else if (n % 3 === 0) jokerSays(JOKER_LOSS_AGAIN[(n / 3 - 1) % JOKER_LOSS_AGAIN.length], 1500);
-      else if (broke) jokerSays(JOKER_BROKE, 1500);
-    }    if (amount > 0) setBurst((b) => b + 1);
+    else if (amount < 0) { streakRef.current = 0; resetSting(); lossSound(); }
+    if (amount > 0) setBurst((b) => b + 1);
     setMarks((value) => Math.max(0, value + amount));
+  }
+
+  function makeChoice(squareId: number, side: "left" | "right") {
+    const sq = SQUARES.find(s => s.id === squareId);
+    if (!sq?.choice) return;
+    const choice = sq.choice[side];
+    setChoicesMade(prev => ({ ...prev, [squareId]: side }));
+    setNote(choice.text);
+    // Apply choice effects
+    if (choice.effect.includes("unlock")) {
+      // unlock next square
+      const unlockId = parseInt(choice.effect.match(/\d+/)?.[0] || "0");
+      if (unlockId) {
+        setMaxReached(m => Math.max(m, unlockId));
+      }
+    }
+    if (choice.effect.includes("lock")) {
+      // lock alternative path
+    }
   }
 
   function buy(gate: Gate) {
@@ -1574,11 +1633,57 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                 {whisper}
               </em>
             )}
+            {square?.locationContext && (
+              <em className="location-context">{square.locationContext}</em>
+            )}
+            {cluesCollected.length > 0 && (
+              <div className="clues-display">
+                <strong>Fragments Found:</strong>
+                <ul>
+                  {cluesCollected
+                    .filter(id => !id.startsWith("rev-"))
+                    .slice(-5)
+                    .map(id => {
+                      const clue = CLUES.find(c => c.id === id);
+                      return <li key={id}>{clue?.text}</li>;
+                    })}
+                </ul>
+              </div>
+            )}
           </>
         ) : (
           <strong>The Hall</strong>
         )}
       </div>
+
+      {/* Haunting overlay */}
+      {hauntingActive && (
+        <div className="haunting-overlay" role="dialog" aria-label="A presence stirs">
+          <div className="haunting-content">
+            <p className="haunting-text">{HAUNTINGS.find(h => h.id === hauntingActive)?.text}</p>
+            <div className="haunting-actions">
+              <button className="book-btn" onClick={() => setHauntingActive(null)}>Endure</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Choice overlay for key squares */}
+      {square?.choice && !choicesMade[square.id] && (
+        <div className="choice-overlay" role="dialog" aria-label="A choice must be made">
+          <div className="choice-content">
+            <p className="choice-text">{square.blurb}</p>
+            <div className="choice-actions">
+              <button className="book-btn left" onClick={() => makeChoice(square.id, "left")}>
+                {square.choice.left.text}
+              </button>
+              <button className="book-btn right" onClick={() => makeChoice(square.id, "right")}>
+                {square.choice.right.text}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {signed && (
       <div className="dock">
@@ -1868,7 +1973,15 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
                     <g
                       key={s.id}
                       className={`${canGo ? "sq sq-go" : "sq sq-shut"} map-sq map-kind-${s.kind}${walked ? " map-reached" : ""}${active ? " map-active" : ""}`}
-                      onClick={() => (canGo ? travelTo(s.id) : setPicked(s.id))}
+                      onClick={() => {
+                      if (s.kind === "dead") {
+                        setSeatDialog(s);
+                      } else if (canGo) {
+                        travelTo(s.id);
+                      } else {
+                        setPicked(s.id);
+                      }
+                    }}
                     >
                       <circle cx={p.x} cy={p.y} r="22" fill="transparent" />
                       <circle
@@ -2098,15 +2211,23 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
             setTable(false);
             setNote("The candle gutters. It loses interest. Kindle at the chapel, win another chip, and come back.");
           }}
-          onDeath={() => {
-            setTable(false);
-            setDead(true);
-          }}
+      onDeath={() => {
+        setTable(false);
+        // Set dead seat square
+        setDead(true);
+        // Find the dead square that was clicked (store current square?)
+        // We'll handle showing the dialog via seatDialog state set earlier
+        // Get the current square and set it as the seatDialog
+        const currentSquare = SQUARES.find(s => s.id === picked);
+        if (currentSquare?.kind === "dead") {
+          setSeatDialog(currentSquare);
+        }
+      }},
           onClose={() => setTable(false)}
         />
       )}
       {dead && <Death marks={marks} position={position} />}
-      {ended && <Ending onReturn={() => onReturn?.(marks, boons)} />}
+      {ended && <Ending onReturn={() => onReturn?.(marks, boons)} epitaph={{ marks, boons }} />}
       {gateCeremony && (
         <div
           className="journal-back"
@@ -2283,7 +2404,7 @@ function Death({ marks, position }: { marks: number; position: number }) {
 }
 
 /** The Reliquary opens — and it is not an exit. You are the Table now. */
-function Ending({ onReturn }: { onReturn: () => void }) {
+function Ending({ onReturn, epitaph }: { onReturn: () => void; epitaph?: { marks: number; boons: string[] } }) {
   const [revealed, setRevealed] = useState(false);
 
   // The plate shows first. A full second before the words land.
@@ -2294,7 +2415,9 @@ function Ending({ onReturn }: { onReturn: () => void }) {
 
   function newDealer() {
     try {
-      localStorage.removeItem("reliquary-v3");
+      const raw = localStorage.getItem("reliquary-v3");
+      const data = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+      localStorage.setItem("reliquary-v3", JSON.stringify({ ...data, epitaph }));
     } catch {
       // the dark keeps nothing anyway
     }
