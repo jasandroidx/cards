@@ -1439,6 +1439,8 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
   const guttered = signed && isDark(light);
 
   return (
+
+      {inventoryBadge()}
     <section className={`scene${litClass}${guttered ? " guttered" : ""}${seated ? " seated" : ""}`} aria-label={age.name}>
       <button
         type="button"
@@ -2486,3 +2488,23 @@ const inventoryBadge = () => {
 };
 
 // Add CSS for inventory badge
+
+// Add inventory badge to the render function
+const inventoryBadge = () => {
+  if (inventory.length === 0) {
+    return null;
+  }
+  return (
+    <div className="inventory-badge" role="alert">
+      <h3>Inventory</h3>
+      <ul>
+        {inventory.map((itemId, index) => (
+          <li key={index}>{INVENTORY_ITEMS[itemId]?.name || itemId}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Add the inventory badge to the render section
+// Insert it near the top-right of the UI

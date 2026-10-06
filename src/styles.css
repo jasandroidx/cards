@@ -4261,3 +4261,33 @@ body::before {
   color: #dcd2bf;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
+
+.inventory-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 200px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.inventory-badge h3 {
+  margin-top: 0;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+.inventory-badge ul {
+  list-style-type: none;
+  padding: 0;
+}
+.inventory-badge li {
+  padding: 5px 0;
+  border-bottom: 1px solid #555;
+  cursor: pointer;
+}
+.inventory-badge li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
