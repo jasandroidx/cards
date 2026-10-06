@@ -2456,3 +2456,33 @@ function Ending({ onReturn, epitaph }: { onReturn: () => void; epitaph?: { marks
     </div>
   );
 }
+
+// Add inventory state management
+const [inventory, setInventory] = useState<string[]>(() => {
+  try {
+    const raw = localStorage.getItem("reliquary-v3");
+    const data = raw ? (JSON.parse(raw) as { inventory?: string[] }) : {};
+    return data.inventory || [];
+  } catch {
+    return [];
+  }
+});
+
+// Add inventory UI badge
+const inventoryBadge = () => {
+  if (inventory.length === 0) {
+    return null;
+  }
+  return (
+    <div className="inventory-badge" role="alert">
+      <h3>Inventory</h3>
+      <ul>
+        {inventory.map((itemId, index) => (
+          <li key={index}>{INVENTORY_ITEMS[itemId]?.name || itemId}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Add CSS for inventory badge
