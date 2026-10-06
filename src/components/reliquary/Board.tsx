@@ -2218,6 +2218,9 @@ export function Board({ onReturn }: { onReturn?: (marks: number, boons: string[]
         // Find the dead square that was clicked (store current square?)
         // We'll handle showing the dialog via seatDialog state set earlier
         // Get the current square and set it as the seatDialog
+if (currentSquare?.kind === "dead") {
+  setSeatDialog(currentSquare);
+}
         const currentSquare = SQUARES.find(s => s.id === picked);
         if (currentSquare?.kind === "dead") {
           setSeatDialog(currentSquare);
